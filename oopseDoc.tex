@@ -498,7 +498,7 @@ Every {\tt $<$MetaData$>$} block must have a component statement. \\
 {\tt minimizer} & string & Chooses a minimizer & Possible minimizers
 are SD and CG. Either {\tt ensemble} or {\tt minimizer} must be specified. \\
 {\tt ensemble} & string & Sets the ensemble. & Possible ensembles are
-NVE, NVT, NPTi, NPAT, NPTf, and NPTxyz.  Either {\tt ensemble}
+NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, and LD.  Either {\tt ensemble}
 or {\tt minimizer} must be specified. \\
 {\tt dt} & fs & Sets the time step. & Selection of {\tt dt} should be
 small enough to sample the fastest motion of the simulation. ({\tt
@@ -1905,6 +1905,8 @@ NPTf & isobaric-isothermal & {\tt ensemble = NPTf;} \\
   & (with changes to box shape) & \\
 NPTxyz & approximate isobaric-isothermal & {\tt ensemble = NPTxyz;} \\
  &  (with separate barostats on each box dimension) & \\
+LD & Langevin Dynamics & {\tt ensemble = LD;} \\
+ &  (approximates the effects of an implicit solvent) & \\
 \end{tabular}
 \end{center}
 
@@ -2370,15 +2372,14 @@ for use with liquid simulations, or in cases where there is
 orientational anisotropy in the system (i.e. in lipid bilayer
 simulations).
 
-\section{Langevin Dynamics (LANGEVINDYNAMICS)\label{LDRB}}
+\section{Langevin Dynamics (LD)\label{LDRB}}
 
-{\sc oopse} implements a Langevin dynamics integrator in order to
-perform molecular dynamics simulations in implicit solvent
-environments.  This results in substantial performance gains when the
-detailed dynamics of the solvent is not important. Since {\sc oopse}
-also handles rigid bodies of arbitrary composition and shape, the
-Langevin integrator is somewhat more complex than in other simulation
-packages.
+{\sc oopse} implements a Langevin integrator in order to perform
+molecular dynamics simulations in implicit solvent environments.  This
+can result in substantial performance gains when the detailed dynamics
+of the solvent is not important. Since {\sc oopse} also handles rigid
+bodies of arbitrary composition and shape, the Langevin integrator is
+by necessity somewhat more complex than in other simulation packages.
 
 Consider the Langevin equations of motion in generalized coordinates
 \begin{equation}
@@ -2435,11 +2436,19 @@ variable with zero mean and variance,
 2 k_B T \Xi_R \delta(t - t'). \label{eq:randomForce}
 \end{equation}
 $\Xi_R$ is the $6\times6$ resistance tensor at the center of
-resistance.  Once this tensor is known for a given rigid body (as
-described in the previous section) obtaining a stochastic vector that
-has the properties in Eq. (\ref{eq:randomForce}) can be done
-efficiently by carrying out a one-time Cholesky decomposition to
-obtain the square root matrix of the resistance tensor,
+resistance.  
+
+For atoms and ellipsoids, there are good approximations for this
+tensor that are based on Stokes' law.  For arbitrary rigid bodies, the
+resistance tensor must be pre-computed before Langevin dynamics can be
+used.  The {\sc oopse} distribution contains a utitilty program called
+Hydro that performs this computation.
+
+Once this tensor is known for a given {\tt integrableObject},
+obtaining a stochastic vector that has the properties in
+Eq. (\ref{eq:randomForce}) can be done efficiently by carrying out a
+one-time Cholesky decomposition to obtain the square root matrix of
+the resistance tensor,
 \begin{equation} 
 \Xi_R = {\bf S} {\bf S}^{T},
 \label{eq:Cholesky}
@@ -2477,10 +2486,10 @@ frame, we consider the equation of motion for the angular momentum
 \begin{equation}
 \frac{\partial}{\partial t}{\bf j}(t) = \tau^{~b}(t)
 \end{equation}
-Embedding the friction and random forces into the the total force and
-torque, one can integrate the Langevin equations of motion for a rigid
-body of arbitrary shape in a velocity-Verlet style 2-part algorithm,
-where $h = \delta t$:
+By embedding the friction and random forces into the the total force
+and torque, {\sc oopse} integrates the Langevin equations of motion
+for a rigid body of arbitrary shape in a velocity-Verlet style 2-part
+algorithm, where $h = \delta t$:
 
 {\tt move A:}
 \begin{align*}
@@ -2585,34 +2594,39 @@ the velocities can be advanced to the same time value.
     + \frac{h}{2} {\bf \tau}^{~b}(t + h) .
 \end{align*}
 
-The viscosity of the implicit of solvents must be specified using {\tt
-viscosity} keywords in the meta-data file to use langevin dynamics
-integrator. For simple shaped particles (spheres and ellipsoids), no
-further parameters are necessary. However, there are no analytical
-solutions for composite shaped particles, the approximate methods have
-to be applied to get the resistance tensor. The file which contains
-the information about hydro properties is indicated by {\tt
-HydroPropFile} keyword in meta-data file. The {\tt HydroPropFile} is
-precalculated by {\tt Hydro}.
+The viscosity of the implicit solvent must be specified using the {\tt
+viscosity} keyword in the meta-data file if the Langevin integrator is
+selected. For simple particles (spheres and ellipsoids), no further
+parameters are necessary.  Since there are no analytic solutions for
+the resistance tensors for composite rigid bodies, the approximate
+tensors for these objects must also be specified in order to use
+Langevin dynamics.  The meta-data file must therefore point to another
+file which contains the information about the hydrodynamic properties
+of all complex rigid bodies being used during the simulation.  The
+{\tt HydroPropFile} keyword is used to specify the name of this
+file. A {\tt HydroPropFile} should be precalculated using the Hydro
+program that is included in the {\sc oopse} distribution.
 
-\begin{longtable}[c]{ABCD}
-\caption{Meta-data Keywords: Langevin Dynamics Parameters}
+\begin{longtable}[c]{ABG}
+\caption{Meta-data Keywords: Required parameters for the Langevin integrator}
 \\
-{\bf keyword} & {\bf units} & {\bf use} & {\bf remarks}  \\ \hline
+{\bf keyword} & {\bf units} & {\bf use}  \\ \hline
 \endhead
 \hline
 \endfoot
-{\tt viscosity} & centipoise & Sets the value of viscosity of implicit
-solvents & \\ {\tt HydroPropFile} & string & specifies the resistance
-tensor file & usually a {\tt .diff} file which is precalculated by
-{\sc Hydro}. Not necessory for simple shaped particles (spheres and
-ellipsoids) \\ 
-{\tt beadSize} & $\mbox{\AA}$ & Sets the diameters of
-beads when {\sc Rough Shell Model} is used to generate the resistance
-tensor file. \\
+{\tt viscosity} & centipoise & Sets the value of viscosity of the implicit
+solvent  \\ 
+{\tt targetTemp} & K & Sets the target temperature of the system.
+This parameter must be specified to use Langevin dynamics. \\ 
+{\tt HydroPropFile} & string & Specifies the name of the resistance
+tensor (usually a {\tt .diff} file) which is precalculated by {\tt
+Hydro}. This keyworkd is not necessary if the simulation contains only
+simple bodies (spheres and ellipsoids). \\ 
+{\tt beadSize} & $\mbox{\AA}$ & Sets the diameter of the beads to use
+when the {\tt RoughShell} model is used to approximate the resistance
+tensor.
 \label{table:ldParameters}
 \end{longtable}
-
 
 \section{\label{sec:constraints}Constraint Methods}
 
@@ -3459,14 +3473,18 @@ The options available for SimpleBuilder are as follows:
 \end{longtable}
 
 \section{\label{oopseSec:Hydro}Hydro}
-{\tt Hydro} generates {\tt .diff} file which is required when a Langevin
-Dynamics simulation using approximate models (supports Bead Model and
-Rough Shell Model) is performed. To generate the {\tt }.diff file, the
-meta-data file is needed as the input file. The viscosity of the fluid
-flow (solvent) and the temperature of the system have to be defined in
-meta-data file. If the approximate model is {\tt Rough Shell Model},
-the {\tt beadSize} which is the diameter of every beads must be
-specified in meta-data file.
+{\tt Hydro} generates resistance tensor ({\tt .diff}) files which are
+required when using the Langevin integrator using complex rigid
+bodies.  {\tt Hydro} supports two approximate models: the {\tt
+BeadModel} and {\tt RoughShell}.  Additionally, {\tt Hydro} can
+generate resistance tensor files using analytic solutions for simple
+shapes. To generate a {\tt }.diff file, a meta-data file is needed as
+the input file. Since the resistance tensor depends on these
+quantities, the {\tt viscosity} of the solvent and the temperature
+({\tt targetTemp}) of the system must be defined in meta-data file. If
+the approximate model in use is the {\tt RoughShell} model the {\tt
+beadSize} (the diameter of the small beads used to approximate the
+surface of the body) must also be specified.
 
 The options available for Hydro are as follows:
 \begin{longtable}[c]{|EFG|}
@@ -3480,10 +3498,10 @@ The options available for Hydro are as follows:
   -V& {\tt -{}-version}            & Print version and exit\\
   -i& {\tt -{}-input=filename}     & input MetaData (md) file\\
   -o& {\tt -{}-output=STRING}      & Output file name\\
-   &  {\tt -{}-model=STRING}     & hydrodynamics model (supports
-RoughShell and BeadModel)\\
+   &  {\tt -{}-model=STRING}     & hydrodynamics model (supports both
+{\tt RoughShell} and {\tt BeadModel})\\
   -b&  {\tt -{}-beads}            & generate the beads only,
-hydrodynamics will be performed (default=off)\\
+hydrodynamic calculations will not be performed (default=off)\\
 \end{longtable}
 
 
