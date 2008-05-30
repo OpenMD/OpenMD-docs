@@ -2519,6 +2519,245 @@ Harmonic Forces are used by default
 \label{table:zconParams}
 \end{longtable}
 
+\section{Langevin Dynamics for Rigid Particles of Arbitrary Shape (LANGEVINDYNAMICS)\label{LDRB}}
+
+{\sc oopse} implements langevin dynamics integrator to perform the
+molecular dynamics simulations at implicit solvents environment to
+speed up the simulation when the properties of solvents are not
+important. Consider the Langevin equations of motion in generalized
+coordinates
+\begin{equation}
+{\bf M} \dot{{\bf V}}(t) = {\bf F}_{s}(t) +
+{\bf F}_{f}(t)  + {\bf F}_{r}(t) 
+\label{LDGeneralizedForm}
+\end{equation}
+where ${\bf M}$ is a $6 \times 6$ diagonal mass matrix (which
+includes the mass of the rigid body as well as the moments of inertia
+in the body-fixed frame) and ${\bf V}$ is a generalized velocity,
+${\bf V} =
+\left\{{\bf v},{\bf \omega}\right\}$. The right side of
+Eq.~\ref{LDGeneralizedForm} consists of three generalized forces: a
+system force (${\bf F}_{s}$), a frictional or dissipative force (${\bf
+F}_{f}$) and a stochastic force (${\bf F}_{r}$). While the evolution
+of the system in Newtonian mechanics is typically done in the lab
+frame, it is convenient to handle the dynamics of rigid bodies in
+body-fixed frames. Thus the friction and random forces on each
+substructure are calculated in a body-fixed frame and may converted
+back to the lab frame using that substructure's rotation matrix (${\bf
+Q}$):
+\begin{equation}
+{\bf F}_{f,r} = 
+\left( \begin{array}{c}
+{\bf f}_{f,r} \\
+{\bf \tau}_{f,r}
+\end{array} \right)
+=
+\left( \begin{array}{c}
+{\bf Q}^{T} {\bf f}^{~b}_{f,r} \\
+{\bf Q}^{T} {\bf \tau}^{~b}_{f,r}
+\end{array} \right)
+\end{equation}
+The body-fixed friction force, ${\bf F}_{f}^{~b}$, is proportional to
+the (body-fixed) velocity at the center of resistance
+${\bf v}_{R}^{~b}$ and the angular velocity ${\bf \omega}$
+\begin{equation}
+{\bf F}_{f}^{~b}(t) = \left( \begin{array}{l}
+ {\bf f}_{f}^{~b}(t) \\
+ {\bf \tau}_{f}^{~b}(t) \\
+ \end{array} \right) =  - \left( \begin{array}{*{20}c}
+   \Xi_{R}^{tt} & \Xi_{R}^{rt} \\
+   \Xi_{R}^{tr} & \Xi_{R}^{rr}    \\
+\end{array} \right)\left( \begin{array}{l}
+ {\bf v}_{R}^{~b}(t) \\
+ {\bf \omega}(t) \\
+ \end{array} \right),
+\end{equation}
+while the random force, ${\bf F}_{r}$, is a Gaussian stochastic
+variable with zero mean and variance,
+\begin{equation}
+\left\langle {{\bf F}_{r}(t) ({\bf F}_{r}(t'))^T } \right\rangle  =
+\left\langle {{\bf F}_{r}^{~b} (t) ({\bf F}_{r}^{~b} (t'))^T } \right\rangle  =
+2 k_B T \Xi_R \delta(t - t'). \label{eq:randomForce}
+\end{equation}
+$\Xi_R$ is the $6\times6$ resistance tensor at the center of
+resistance.  Once this tensor is known for a given rigid body (as
+described in the previous section) obtaining a stochastic vector that
+has the properties in Eq. (\ref{eq:randomForce}) can be done
+efficiently by carrying out a one-time Cholesky decomposition to
+obtain the square root matrix of the resistance tensor,
+\begin{equation} 
+\Xi_R = {\bf S} {\bf S}^{T},
+\label{eq:Cholesky}
+\end{equation} 
+where ${\bf S}$ is a lower triangular matrix.\cite{Schlick2002} A
+vector with the statistics required for the random force can then be
+obtained by multiplying ${\bf S}$ onto a random 6-vector ${\bf Z}$ which
+has elements chosen from a Gaussian distribution, such that:
+\begin{equation}
+\langle {\bf Z}_i \rangle = 0, \hspace{1in} \langle {\bf Z}_i \cdot
+{\bf Z}_j \rangle = \frac{2 k_B T}{\delta t} \delta_{ij},
+\end{equation}
+where $\delta t$ is the timestep in use during the simulation. The
+random force, ${\bf F}_{r}^{~b} = {\bf S} {\bf Z}$, can be shown to have the
+correct properties required by Eq. (\ref{eq:randomForce}).
+
+The equation of motion for the translational velocity of the center of
+mass (${\bf v}$) can be written as
+\begin{equation}
+m \dot{{\bf v}} (t) =  {\bf f}_{s}(t) + {\bf f}_{f}(t) +
+{\bf f}_{r}(t)
+\end{equation}
+Since the frictional and random forces are applied at the center of
+resistance, which generally does not coincide with the center of mass,
+extra torques are exerted at the center of mass. Thus, the net
+body-fixed torque at the center of mass, $\tau^{~b}(t)$,
+is given by
+\begin{equation}
+\tau^{~b} \leftarrow \tau_{s}^{~b} + \tau_{f}^{~b} + \tau_{r}^{~b} + {\bf r}_{MR} \times \left( {\bf f}_{f}^{~b} + {\bf f}_{r}^{~b} \right)
+\end{equation}
+where ${\bf r}_{MR}$ is the vector from the center of mass to the center of
+resistance. Instead of integrating the angular velocity in lab-fixed
+frame, we consider the equation of motion for the angular momentum
+(${\bf j}$) in the body-fixed frame
+\begin{equation}
+\frac{\partial}{\partial t}{\bf j}(t) = \tau^{~b}(t)
+\end{equation}
+Embedding the friction and random forces into the the total force and
+torque, one can integrate the Langevin equations of motion for a rigid
+body of arbitrary shape in a velocity-Verlet style 2-part algorithm,
+where $h = \delta t$:
+
+{\tt move A:}
+\begin{align*}
+{\bf v}\left(t + h / 2\right)  &\leftarrow  {\bf v}(t)
+    + \frac{h}{2} \left( {\bf f}(t) / m \right), \\
+%
+{\bf r}(t + h) &\leftarrow {\bf r}(t)
+    + h  {\bf v}\left(t + h / 2 \right), \\
+%
+{\bf j}\left(t + h / 2 \right)  &\leftarrow {\bf j}(t)
+    + \frac{h}{2} {\bf \tau}^{~b}(t), \\
+%
+{\bf Q}(t + h) &\leftarrow \mathrm{rotate}\left( h {\bf j}
+    (t + h / 2) \cdot \overleftrightarrow{\mathsf{I}}^{-1} \right).
+\end{align*}
+In this context, $\overleftrightarrow{\mathsf{I}}$ is the diagonal
+moment of inertia tensor, and the $\mathrm{rotate}$ function is the
+reversible product of the three body-fixed rotations,
+\begin{equation}
+\mathrm{rotate}({\bf a}) = \mathsf{G}_x(a_x / 2) \cdot
+\mathsf{G}_y(a_y / 2) \cdot \mathsf{G}_z(a_z) \cdot \mathsf{G}_y(a_y
+/ 2) \cdot \mathsf{G}_x(a_x /2),
+\end{equation}
+where each rotational propagator, $\mathsf{G}_\alpha(\theta)$,
+rotates both the rotation matrix ($\mathbf{Q}$) and the body-fixed
+angular momentum (${\bf j}$) by an angle $\theta$ around body-fixed
+axis $\alpha$,
+\begin{equation}
+\mathsf{G}_\alpha( \theta ) = \left\{
+\begin{array}{lcl}
+\mathbf{Q}(t) & \leftarrow & \mathbf{Q}(0) \cdot \mathsf{R}_\alpha(\theta)^T, \\
+{\bf j}(t) & \leftarrow & \mathsf{R}_\alpha(\theta) \cdot {\bf
+j}(0).
+\end{array}
+\right.
+\end{equation}
+$\mathsf{R}_\alpha$ is a quadratic approximation to the single-axis
+rotation matrix.  For example, in the small-angle limit, the
+rotation matrix around the body-fixed x-axis can be approximated as
+\begin{equation}
+\mathsf{R}_x(\theta) \approx \left(
+\begin{array}{ccc}
+1 & 0 & 0 \\
+0 & \frac{1-\theta^2 / 4}{1 + \theta^2 / 4}  & -\frac{\theta}{1+
+\theta^2 / 4} \\
+0 & \frac{\theta}{1+ \theta^2 / 4} & \frac{1-\theta^2 / 4}{1 +
+\theta^2 / 4}
+\end{array}
+\right).
+\end{equation}
+All other rotations follow in a straightforward manner. After the
+first part of the propagation, the forces and body-fixed torques are
+calculated at the new positions and orientations.  The system forces
+and torques are derivatives of the total potential energy function
+($U$) with respect to the rigid body positions (${\bf r}$) and the
+columns of the transposed rotation matrix ${\bf Q}^T = \left({\bf
+u}_x, {\bf u}_y, {\bf u}_z \right)$:
+
+{\tt Forces:}
+\begin{align*}
+{\bf f}_{s}(t + h) & \leftarrow
+    - \left(\frac{\partial U}{\partial {\bf r}}\right)_{{\bf r}(t + h)} \\
+%
+{\bf \tau}_{s}(t + h) &\leftarrow {\bf u}(t + h)
+    \times \frac{\partial U}{\partial {\bf u}} \\
+%
+{\bf v}^{b}_{R}(t+h) & \leftarrow \mathbf{Q}(t+h) \cdot \left({\bf v}(t+h) + {\bf \omega}(t+h) \times {\bf r}_{MR} \right) \\
+%
+{\bf f}_{R,f}^{b}(t+h) & \leftarrow - \Xi_{R}^{tt} \cdot
+{\bf v}^{b}_{R}(t+h) - \Xi_{R}^{rt} \cdot {\bf \omega}(t+h) \\
+%
+{\bf \tau}_{R,f}^{b}(t+h) & \leftarrow - \Xi_{R}^{tr} \cdot
+{\bf v}^{b}_{R}(t+h) - \Xi_{R}^{rr} \cdot {\bf \omega}(t+h) \\
+%
+Z & \leftarrow  {\tt GaussianNormal}(2 k_B T / h, 6) \\
+{\bf F}_{R,r}^{b}(t+h) & \leftarrow {\bf S} \cdot Z \\
+%
+{\bf f}(t+h) & \leftarrow {\bf f}_{s}(t+h) + \mathbf{Q}^{T}(t+h)
+\cdot \left({\bf f}_{R,f}^{~b} + {\bf f}_{R,r}^{~b} \right) \\
+%
+\tau(t+h) & \leftarrow \tau_{s}(t+h) + \mathbf{Q}^{T}(t+h) \cdot \left(\tau_{R,f}^{~b} + \tau_{R,r}^{~b} \right) + {\bf r}_{MR} \times \left({\bf f}_{f}(t+h) + {\bf f}_{r}(t+h) \right) \\
+\tau^{~b}(t+h) & \leftarrow \mathbf{Q}(t+h) \cdot \tau(t+h) \\
+\end{align*}
+Frictional (and random) forces and torques must be computed at the
+center of resistance, so there are additional steps required to find
+the body-fixed velocity (${\bf v}_{R}^{~b}$) at this location.  Mapping
+the frictional and random forces at the center of resistance back to
+the center of mass also introduces an additional term in the torque
+one obtains at the center of mass.
+
+Once the forces and torques have been obtained at the new time step,
+the velocities can be advanced to the same time value.
+
+{\tt move B:}
+\begin{align*}
+{\bf v}\left(t + h \right)  &\leftarrow  {\bf v}\left(t + h / 2
+\right)
+    + \frac{h}{2} \left( {\bf f}(t + h) / m \right), \\
+%
+{\bf j}\left(t + h \right)  &\leftarrow {\bf j}\left(t + h / 2
+\right)
+    + \frac{h}{2} {\bf \tau}^{~b}(t + h) .
+\end{align*}
+
+The viscosity of the implicit of solvents must be specified using {\tt
+viscosity} keywords in the meta-data file to use langevin dynamics
+integrator. For simple shaped particles (spheres and ellipsoids), no
+further parameters are necessary. However, there are no analytical
+solutions for composite shaped particles, the approximate methods have
+to be applied to get the resistance tensor. The file which contains
+the information about hydro properties is indicated by {\tt
+HydroPropFile} keyword in meta-data file. The {\tt HydroPropFile} is
+precalculated by {\tt Hydro}.
+
+\begin{longtable}[c]{ABCD}
+\caption{Meta-data Keywords: Langevin Dynamics Parameters}
+\\
+{\bf keyword} & {\bf units} & {\bf use} & {\bf remarks}  \\ \hline
+\endhead
+\hline
+\endfoot
+{\tt viscosity} & centipoise & Sets the value of viscosity of implicit
+solvents & \\ {\tt HydroPropFile} & string & specifies the resistance
+tensor file & usually a {\tt .diff} file which is precalculated by
+{\sc Hydro}. Not necessory for simple shaped particles (spheres and
+ellipsoids) \\ 
+{\tt beadSize} & $\mbox{\AA}$ & Sets the diameters of
+beads when {\sc Rough Shell Model} is used to generate the resistance
+tensor file. \\
+\label{table:ldParameters}
+\end{longtable}
+
 \chapter{\label{oopseSec:thermInt}Thermodynamic Integration}
 
 Thermodynamic integration is an established technique that has been
@@ -3214,6 +3453,35 @@ The options available for SimpleBuilder are as follows:
     &  {\tt -{}-ny=INT}           &  number of unit cells in y\\
     &  {\tt -{}-nz=INT}            &  number of unit cells in z
 \end{longtable}
+
+\section{\label{oopseSec:Hydro}Hydro}
+{\tt Hydro} generates {\tt .diff} file which is required when a Langevin
+Dynamics simulation using approximate models (supports Bead Model and
+Rough Shell Model) is performed. To generate the {\tt }.diff file, the
+meta-data file is needed as the input file. The viscosity of the fluid
+flow (solvent) and the temperature of the system have to be defined in
+meta-data file. If the approximate model is {\tt Rough Shell Model},
+the {\tt beadSize} which is the diameter of every beads must be
+specified in meta-data file.
+
+The options available for Hydro are as follows:
+\begin{longtable}[c]{|EFG|}
+\caption{Hydro Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -V& {\tt -{}-version}            & Print version and exit\\
+  -i& {\tt -{}-input=filename}     & input MetaData (md) file\\
+  -o& {\tt -{}-output=STRING}      & Output file name\\
+   &  {\tt -{}-model=STRING}     & hydrodynamics model (supports
+RoughShell and BeadModel)\\
+  -b&  {\tt -{}-beads}            & generate the beads only,
+hydrodynamics will be performed (default=off)\\
+\end{longtable}
+
 
 \chapter{\label{oopseSec:parallelization} Parallel Simulation Implementation}
 
