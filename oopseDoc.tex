@@ -2370,162 +2370,17 @@ for use with liquid simulations, or in cases where there is
 orientational anisotropy in the system (i.e. in lipid bilayer
 simulations).
 
+\section{Langevin Dynamics (LANGEVINDYNAMICS)\label{LDRB}}
 
-\section{\label{sec:constraints}Constraint Methods}
+{\sc oopse} implements a Langevin dynamics integrator in order to
+perform molecular dynamics simulations in implicit solvent
+environments.  This results in substantial performance gains when the
+detailed dynamics of the solvent is not important. Since {\sc oopse}
+also handles rigid bodies of arbitrary composition and shape, the
+Langevin integrator is somewhat more complex than in other simulation
+packages.
 
-\subsection{\label{oopseSec:rattle}The {\sc rattle} Method for Bond 
-	Constraints}
-
-In order to satisfy the constraints of fixed bond lengths within {\sc
-oopse}, we have implemented the {\sc rattle} algorithm of
-Andersen.\cite{andersen83} {\sc rattle} is a velocity-Verlet
-formulation of the {\sc shake} method\cite{ryckaert77} for iteratively
-solving the Lagrange multipliers which maintain the holonomic
-constraints.  Both methods are covered in depth in the
-literature,\cite{leach01:mm,Allen87} and a detailed description of
-this method would be redundant.
-
-\subsection{\label{oopseSec:zcons}The Z-Constraint Method}
-
-A force auto-correlation method based on the fluctuation-dissipation
-theorem was developed by Roux and Karplus to investigate the dynamics
-of ions inside ion channels.\cite{Roux91} The time-dependent friction
-coefficient can be calculated from the deviation of the instantaneous
-force from its mean value:
-\begin{equation}
-\xi(z,t)=\langle\delta F(z,t)\delta F(z,0)\rangle/k_{B}T,
-\end{equation}
-where%
-\begin{equation}
-\delta F(z,t)=F(z,t)-\langle F(z,t)\rangle.
-\end{equation}
-
-If the time-dependent friction decays rapidly, the static friction
-coefficient can be approximated by
-\begin{equation}
-\xi_{\text{static}}(z)=\int_{0}^{\infty}\langle\delta F(z,t)\delta F(z,0)\rangle dt.
-\end{equation}
-
-This allows the diffusion constant to then be calculated through the
-Einstein relation:\cite{Marrink94}
-\begin{equation}
-D(z)=\frac{k_{B}T}{\xi_{\text{static}}(z)}=\frac{(k_{B}T)^{2}}{\int_{0}^{\infty
-}\langle\delta F(z,t)\delta F(z,0)\rangle dt}.%
-\end{equation}
-
-The Z-Constraint method, which fixes the $z$ coordinates of a few
-``tagged'' molecules with respect to the center of the mass of the
-system is a technique that was proposed to obtain the forces required
-for the force auto-correlation calculation.\cite{Marrink94} However,
-simply resetting the coordinate will move the center of the mass of
-the whole system. To avoid this problem, we have developed a new
-method that is utilized in {\sc oopse}. Instead of resetting the
-coordinates, we reset the forces of $z$-constrained molecules and
-subtract the total constraint forces from the rest of the system after
-the force calculation at each time step.
-
-After the force calculation, the total force on molecule $\alpha$ is:
-\begin{equation}
-G_{\alpha} = \sum_i F_{\alpha i},
-\label{oopseEq:zc1}
-\end{equation}
-where $F_{\alpha i}$ is the force in the $z$ direction on atom $i$ in
-$z$-constrained molecule $\alpha$. The forces on the atoms in the
-$z$-constrained molecule are then adjusted to remove the total force
-on molecule $\alpha$:
-\begin{equation}
-F_{\alpha i} = F_{\alpha i} - 
-	\frac{m_{\alpha i} G_{\alpha}}{\sum_i m_{\alpha i}}.
-\end{equation}
-Here, $m_{\alpha i}$ is the mass of atom $i$ in the $z$-constrained
-molecule.  After the forces have been adjusted, the velocities must
-also be modified to subtract out molecule $\alpha$'s center-of-mass
-velocity in the $z$ direction.
-\begin{equation}
-v_{\alpha i} = v_{\alpha i} -
-	\frac{\sum_i m_{\alpha i} v_{\alpha i}}{\sum_i m_{\alpha i}},
-\end{equation}
-where $v_{\alpha i}$ is the velocity of atom $i$ in the $z$ direction.
-Lastly, all of the accumulated constraint forces must be subtracted
-from the rest of the unconstrained system to keep the system center of
-mass of the entire system from drifting.
-\begin{equation}
-F_{\beta i} = F_{\beta i} - \frac{m_{\beta i} \sum_{\alpha} G_{\alpha}}
-	{\sum_{\beta}\sum_i m_{\beta i}},
-\end{equation}
-where $\beta$ denotes all {\it unconstrained} molecules in the
-system. Similarly, the velocities of the unconstrained molecules must
-also be scaled:
-\begin{equation}
-v_{\beta i} = v_{\beta i} + \sum_{\alpha} \frac{\sum_i m_{\alpha i}
-v_{\alpha i}}{\sum_i m_{\alpha i}}.
-\end{equation}
-
-This method will pin down the centers-of-mass of all of the
-$z$-constrained molecules, and will also keep the entire system fixed
-at the original system center-of-mass location.
-
-At the very beginning of the simulation, the molecules may not be at
-their desired positions. To steer a $z$-constrained molecule to its
-specified position, a simple harmonic potential is used:
-\begin{equation}
-U(t)=\frac{1}{2}k_{\text{Harmonic}}(z(t)-z_{\text{cons}})^{2},%
-\end{equation}
-where $k_{\text{Harmonic}}$ is an harmonic force constant, $z(t)$ is
-the current $z$ coordinate of the center of mass of the constrained
-molecule, and $z_{\text{cons}}$ is the desired constraint
-position. The harmonic force operating on the $z$-constrained molecule
-at time $t$ can be calculated by
-\begin{equation}
-F_{z_{\text{Harmonic}}}(t)=-\frac{\partial U(t)}{\partial z(t)}=
-	-k_{\text{Harmonic}}(z(t)-z_{\text{cons}}).
-\end{equation}
-
-The user may also specify the use of a constant velocity method
-(steered molecular dynamics) to move the molecules to their desired
-initial positions. Based on concepts from atomic force microscopy,
-{\sc smd} has been used to study many processes which occur via rare
-events on the time scale of a few hundreds of picoseconds.  For
-example,{\sc smd} has been used to observe the dissociation of
-Streptavidin-biotin Complex.\cite{smd}  
-
-To use of the $z$-constraint method in an {\sc oopse} simulation, the
-molecules must be specified using the {\tt nZconstraints} keyword in
-the meta-data file.  The other parameters for modifying the behavior
-of the $z$-constraint method are listed in table~\ref{table:zconParams}.
-
-\begin{longtable}[c]{ABCD}
-\caption{Meta-data Keywords: Z-Constraint Parameters}
-\\
-{\bf keyword} & {\bf units} & {\bf use} & {\bf remarks}  \\ \hline
-\endhead
-\hline
-\endfoot
-{\tt zconsTime} & fs & Sets the frequency at which the {\tt .fz} file
-is written &  \\ 
-{\tt zconsForcePolicy} & string & The strategy for subtracting
-the $z$-constraint force from the {\it unconstrained} molecules & Possible
-strategies are {\tt BYMASS} and {\tt BYNUMBER}. The default
-strategy is {\tt BYMASS}\\ 
-{\tt zconsGap} & $\mbox{\AA}$ & Sets the distance between two adjacent
-constraint positions&Used mainly to move molecules through a
-simulation to estimate potentials of mean force. \\ 
-{\tt zconsFixtime} & fs & Sets the length of time the $z$-constraint
-molecule is held fixed & {\tt zconsFixtime} must be set if {\tt
-zconsGap} is set\\ 
-{\tt zconsUsingSMD} & logical & Flag for using Steered Molecular
-Dynamics to move the molecules to the correct constrained positions  &
-Harmonic Forces are used by default
-\label{table:zconParams}
-\end{longtable}
-
-\section{Langevin Dynamics for Rigid Particles of Arbitrary Shape (LANGEVINDYNAMICS)\label{LDRB}}
-
-{\sc oopse} implements langevin dynamics integrator to perform the
-molecular dynamics simulations at implicit solvents environment to
-speed up the simulation when the properties of solvents are not
-important. Consider the Langevin equations of motion in generalized
-coordinates
+Consider the Langevin equations of motion in generalized coordinates
 \begin{equation}
 {\bf M} \dot{{\bf V}}(t) = {\bf F}_{s}(t) +
 {\bf F}_{f}(t)  + {\bf F}_{r}(t) 
@@ -2756,6 +2611,155 @@ ellipsoids) \\
 beads when {\sc Rough Shell Model} is used to generate the resistance
 tensor file. \\
 \label{table:ldParameters}
+\end{longtable}
+
+
+\section{\label{sec:constraints}Constraint Methods}
+
+\subsection{\label{oopseSec:rattle}The {\sc rattle} Method for Bond 
+	Constraints}
+
+In order to satisfy the constraints of fixed bond lengths within {\sc
+oopse}, we have implemented the {\sc rattle} algorithm of
+Andersen.\cite{andersen83} {\sc rattle} is a velocity-Verlet
+formulation of the {\sc shake} method\cite{ryckaert77} for iteratively
+solving the Lagrange multipliers which maintain the holonomic
+constraints.  Both methods are covered in depth in the
+literature,\cite{leach01:mm,Allen87} and a detailed description of
+this method would be redundant.
+
+\subsection{\label{oopseSec:zcons}The Z-Constraint Method}
+
+A force auto-correlation method based on the fluctuation-dissipation
+theorem was developed by Roux and Karplus to investigate the dynamics
+of ions inside ion channels.\cite{Roux91} The time-dependent friction
+coefficient can be calculated from the deviation of the instantaneous
+force from its mean value:
+\begin{equation}
+\xi(z,t)=\langle\delta F(z,t)\delta F(z,0)\rangle/k_{B}T,
+\end{equation}
+where%
+\begin{equation}
+\delta F(z,t)=F(z,t)-\langle F(z,t)\rangle.
+\end{equation}
+
+If the time-dependent friction decays rapidly, the static friction
+coefficient can be approximated by
+\begin{equation}
+\xi_{\text{static}}(z)=\int_{0}^{\infty}\langle\delta F(z,t)\delta F(z,0)\rangle dt.
+\end{equation}
+
+This allows the diffusion constant to then be calculated through the
+Einstein relation:\cite{Marrink94}
+\begin{equation}
+D(z)=\frac{k_{B}T}{\xi_{\text{static}}(z)}=\frac{(k_{B}T)^{2}}{\int_{0}^{\infty
+}\langle\delta F(z,t)\delta F(z,0)\rangle dt}.%
+\end{equation}
+
+The Z-Constraint method, which fixes the $z$ coordinates of a few
+``tagged'' molecules with respect to the center of the mass of the
+system is a technique that was proposed to obtain the forces required
+for the force auto-correlation calculation.\cite{Marrink94} However,
+simply resetting the coordinate will move the center of the mass of
+the whole system. To avoid this problem, we have developed a new
+method that is utilized in {\sc oopse}. Instead of resetting the
+coordinates, we reset the forces of $z$-constrained molecules and
+subtract the total constraint forces from the rest of the system after
+the force calculation at each time step.
+
+After the force calculation, the total force on molecule $\alpha$ is:
+\begin{equation}
+G_{\alpha} = \sum_i F_{\alpha i},
+\label{oopseEq:zc1}
+\end{equation}
+where $F_{\alpha i}$ is the force in the $z$ direction on atom $i$ in
+$z$-constrained molecule $\alpha$. The forces on the atoms in the
+$z$-constrained molecule are then adjusted to remove the total force
+on molecule $\alpha$:
+\begin{equation}
+F_{\alpha i} = F_{\alpha i} - 
+	\frac{m_{\alpha i} G_{\alpha}}{\sum_i m_{\alpha i}}.
+\end{equation}
+Here, $m_{\alpha i}$ is the mass of atom $i$ in the $z$-constrained
+molecule.  After the forces have been adjusted, the velocities must
+also be modified to subtract out molecule $\alpha$'s center-of-mass
+velocity in the $z$ direction.
+\begin{equation}
+v_{\alpha i} = v_{\alpha i} -
+	\frac{\sum_i m_{\alpha i} v_{\alpha i}}{\sum_i m_{\alpha i}},
+\end{equation}
+where $v_{\alpha i}$ is the velocity of atom $i$ in the $z$ direction.
+Lastly, all of the accumulated constraint forces must be subtracted
+from the rest of the unconstrained system to keep the system center of
+mass of the entire system from drifting.
+\begin{equation}
+F_{\beta i} = F_{\beta i} - \frac{m_{\beta i} \sum_{\alpha} G_{\alpha}}
+	{\sum_{\beta}\sum_i m_{\beta i}},
+\end{equation}
+where $\beta$ denotes all {\it unconstrained} molecules in the
+system. Similarly, the velocities of the unconstrained molecules must
+also be scaled:
+\begin{equation}
+v_{\beta i} = v_{\beta i} + \sum_{\alpha} \frac{\sum_i m_{\alpha i}
+v_{\alpha i}}{\sum_i m_{\alpha i}}.
+\end{equation}
+
+This method will pin down the centers-of-mass of all of the
+$z$-constrained molecules, and will also keep the entire system fixed
+at the original system center-of-mass location.
+
+At the very beginning of the simulation, the molecules may not be at
+their desired positions. To steer a $z$-constrained molecule to its
+specified position, a simple harmonic potential is used:
+\begin{equation}
+U(t)=\frac{1}{2}k_{\text{Harmonic}}(z(t)-z_{\text{cons}})^{2},%
+\end{equation}
+where $k_{\text{Harmonic}}$ is an harmonic force constant, $z(t)$ is
+the current $z$ coordinate of the center of mass of the constrained
+molecule, and $z_{\text{cons}}$ is the desired constraint
+position. The harmonic force operating on the $z$-constrained molecule
+at time $t$ can be calculated by
+\begin{equation}
+F_{z_{\text{Harmonic}}}(t)=-\frac{\partial U(t)}{\partial z(t)}=
+	-k_{\text{Harmonic}}(z(t)-z_{\text{cons}}).
+\end{equation}
+
+The user may also specify the use of a constant velocity method
+(steered molecular dynamics) to move the molecules to their desired
+initial positions. Based on concepts from atomic force microscopy,
+{\sc smd} has been used to study many processes which occur via rare
+events on the time scale of a few hundreds of picoseconds.  For
+example,{\sc smd} has been used to observe the dissociation of
+Streptavidin-biotin Complex.\cite{smd}  
+
+To use of the $z$-constraint method in an {\sc oopse} simulation, the
+molecules must be specified using the {\tt nZconstraints} keyword in
+the meta-data file.  The other parameters for modifying the behavior
+of the $z$-constraint method are listed in table~\ref{table:zconParams}.
+
+\begin{longtable}[c]{ABCD}
+\caption{Meta-data Keywords: Z-Constraint Parameters}
+\\
+{\bf keyword} & {\bf units} & {\bf use} & {\bf remarks}  \\ \hline
+\endhead
+\hline
+\endfoot
+{\tt zconsTime} & fs & Sets the frequency at which the {\tt .fz} file
+is written &  \\ 
+{\tt zconsForcePolicy} & string & The strategy for subtracting
+the $z$-constraint force from the {\it unconstrained} molecules & Possible
+strategies are {\tt BYMASS} and {\tt BYNUMBER}. The default
+strategy is {\tt BYMASS}\\ 
+{\tt zconsGap} & $\mbox{\AA}$ & Sets the distance between two adjacent
+constraint positions&Used mainly to move molecules through a
+simulation to estimate potentials of mean force. \\ 
+{\tt zconsFixtime} & fs & Sets the length of time the $z$-constraint
+molecule is held fixed & {\tt zconsFixtime} must be set if {\tt
+zconsGap} is set\\ 
+{\tt zconsUsingSMD} & logical & Flag for using Steered Molecular
+Dynamics to move the molecules to the correct constrained positions  &
+Harmonic Forces are used by default
+\label{table:zconParams}
 \end{longtable}
 
 \chapter{\label{oopseSec:thermInt}Thermodynamic Integration}
