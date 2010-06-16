@@ -4,7 +4,7 @@ PDF = Preview
 
 .SUFFIXES: $(SUFFIXES) .dvi .bib .tex .bbl .pdf
 
-PAPER_ROOT = oopseDoc
+PAPER_ROOT = openmdDoc
 
 PICTURES   = \
 	compCost.pdf \
@@ -16,8 +16,8 @@ PICTURES   = \
 	waterAngle.pdf
 
 INFILES    = \
-	oopseDoc.tex \
-	oopseDoc.bib
+	openmdDoc.tex \
+	openmdDoc.bib
 
 all:: ${PAPER_ROOT}.view
 
@@ -32,4 +32,4 @@ ${PAPER_ROOT}.view: ${PAPER_ROOT}.pdf
 	open -a $(PDF) ${PAPER_ROOT}.pdf
 
 clean::
-	/bin/rm -f *.aux *.log *.bbl *.blg *.dvi *.tbx *.fgx *~ *.fff *.lof *.lot oopseDoc.pdf *.ttt *.toc
+	/bin/rm -f *.aux *.log *.bbl *.blg *.dvi *.tbx *.fgx *~ *.fff *.lof *.lot openmdDoc.pdf *.ttt *.toc
