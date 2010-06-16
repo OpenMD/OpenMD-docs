@@ -39,10 +39,10 @@
 \newcolumntype{I}{p{5in}}
 
 
-\title{{\sc oopse}-4: An Object-Oriented Parallel Simulation
-Engine for Molecular Dynamics}
+\title{{\sc OpenMD}: Molecular Dynamics in the Open}
 
-\author{Teng Lin, Christopher J. Fennell, Charles F. Vardeman II, Xiuquan Sun, \\
+\author{Shenyu Kuang, Chunlei Li, Charles F. Vardeman II, \\
+Teng Lin, Christopher J. Fennell,  Xiuquan Sun, \\
 Kyle Daily, Yang Zheng, Matthew A. Meineke, and J. Daniel Gezelter\\
 Department of Chemistry and Biochemistry\\
 University of Notre Dame\\
@@ -51,16 +51,17 @@ Notre Dame, Indiana 46556}
 \maketitle
 
 \section*{Preface}
-{\sc oopse} is a new molecular dynamics simulation program which is
-capable of efficiently integrating equations of motion for atom types
-with orientational degrees of freedom (e.g. ``sticky'' atoms and point
-dipoles).  Transition metals can also be simulated using the embedded
-atom method ({\sc eam}) potential included in the code.  Parallel
-simulations are carried out using the force-based decomposition
-method.  Simulations are specified using a very simple C-based
-meta-data language.  A number of advanced integrators are included,
-and the basic integrator for orientational dynamics provides
-substantial improvements over older quaternion-based schemes.
+{\sc OpenMD} is an open source molecular dynamics engine which is capable of
+efficiently simulating liquids, proteins, nanoparticles, interfaces,
+and other complex systems using atom types with orientational degrees
+of freedom (e.g. ``sticky'' atoms, point dipoles, and coarse-grained
+assemblies). Proteins, zeolites, lipids, transition metals (bulk, flat
+interfaces, and nanoparticles) have all been simulated using force
+fields included with the code. {\sc OpenMD} works on parallel computers
+using the Message Passing Interface (MPI), and comes with a number of
+analysis and utility programs that are easy to use and modify. An
+OpenMD simulation is specified using a very simple meta-data language
+that is easy to learn.
 
 \tableofcontents
 %\listoffigures
@@ -88,22 +89,20 @@ methods may be of some use to other researchers, we have decided to
 release our program (and all related source code) to the scientific
 community.
 
-This document communicates the algorithmic details of our program, which
-we have been calling the Object-Oriented Parallel Simulation Engine
-(i.e. {\sc oopse}).  We have structured this document to first discuss
-the underlying concepts in this simulation package
-(Sec. \ref{oopseSec:IOfiles}).  The empirical energy functions
-implemented are discussed in Sec.~\ref{oopseSec:empiricalEnergy}.
-Sec.~\ref{oopseSec:mechanics} describes the various Molecular Dynamics
-algorithms {\sc oopse} implements in the integration of Hamilton's
+This document communicates the algorithmic details of our program,
+{\sc OpenMD}.  We have structured this document to first discuss the
+underlying concepts in this simulation package (Sec.
+\ref{section:IOfiles}).  The empirical energy functions implemented
+are discussed in Sec.~\ref{section:empiricalEnergy}.
+Sec.~\ref{section:mechanics} describes the various Molecular Dynamics
+algorithms {\sc OpenMD} implements in the integration of Hamilton's
 equations of motion.  Program design considerations for parallel
-computing are presented in
-Sec.~\ref{oopseSec:parallelization}. Concluding remarks are presented
-in Sec.~\ref{oopseSec:conclusion}.
+computing are presented in Sec.~\ref{section:parallelization}.
+Concluding remarks are presented in Sec.~\ref{section:conclusion}.
 
-\chapter{\label{oopseSec:IOfiles}Concepts \& Files}
+\chapter{\label{section:IOfiles}Concepts \& Files}
 
-A simulation in {\sc oopse} is built using a few fundamental
+A simulation in {\sc OpenMD} is built using a few fundamental
 conceptual building blocks most of which are chemically intuitive.
 The basic unit of a simulation is an {\tt atom}.  The parameters
 describing an {\tt atom} have been generalized to make it as flexible
@@ -139,12 +138,12 @@ to be chosen from the definitions in the {\tt forceField}.
 
 All of these groups of {\tt atoms} are brought together in the {\tt
 molecule}, which is the fundamental structure for setting up and {\sc
-oopse} simulation.  {\tt Molecules} contain lists of {\tt atoms}
+OpenMD} simulation.  {\tt Molecules} contain lists of {\tt atoms}
 followed by listings of the other atomic groupings ({\tt bonds}, {\tt
 bends}, {\tt torsions}, {\tt rigidBodies}, and {\tt cutoffGroups})
 which relate the atoms to one another.  Since a {\tt rigidBody} is a
 collection of atoms that are propagated in fixed relationships to one
-another, {\sc oopse} uses an internal structure called a {\tt
+another, {\sc OpenMD} uses an internal structure called a {\tt
 StuntDouble} to store information about those objects that can change
 position {\it independently} during a simulation.  That is, an atom
 that is part of a rigid body is not itself a StuntDouble.  In this
@@ -152,16 +151,16 @@ case, the rigid body is the StuntDouble.  However, an atom that is
 free to move independently {\it is} its own StuntDouble.
 
 Simulations often involve heterogeneous collections of molecules.  To
-specify a mixture of {\tt molecule} types, {\sc oopse} uses {\tt
+specify a mixture of {\tt molecule} types, {\sc OpenMD} uses {\tt
 components}.  Even simulations containing only one type of molecule
 must specify a single {\tt component}.
 
 Starting a simulation requires two types of information: {\it
 meta-data}, which describes the types of objects present in the
 simulation, and {\it configuration} information, which describes the
-initial state of these objects.  An {\sc oopse} file is a single
+initial state of these objects.  An {\sc OpenMD} file is a single
 combined file format that describes both of these kinds of data.  An
-{\sc oopse} file contains one {\tt $<$MetaData$>$} block and {\it at least
+{\sc OpenMD} file contains one {\tt $<$MetaData$>$} block and {\it at least
 one} {\tt $<$Snapshot$>$} block.
 
 The language for the {\tt $<$MetaData$>$} block is a C-based syntax that
@@ -170,15 +169,15 @@ information is specified for all {\tt integrableObjects} in a {\tt
 $<$Snapshot$>$} block.  Both the {\tt $<$MetaData$>$} and {\tt $<$Snapshot$>$}
 formats are described in the following sections.
 
-\begin{lstlisting}[float,caption={[The structure of an {\sc oopse} file]
-The basic structure of an {\sc oopse} file contains HTML-like tags to
+\begin{lstlisting}[float,caption={[The structure of an {\sc OpenMD} file]
+The basic structure of an {\sc OpenMD} file contains HTML-like tags to
 define simulation meta-data and subsequent instantaneous configuration
-information. A well-formed {\sc oopse} file must contain one $<$MetaData$>$ 
+information. A well-formed {\sc OpenMD} file must contain one $<$MetaData$>$ 
 block and {\it at least one} $<$Snapshot$>$ block.  Each
 $<$Snapshot$>$ is further divided into $<$FrameData$>$ and 
 $<$StuntDoubles$>$ sections.},
-label=sch:oopseFormat]
-<OOPSE>
+label=sch:mdFormat]
+<OpenMD>
   <MetaData>
       // see section ~\ref{sec:miscConcepts}~ for details on the formatting
       // of information contained inside the <MetaData> tags
@@ -199,30 +198,30 @@ label=sch:oopseFormat]
      </StuntDoubles>
   </Snapshot>       
   <Snapshot>         // Multiple <Snapshot> sections can be
-  </Snapshot>        // present in a well-formed OOPSE file
+  </Snapshot>        // present in a well-formed OpenMD file
   <Snapshot>         // Further information on <Snapshot> blocks
-  </Snapshot>        // can be found in section ~\ref{oopseSec:coordFiles}~.
-</OOPSE>
+  </Snapshot>        // can be found in section ~\ref{section:coordFiles}~.
+</OpenMD>
 \end{lstlisting}
 
 
-\section{OOPSE Files and $<$MetaData$>$ blocks}
+\section{OpenMD Files and $<$MetaData$>$ blocks}
 
-{\sc oopse} uses a HTML-like syntax to separate {\tt $<$MetaData$>$} and
+{\sc OpenMD} uses a HTML-like syntax to separate {\tt $<$MetaData$>$} and
 {\tt $<$Snapshot$>$} blocks.  A C-based syntax is used to parse the {\tt
 $<$MetaData$>$} blocks at run time.  These blocks allow the user to
 completely describe the system they wish to simulate, as well as
-tailor {\sc oopse}'s behavior during the simulation.  {\sc oopse}
+tailor {\sc OpenMD}'s behavior during the simulation.  {\sc OpenMD}
 files are typically denoted with the extension {\tt .md} (which can
 stand for Meta-Data or Molecular Dynamics or Molecule Definition
-depending on the user's mood). An overview of an {\sc oopse} file is
-shown in Scheme~\ref{sch:oopseFormat} and example file is shown in
+depending on the user's mood). An overview of an {\sc OpenMD} file is
+shown in Scheme~\ref{sch:mdFormat} and example file is shown in
 Scheme~\ref{sch:mdExample}.
 
-\begin{lstlisting}[float,caption={[An example of a complete OOPSE
-file] An example showing a complete OOPSE file.},
+\begin{lstlisting}[float,caption={[An example of a complete OpenMD
+file] An example showing a complete OpenMD file.},
 label={sch:mdExample}] 
-<OOPSE>
+<OpenMD>
   <MetaData>
 molecule{
   name = "Ar";
@@ -257,19 +256,19 @@ statusTime = 50;  // statistics file frequency
          2      pv  -10.0 -15.2 -6.5  2.239e-03 -6.310e-03  1.810e-03
     </StuntDoubles>
   </Snapshot>
-</OOPSE>
+</OpenMD>
 \end{lstlisting}
 
 Within the {\tt $<$MetaData$>$} block it is necessary to provide a
 complete description of the molecule before it is actually placed in
-the simulation. {\sc oopse}'s meta-data syntax was originally
+the simulation. {\sc OpenMD}'s meta-data syntax was originally
 developed with this goal in mind, and allows for the use of {\it
 include files} to specify all atoms in a molecular prototype, as well
 as any bonds, bends, or torsions.  Include files allow the user to
 describe a molecular prototype once, then simply include it into each
 simulation containing that molecule. Returning to the example in
 Scheme~\ref{sch:mdExample}, the include file's contents would be
-Scheme~\ref{sch:mdIncludeExample}, and the new {\sc oopse} file would
+Scheme~\ref{sch:mdIncludeExample}, and the new {\sc OpenMD} file would
 become Scheme~\ref{sch:mdExPrime}.
 
 \begin{lstlisting}[float,caption={An example molecule definition in an
@@ -283,9 +282,9 @@ molecule{
 }
 \end{lstlisting}
 
-\begin{lstlisting}[float,caption={Revised OOPSE input file
+\begin{lstlisting}[float,caption={Revised OpenMD input file
 example.},label={sch:mdExPrime}]
-<OOPSE>
+<OpenMD>
   <MetaData>
 #include "argon.md"
 
@@ -302,7 +301,7 @@ sampleTime = 100;
 statusTime = 50; 
   </MetaData>
   </MetaData>
-  <Snapshot$>$
+  <Snapshot>
     <FrameData>
         Time: 0
         Hmat: {{ 28.569, 0, 0 }, { 0, 28.569, 0 }, { 0, 0, 28.569 }}
@@ -315,16 +314,16 @@ statusTime = 50;
          2      pv  -10.0 -15.2 -6.5  2.239e-03 -6.310e-03  1.810e-03
     </StuntDoubles>
   </Snapshot>
-</OOPSE>
+</OpenMD>
 \end{lstlisting}
 
-\section{\label{oopseSec:atomsMolecules}Atoms, Molecules, and other
+\section{\label{section:atomsMolecules}Atoms, Molecules, and other
 ways of grouping atoms}
 
-As mentioned above, the fundamental unit for an {\sc oopse} simulation
+As mentioned above, the fundamental unit for an {\sc OpenMD} simulation
 is the {\tt atom}.  Atoms can be collected into secondary structures
 such as {\tt rigidBodies}, {\tt cutoffGroups}, or {\tt molecules}. The
-{\tt molecule} is a way for {\sc oopse} to keep track of the atoms in
+{\tt molecule} is a way for {\sc OpenMD} to keep track of the atoms in
 a simulation in logical manner. Molecular units store the identities
 of all the atoms and rigid bodies associated with themselves, and they
 are responsible for the evaluation of their own internal interactions
@@ -334,7 +333,7 @@ included meta-data file. The positions of the atoms given in the
 declaration are relative to the origin of the molecule, and the origin
 is used when creating a system containing the molecule.
 
-One of the features that sets {\sc oopse} apart from most of the
+One of the features that sets {\sc OpenMD} apart from most of the
 current molecular simulation packages is the ability to handle rigid
 body dynamics. Rigid bodies are non-spherical particles or collections
 of particles (e.g. $\mbox{C}_{60}$) that have a constant internal
@@ -380,10 +379,10 @@ and $q_z$).\cite{Allen87} Use of quaternions also leads to
 performance enhancements, particularly for very small
 systems.\cite{Evans77}
 
-Rather than use one of the previously stated methods, {\sc oopse}
+Rather than use one of the previously stated methods, {\sc OpenMD}
 utilizes a relatively new scheme that propagates the entire nine
 parameter rotation matrix. Further discussion on this choice can be
-found in Sec.~\ref{oopseSec:integrate}. An example definition of a
+found in Sec.~\ref{section:integrate}. An example definition of a
 rigid body can be seen in Scheme
 \ref{sch:rigidBody}.
 
@@ -422,7 +421,7 @@ components. The first part of the file needs to be the declaration of
 all of the molecule prototypes used in the simulation. This is
 typically done through included prototype files. Only the molecules
 actually present in the simulation need to be declared; however, {\sc
-oopse} allows for the declaration of more molecules than are
+OpenMD} allows for the declaration of more molecules than are
 needed. This gives the user the ability to build up a library of
 commonly used molecules into a single include file.
 
@@ -431,7 +430,7 @@ block is less stringent.  The molecular composition of the simulation
 is specified with {\tt component} statements. Each different type of
 molecule present in the simulation is considered a separate
 component (an example is shown in
-Sch.~\ref{sch:mdExPrime}).  The component blocks tell {\sc oopse} the
+Sch.~\ref{sch:mdExPrime}).  The component blocks tell {\sc OpenMD} the
 number of molecules that will be in the simulation, and the order in
 which the components blocks are declared sets the ordering of the real
 atoms in the {\tt $<$Snapshot$>$} block as well as in the output files. The
@@ -440,19 +439,19 @@ for the system of interest.
 
 The required set of parameters that must be present in all simulations
 is given in Table~\ref{table:reqParams}.  Since the user can use {\sc
-oopse} to perform energy minimizations as well as molecular dynamics
+OpenMD} to perform energy minimizations as well as molecular dynamics
 simulations, one of the {\tt minimizer} or {\tt ensemble} keywords
 must be present.  The {\tt ensemble} keyword is responsible for
 selecting the integration method used for the calculation of the
 equations of motion. An in depth discussion of the various methods
-available in {\sc oopse} can be found in
-Sec.~\ref{oopseSec:mechanics}.  The {\tt minimizer} keyword selects
+available in {\sc OpenMD} can be found in
+Sec.~\ref{section:mechanics}.  The {\tt minimizer} keyword selects
 which minimization method to use, and more details on the choices of
 minimizer parameters can be found in
-Sec.~\ref{oopseSec:minimizer}. The {\tt forceField} statement is
+Sec.~\ref{section:minimizer}. The {\tt forceField} statement is
 important for the selection of which forces will be used in the course
-of the simulation. {\sc oopse} supports several force fields, as
-outlined in Sec.~\ref{oopseSec:empiricalEnergy}. The force fields are
+of the simulation. {\sc OpenMD} supports several force fields, as
+outlined in Sec.~\ref{section:empiricalEnergy}. The force fields are
 interchangeable between simulations, with the only requirement being
 that all atoms needed by the simulation are defined within the
 selected force field. 
@@ -468,7 +467,7 @@ For energy minimizations, it is not necessary to specify {\tt dt} or
 {\tt runTime}.
 
 To set the initial positions and velocities of all the integrable
-objects in the simulation, {\sc oopse} will use the last good {\tt
+objects in the simulation, {\sc OpenMD} will use the last good {\tt
 $<$Snapshot$>$} block that was found in the startup file that it was
 called with.  If the {\tt useInitalTime} flag is set to {\tt true},
 the time stamp from this snapshot will also set the initial time stamp
@@ -476,7 +475,7 @@ for the simulation.  Additional parameters are summarized in
 Table~\ref{table:genParams}.
 
 It is important to note the fundamental units in all files which are
-read and written by {\sc oopse}.  Energies are in $\mbox{kcal
+read and written by {\sc OpenMD}.  Energies are in $\mbox{kcal
 mol}^{-1}$, distances are in $\mbox{\AA}$, times are in $\mbox{fs}$,
 translational velocities are in $\mbox{\AA~fs}^{-1}$, and masses are
 in $\mbox{amu}$.  Orientational degrees of freedom are described using
@@ -568,7 +567,7 @@ short\_range\_potential, vanderwaals\_potential,
 electrostatic\_potential, bond\_potential, bend\_potential,
 dihedral\_potential, improper\_potential, vraw, vharm,
 pressure\_tensor\_x, pressure\_tensor\_y, pressure\_tensor\_z}} \\
-{\tt printPressureTensor} & logical & sets whether OOPSE will print
+{\tt printPressureTensor} & logical & sets whether {\sc OpenMD} will print
 out the pressure tensor & can be useful for calculations of the bulk
 modulus \\
 {\tt electrostaticSummationMethod} & & & \\
@@ -600,7 +599,7 @@ are reasonable \\
 \end{longtable}
 
 
-\section{\label{oopseSec:coordFiles}$<$Snapshot$>$ Blocks}
+\section{\label{section:coordFiles}$<$Snapshot$>$ Blocks}
 
 The standard format for storage of a system's coordinates is the {\tt
 $<$Snapshot$>$} block , the exact details of which can be seen in
@@ -650,11 +649,11 @@ label=sch:dumpFormat]
   </Snapshot>
 \end{lstlisting}
 
-There are three {\sc oopse} files that are written using the combined
+There are three {\sc OpenMD} files that are written using the combined
 format.  They are: the initial startup file (\texttt{.md}), the
 simulation trajectory file (\texttt{.dump}), and the final coordinates
 or ``end-of-run'' for the simulation (\texttt{.eor}). The initial
-startup file is necessary for {\sc oopse} to start the simulation with
+startup file is necessary for {\sc OpenMD} to start the simulation with
 the proper coordinates, and this file must be generated by the user
 before the simulation run. The trajectory (or ``dump'') file is
 updated during simulation and is used to store snapshots of the
@@ -669,20 +668,20 @@ updated at the same time as the \texttt{.dump} file, but it only
 contains the most recent frame. In this way, an \texttt{.eor} file may
 be used to initialize a second simulation should it be necessary to
 recover from a crash or power outage. The coordinate files generated
-by {\sc oopse} (both \texttt{.dump} and \texttt{.eor}) all contain the
+by {\sc OpenMD} (both \texttt{.dump} and \texttt{.eor}) all contain the
 same {\tt $<$MetaData$>$} block as the startup file, so they may be
 used to start up a new simulation if desired.
 
-\section{\label{oopseSec:initCoords}Generation of Initial Coordinates}
+\section{\label{section:initCoords}Generation of Initial Coordinates}
 
-As was stated in Sec.~\ref{oopseSec:coordFiles}, a meaningful {\tt
+As was stated in Sec.~\ref{section:coordFiles}, a meaningful {\tt
 $<$Snapshot$>$} block is necessary for specifying for the starting
 coordinates for a simulation.  Since each simulation is different,
 system creation is left to the end user; however, we have included a
 few sample programs which make some specialized structures.  The {\tt
 $<$Snapshot$>$} block must index the integrable objects in the correct
 order.  The ordering of the integrable objects relies on the ordering
-of molecules within the {\tt $<$MetaData$>$} block. {\sc oopse}
+of molecules within the {\tt $<$MetaData$>$} block. {\sc OpenMD}
 expects the order to comply with the following guidelines:
 \begin{enumerate}
 \item All of the molecules of the first declared component are given
@@ -697,14 +696,14 @@ after the the other atoms in a molecule.  Some molecules may be
 entirely rigid, in which case, only the rigid body coordinates are
 given.
 \end{enumerate}
-An example is given in the {\sc oopse} file in Scheme~\ref{sch:initEx1}.
+An example is given in the {\sc OpenMD} file in Scheme~\ref{sch:initEx1}.
 
 \begin{lstlisting}[float,caption={Example declaration of the
 $\text{I}_2$ molecule and the HCl molecule in $<$MetaData$>$ and
 $<$Snapshot$>$ blocks.  Note that even though $\text{I}_2$ is
 declared before HCl, the $<$Snapshot$>$ block follows the order {\it in
 which the components were included}.}, label=sch:initEx1] 
-<OOPSE>
+<OpenMD>
   <MetaData>
 molecule{
   name = "I2";
@@ -757,12 +756,12 @@ component{
          9      pv          x y z vx vy vz // Second I from I2 molecule
     </StuntDoubles>
   </Snapshot>
-</OOPSE>
+</OpenMD>
 \end{lstlisting}
 
 \section{The Statistics File}
 
-The last output file generated by {\sc oopse} is the statistics
+The last output file generated by {\sc OpenMD} is the statistics
 file. This file records such statistical quantities as the
 instantaneous temperature (in $K$), volume (in $\mbox{\AA}^{3}$),
 pressure (in $\mbox{atm}$), etc. It is written out with the frequency
@@ -774,10 +773,10 @@ monitor the conserved quantity of a given simulation ensemble,
 allowing the user to gauge the stability of the integrator. The
 statistics file is denoted with the \texttt{.stat} file extension.
 
-\chapter{\label{oopseSec:empiricalEnergy}The Empirical Energy
+\chapter{\label{section:empiricalEnergy}The Empirical Energy
 Functions}
 
-Like many simulation packages, {\sc oopse} splits the potential energy
+Like many simulation packages, {\sc OpenMD} splits the potential energy
 into the short-ranged (bonded) portion and a long-range (non-bonded)
 potential,
 \begin{equation}
@@ -794,11 +793,11 @@ all pairs of atoms (except for those atoms which are involved in a
 bond, bend, or torsion with each other).  If done poorly, calculating
 the the long-range interactions for $N$ atoms would involve $N(N-1)/2$
 evaluations of atomic distances.  To reduce the number of distance
-evaluations between pairs of atoms, {\sc oopse} uses a switched cutoff
+evaluations between pairs of atoms, {\sc OpenMD} uses a switched cutoff
 with Verlet neighbor lists.\cite{Allen87} It is well known that
 neutral groups which contain charges will exhibit pathological forces
 unless the cutoff is applied to the neutral groups evenly instead of
-to the individual atoms.\cite{leach01:mm} {\sc oopse} allows users to
+to the individual atoms.\cite{leach01:mm} {\sc OpenMD} allows users to
 specify cutoff groups which may contain an arbitrary number of atoms
 in the molecule.  Atoms in a cutoff group are treated as a single unit
 for the evaluation of the switching function:
@@ -829,7 +828,7 @@ beyond which interactions are reduced, and $r_{\text{cut}}$ is the
 {\tt cutoffRadius}, or the distance at which interactions are
 truncated.
 
-Users of {\sc oopse} do not need to specify the {\tt cutoffRadius} or
+Users of {\sc OpenMD} do not need to specify the {\tt cutoffRadius} or
 {\tt switchingRadius}.  In simulations containing only Lennard-Jones
 atoms, the cutoff radius has a default value of $2.5\sigma_{ii}$,
 where $\sigma_{ii}$ is the largest Lennard-Jones length parameter
@@ -839,17 +838,17 @@ dipolar atoms, the default cutoff radius is $15 \mbox{\AA}$.
 The {\tt switchingRadius} is set to a default value of 95\% of the
 {\tt cutoffRadius}.  In the special case of a simulation containing
 {\it only} Lennard-Jones atoms, the default switching radius takes the
-same value as the cutoff radius, and {\sc oopse} will use a shifted
+same value as the cutoff radius, and {\sc OpenMD} will use a shifted
 potential to remove discontinuities in the potential at the cutoff.
 Both radii may be specified in the meta-data file.
 
-Force fields can be added to {\sc oopse}, although it comes with a few
+Force fields can be added to {\sc OpenMD}, although it comes with a few
 simple examples (Lennard-Jones, {\sc duff}, {\sc water}, and {\sc
 eam}) which are explained in the following sections.
 
 \section{\label{sec:LJPot}The Lennard Jones Force Field}
 
-The most basic force field implemented in {\sc oopse} is the
+The most basic force field implemented in {\sc OpenMD} is the
 Lennard-Jones force field, which mimics the van der Waals interaction
 at long distances and uses an empirical repulsion at short
 distances. The Lennard-Jones potential is given by:
@@ -871,7 +870,7 @@ Lennard-Jones force field.
 \begin{lstlisting}[float,caption={[Invocation of the Lennard-Jones
 force field] A sample startup file for a small Lennard-Jones
 simulation.},label={sch:LJFF}]
-<OOPSE>
+<OpenMD>
   <MetaData>
 #include "argon.md" 
 
@@ -884,7 +883,7 @@ forceField = "LJ";
   </MetaData>
   <Snapshot>     // not shown in this scheme
   </Snapshot>
-</OOPSE>
+</OpenMD>
 \end{lstlisting}
 
 Interactions between dissimilar particles requires the generation of
@@ -901,7 +900,7 @@ and
 \label{eq:epsilonMix}
 \end{equation}
 
-\section{\label{oopseSec:DUFF}Dipolar Unified-Atom Force Field}
+\section{\label{section:DUFF}Dipolar Unified-Atom Force Field}
 
 The dipolar unified-atom force field ({\sc duff}) was developed to
 simulate lipid bilayers. These types of simulations require a model
@@ -924,7 +923,7 @@ center of mass mimics the charge separation found in common
 phospholipid head groups such as phosphatidylcholine.\cite{Cevc87}
 Additionally, a large Lennard-Jones site is located at the
 pseudoatom's center of mass. The model is illustrated by the red atom
-in Fig.~\ref{oopseFig:lipidModel}. The water model we use to
+in Fig.~\ref{fig:lipidModel}. The water model we use to
 complement the dipoles of the lipids is a
 reparameterization\cite{fennell04} of the soft sticky dipole (SSD)
 model of Ichiye
@@ -937,7 +936,7 @@ model of Ichiye
 representation of the lipid model. $\phi$ is the torsion angle,
 $\theta$ is the bend angle, and $\mu$ is the dipole moment of the head
 group.}
-\label{oopseFig:lipidModel}
+\label{fig:lipidModel}
 \end{figure}
 
 A set of scalable parameters has been used to model the alkyl groups
@@ -963,7 +962,7 @@ Scheme \ref{sch:DUFF}.
 \begin{lstlisting}[float,caption={[Invocation of {\sc duff}]A portion
 of a startup file showing a simulation utilizing {\sc
 duff}},label={sch:DUFF}]  
-<OOPSE>
+<OpenMD>
   <MetaData>
 #include "water.md"
 #include "lipid.md"
@@ -982,10 +981,10 @@ forceField = "DUFF";
   </MetaData>
   <Snapshot>     // not shown in this scheme
   </Snapshot>
-</OOPSE
+</OpenMD>
 \end{lstlisting}
 
-\subsection{\label{oopseSec:energyFunctions}{\sc duff} Energy Functions}
+\subsection{\label{section:energyFunctions}{\sc duff} Energy Functions}
 
 The total potential energy function in {\sc duff} is
 \begin{equation}
@@ -1017,7 +1016,7 @@ V_{\text{bend}}(\theta_{ijk}) = k_{\theta}( \theta_{ijk} - \theta_0
 )^2, \label{eq:bendPot}
 \end{equation}
 where $\theta_{ijk}$ is the angle defined by atoms $i$, $j$, and $k$
-(see Fig.~\ref{oopseFig:lipidModel}), $\theta_0$ is the equilibrium
+(see Fig.~\ref{fig:lipidModel}), $\theta_0$ is the equilibrium
 bond angle, and $k_{\theta}$ is the force constant which determines the
 strength of the harmonic bend. The parameters for $k_{\theta}$ and
 $\theta_0$ are borrowed from those in TraPPE.\cite{Siepmann1998}
@@ -1073,7 +1072,7 @@ V^{IJ}_{\text{Cross}} =
 where $V_{\text{LJ}}$ is the Lennard Jones potential,
 $V_{\text{dipole}}$ is the dipole dipole potential, and
 $V_{\text{sticky}}$ is the sticky potential defined by the SSD model
-(Sec.~\ref{oopseSec:SSD}). Note that not all atom types include all
+(Sec.~\ref{section:SSD}). Note that not all atom types include all
 interactions.
 
 The dipole-dipole potential has the following form:
@@ -1095,11 +1094,11 @@ vector of $\boldsymbol{\Omega}_i$, and $\boldsymbol{\hat{r}}_{ij}$ is
 the unit vector pointing along $\mathbf{r}_{ij}$
 ($\boldsymbol{\hat{r}}_{ij}=\mathbf{r}_{ij}/|\mathbf{r}_{ij}|$).
 
-\subsection{\label{oopseSec:SSD}The {\sc duff} Water Models: SSD/E
+\subsection{\label{section:SSD}The {\sc duff} Water Models: SSD/E
 and SSD/RF} 
 
 In the interest of computational efficiency, the default solvent used
-by {\sc oopse} is the extended Soft Sticky Dipole (SSD/E) water
+by {\sc OpenMD} is the extended Soft Sticky Dipole (SSD/E) water
 model.\cite{fennell04} The original SSD was developed by Ichiye
 \emph{et al.}\cite{liu96:new_model} as a modified form of the hard-sphere 
 water model proposed by Bratko, Blum, and
@@ -1164,7 +1163,7 @@ for the interaction between two SSD/E water molecules.  $\theta_{ij}$
 is the angle that $r_{ij}$ makes with the $\hat{z}$ vector in the
 body-fixed frame for molecule $i$.  The $\hat{z}$ vector bisects the
 HOH angle in each water molecule. } 
-\label{oopseFig:ssd}
+\label{fig:ssd}
 \end{figure}
 
 
@@ -1186,7 +1185,7 @@ for the simulation of large scale biochemical simulations.
 
 Recent constant pressure simulations revealed issues in the original
 SSD model that led to lower than expected densities at all target
-pressures.\cite{Ichiye03,fennell04} The default model in {\sc oopse}
+pressures.\cite{Ichiye03,fennell04} The default model in {\sc OpenMD}
 is therefore SSD/E, a density corrected derivative of SSD that
 exhibits improved liquid structure and transport behavior. If the use
 of a reaction field long-range interaction correction is desired, it
@@ -1197,7 +1196,7 @@ force field file ({\tt DUFF.frc}).  A table of the parameter values
 and the drawbacks and benefits of the different density corrected SSD
 models can be found in reference~\cite{fennell04}. 
 
-\section{\label{oopseSec:WATER}The {\sc water} Force Field}
+\section{\label{section:WATER}The {\sc water} Force Field}
 
 In addition to the {\sc duff} force field's solvent description, a
 separate {\sc water} force field has been included for simulating most
@@ -1213,7 +1212,7 @@ V_{\text{charge}}(r_{ij}) = \sum_{ij}\frac{q_iq_je^2}{r_{ij}},
 \end{equation}
 where $q$ represents the charge on particle $i$ or $j$, and $e$ is the
 charge of an electron in Coulombs. The charge-charge interaction
-support is rudimentary in the current version of {\sc oopse}.  As with
+support is rudimentary in the current version of {\sc OpenMD}.  As with
 the other pair interactions, charges can be simulated with a pure
 cutoff or a reaction field.  The various methods for performing the
 Ewald summation have not yet been included.  The {\sc water} force
@@ -1222,9 +1221,9 @@ force field file ({\tt WATER.frc}). By adding atom types and inserting
 the appropriate parameters, it is possible to extend the force field
 to handle rigid molecules other than water.
 
-\section{\label{oopseSec:eam}Embedded Atom Method}
+\section{\label{section:eam}Embedded Atom Method}
 
-{\sc oopse} implements a potential that describes bonding in
+{\sc OpenMD} implements a potential that describes bonding in
 transition metal
 systems.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02} This
 potential has an attractive interaction which models ``Embedding'' a
@@ -1234,7 +1233,7 @@ the system.  A pairwise part of the potential (which is primarily
 repulsive) describes the interaction of the positively charged metal
 core ions with one another.  The Embedded Atom Method ({\sc
 eam})~\cite{Daw84,FBD86,johnson89,Lu97} has been widely adopted in the
-materials science community and has been included in {\sc oopse}. A
+materials science community and has been included in {\sc OpenMD}. A
 good review of {\sc eam} and other formulations of metallic potentials
 was given by Voter.\cite{Voter:95}
 
@@ -1282,14 +1281,14 @@ $i$ is simply the linear sum of density contributions of all the other
 atoms.
 
 The {\sc eam} force field illustrates an additional feature of {\sc
-oopse}.  Foiles, Baskes and Daw fit {\sc eam} potentials for Cu, Ag,
+OpenMD}.  Foiles, Baskes and Daw fit {\sc eam} potentials for Cu, Ag,
 Au, Ni, Pd, Pt and alloys of these metals.\cite{FBD86} These fits are
-included in {\sc oopse} as the {\tt u3} variant of the {\sc eam} force
+included in {\sc OpenMD} as the {\tt u3} variant of the {\sc eam} force
 field.  Voter and Chen reparamaterized a set of {\sc eam} functions
 which do a better job of predicting melting points.\cite{Voter:87}
-These functions are included in {\sc oopse} as the {\tt VC} variant of
+These functions are included in {\sc OpenMD} as the {\tt VC} variant of
 the {\sc eam} force field.  An additional set of functions (the
-``Universal 6'' functions) are included in {\sc oopse} as the {\tt u6}
+``Universal 6'' functions) are included in {\sc OpenMD} as the {\tt u6}
 variant of {\sc eam}.  For example, to specify the Voter-Chen variant
 of the {\sc eam} force field, the user would add the {\tt
 forceFieldVariant = "VC";} line to the meta-data file.
@@ -1298,10 +1297,10 @@ The potential files used by the {\sc eam} force field are in the
 standard {\tt funcfl} format, which is the format utilized by a number
 of other codes (e.g. ParaDyn~\cite{Paradyn}, {\sc dynamo 86}).  It
 should be noted that the energy units in these files are in eV, not
-$\mbox{kcal mol}^{-1}$ as in the rest of the {\sc oopse} force field
+$\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD} force field
 files.  
 
-\section{\label{oopseSec:sc}The Sutton-Chen Force Field}
+\section{\label{section:sc}The Sutton-Chen Force Field}
 
 The Sutton-Chen ({\sc sc})~\cite{Chen90} potential has been used to
 study a wide range of phenomena in metals.  Although it is similar in
@@ -1337,7 +1336,7 @@ line to the meta-data file, while specification of the Qi {\it et al.}
 quantum-adapted variant of the {\sc sc} potential, the user would add
 the {\tt forceFieldVariant = "QSC";} line to the meta-data file.
 
-\section{\label{oopseSec:clay}The CLAY force field}
+\section{\label{section:clay}The CLAY force field}
 
 The {\sc clay} force field is based on an ionic (nonbonded)
 description of the metal-oxygen interactions associated with hydrated
@@ -1351,7 +1350,7 @@ calculations of simple oxide, hydroxide, and oxyhydroxide model
 compounds with well-defined structures.
 
 
-\section{\label{oopseSec:electrostatics}Electrostatics}
+\section{\label{section:electrostatics}Electrostatics}
 
 To aid in performing simulations in more traditional force fields, we
 have added routines to carry out electrostatic interactions using a
@@ -1523,10 +1522,10 @@ It has been shown that the Damped Shifted Force method obtains nearly
 identical behavior to the smooth particle mesh Ewald ({\sc spme})
 method on a number of commonly simulated systems.\cite{Fennell06}  For
 this reason, the default electrostatic summation method utilized by
-{\sc oopse} is the DSF (Eq. \ref{eq:DSFPot}) with a damping parameter
+{\sc OpenMD} is the DSF (Eq. \ref{eq:DSFPot}) with a damping parameter
 ($\alpha$) that is set algorithmically from the cutoff radius.
 
-\section{\label{oopseSec:pbc}Periodic Boundary Conditions} 
+\section{\label{section:pbc}Periodic Boundary Conditions} 
 
 \newcommand{\roundme}{\operatorname{round}}
 
@@ -1539,8 +1538,8 @@ exactly the same orientation. Thus, as a particle leaves the primary
 cell, one of its images will enter through the opposite face. If the
 simulation box is large enough to avoid ``feeling'' the symmetries of
 the periodic lattice, surface effects can be ignored. The available
-periodic cells in {\sc oopse} are cubic, orthorhombic and
-parallelepiped.  {\sc oopse} use a $3 \times 3$ matrix, $\mathsf{H}$,
+periodic cells in {\sc OpenMD} are cubic, orthorhombic and
+parallelepiped.  {\sc OpenMD} use a $3 \times 3$ matrix, $\mathsf{H}$,
 to describe the shape and size of the simulation box. $\mathsf{H}$ is
 defined:
 \begin{equation}
@@ -1560,7 +1559,7 @@ vector, $\mathbf{s}$, and back through the following transformations:
 The vector $\mathbf{s}$ is now a vector expressed as the number of box
 lengths in the $\mathbf{h}_x$, $\mathbf{h}_y$, and $\mathbf{h}_z$
 directions. To find the minimum image of a vector $\mathbf{r}$, {\sc
-oopse} first converts it to its corresponding vector in box space, and
+OpenMD} first converts it to its corresponding vector in box space, and
 then casts each element to lie in the range $[-0.5,0.5]$:
 \begin{equation}
 s_{i}^{\prime}=s_{i}-\roundme(s_{i}),
@@ -1588,13 +1587,13 @@ In this way, particles are allowed to diffuse freely in $\mathbf{r}$,
 but their minimum images, or $\mathbf{r}^{\prime}$, are used to compute
 the inter-atomic forces.
 
-\chapter{\label{oopseSec:mechanics}Mechanics}
+\chapter{\label{section:mechanics}Mechanics}
 
-\section{\label{oopseSec:integrate}Integrating the Equations of Motion: the
+\section{\label{section:integrate}Integrating the Equations of Motion: the
 {\sc dlm} method}
 
 The default method for integrating the equations of motion in {\sc
-oopse} is a velocity-Verlet version of the symplectic splitting method
+OpenMD} is a velocity-Verlet version of the symplectic splitting method
 proposed by Dullweber, Leimkuhler and McLachlan
 ({\sc dlm}).\cite{Dullweber1997} When there are no directional atoms or
 rigid bodies present in the simulation, this integrator becomes the
@@ -1610,7 +1609,7 @@ has an orientation near $\theta=0$ or $\theta=\pi$.  Quaternion-based
 integration methods work well for propagating orientational motion;
 however, energy conservation concerns arise when using the
 microcanonical (NVE) ensemble.  An earlier implementation of {\sc
-oopse} utilized quaternions for propagation of rotational motion;
+OpenMD} utilized quaternions for propagation of rotational motion;
 however, a detailed investigation showed that they resulted in a
 steady drift in the total energy, something that has been observed by
 Laird {\it et al.}\cite{Laird97}
@@ -1790,7 +1789,7 @@ torques are calculated at the new positions and orientations
 	\cdot {\bf \tau}^s(t + h).
 \end{align*}
 
-{\sc oopse} automatically updates ${\bf u}$ when the rotation matrix
+{\sc OpenMD} automatically updates ${\bf u}$ when the rotation matrix
 $\mathsf{A}$ is calculated in {\tt moveA}.  Once the forces and
 torques have been obtained at the new time step, the velocities can be
 advanced to the same time value.
@@ -1859,7 +1858,7 @@ required for both methods. If a $\delta \mbox{E}_1$ of $1 \times
 simulation time will require ~19 hours of CPU time with the {\sc dlm}
 integrator, while the quaternion scheme will require ~154 hours of CPU
 time. This demonstrates the computational advantage of the integration
-scheme utilized in {\sc oopse}.
+scheme utilized in {\sc OpenMD}.
 
 \begin{figure}
 \centering
@@ -1889,7 +1888,7 @@ $h$ & {\tt dt = 2.0;} & fs & none
 
 \section{\label{sec:extended}Extended Systems for other Ensembles}
 
-{\sc oopse} implements a number of extended system integrators for
+{\sc OpenMD} implements a number of extended system integrators for
 sampling from other ensembles relevant to chemical physics.  The
 integrator can be selected with the {\tt ensemble} keyword in the
 meta-data file:
@@ -1911,14 +1910,14 @@ LD & Langevin Dynamics & {\tt ensemble = LD;} \\
 \end{center}
 
 The relatively well-known Nos\'e-Hoover thermostat\cite{Hoover85} is
-implemented in {\sc oopse}'s NVT integrator.  This method couples an
+implemented in {\sc OpenMD}'s NVT integrator.  This method couples an
 extra degree of freedom (the thermostat) to the kinetic energy of the
 system and it has been shown to sample the canonical distribution in
 the system degrees of freedom while conserving a quantity that is, to
 within a constant, the Helmholtz free energy.\cite{melchionna93}
 
 NPT algorithms attempt to maintain constant pressure in the system by
-coupling the volume of the system to a barostat.  {\sc oopse} contains
+coupling the volume of the system to a barostat.  {\sc OpenMD} contains
 three different constant pressure algorithms.  The first two, NPTi and
 NPTf have been shown to conserve a quantity that is, to within a
 constant, the Gibbs free energy.\cite{melchionna93} The Melchionna
@@ -1956,7 +1955,7 @@ state of the extended system variables between simulations ({\tt
 useInitialExtendedSystemState}).  More details on these variables
 and their use in the integrators follows below.
 
-\section{\label{oopseSec:noseHooverThermo}Nos\'{e}-Hoover Thermostatting}
+\section{\label{section:noseHooverThermo}Nos\'{e}-Hoover Thermostatting}
 
 The Nos\'e-Hoover equations of motion are given by\cite{Hoover85}
 \begin{eqnarray}
@@ -2070,7 +2069,7 @@ $T(t + h)$ as well as $\chi(t + h)$, they indirectly depend on their
 own values at time $t + h$.  {\tt moveB} is therefore done in an
 iterative fashion until $\chi(t + h)$ becomes self-consistent.  The
 relative tolerance for the self-consistency check defaults to a value
-of $\mbox{10}^{-6}$, but {\sc oopse} will terminate the iteration
+of $\mbox{10}^{-6}$, but {\sc OpenMD} will terminate the iteration
 after 4 loops even if the consistency check has not been satisfied.
 
 The Nos\'e-Hoover algorithm is known to conserve a Hamiltonian for the
@@ -2088,12 +2087,12 @@ the integration.
 
 Bond constraints are applied at the end of both the {\tt moveA} and
 {\tt moveB} portions of the algorithm.  Details on the constraint
-algorithms are given in section \ref{oopseSec:rattle}.
+algorithms are given in section \ref{section:rattle}.
 
 \section{\label{sec:NPTi}Constant-pressure integration with 
 isotropic box deformations (NPTi)}
 
-To carry out isobaric-isothermal ensemble calculations, {\sc oopse}
+To carry out isobaric-isothermal ensemble calculations, {\sc OpenMD}
 implements the Melchionna modifications to the Nos\'e-Hoover-Andersen
 equations of motion.\cite{melchionna93} The equations of motion are
 the same as NVT with the following exceptions:
@@ -2187,7 +2186,7 @@ P(t) &\leftarrow \left\{{\bf r}(t)\right\}, \left\{{\bf v}(t)\right\} ,\\
 \end{align*}
 
 The propagation of positions to time $t + h$
-depends on the positions at the same time.  {\sc oopse} carries out
+depends on the positions at the same time.  {\sc OpenMD} carries out
 this step iteratively (with a limit of 5 passes through the iterative
 loop).  Also, the simulation box $\mathsf{H}$ is scaled uniformly for
 one full time step by an exponential factor that depends on the value
@@ -2230,7 +2229,7 @@ h)$, they indirectly depend on their own values at time $t + h$.  {\tt
 moveB} is therefore done in an iterative fashion until $\chi(t + h)$
 and $\eta(t + h)$ become self-consistent.  The relative tolerance for
 the self-consistency check defaults to a value of $\mbox{10}^{-6}$,
-but {\sc oopse} will terminate the iteration after 4 loops even if the
+but {\sc OpenMD} will terminate the iteration after 4 loops even if the
 consistency check has not been satisfied.
 
 The Melchionna modification of the Nos\'e-Hoover-Andersen algorithm is
@@ -2255,7 +2254,7 @@ H_{\mathrm{NPTi}} = V + K + \frac{f k_B T_{\mathrm{target}}}{2} \left(
 
 Bond constraints are applied at the end of both the {\tt moveA} and
 {\tt moveB} portions of the algorithm.  Details on the constraint
-algorithms are given in section \ref{oopseSec:rattle}.
+algorithms are given in section \ref{section:rattle}.
 
 \section{\label{sec:NPTf}Constant-pressure integration with a
 flexible box (NPTf)} 
@@ -2307,7 +2306,7 @@ NPTi integration:
 \mathsf{H}(t + h) &\leftarrow \mathsf{H}(t) \cdot e^{-h
 	\overleftrightarrow{\eta}(t + h / 2)} .
 \end{align*}
-{\sc oopse} uses a power series expansion truncated at second order
+{\sc OpenMD} uses a power series expansion truncated at second order
 for the exponential operation which scales the simulation box.
 
 The {\tt moveB} portion of the algorithm is largely unchanged from the
@@ -2374,10 +2373,10 @@ simulations).
 
 \section{Langevin Dynamics (LD)\label{LDRB}}
 
-{\sc oopse} implements a Langevin integrator in order to perform
+{\sc OpenMD} implements a Langevin integrator in order to perform
 molecular dynamics simulations in implicit solvent environments.  This
 can result in substantial performance gains when the detailed dynamics
-of the solvent is not important. Since {\sc oopse} also handles rigid
+of the solvent is not important. Since {\sc OpenMD} also handles rigid
 bodies of arbitrary composition and shape, the Langevin integrator is
 by necessity somewhat more complex than in other simulation packages.
 
@@ -2441,7 +2440,7 @@ resistance.
 For atoms and ellipsoids, there are good approximations for this
 tensor that are based on Stokes' law.  For arbitrary rigid bodies, the
 resistance tensor must be pre-computed before Langevin dynamics can be
-used.  The {\sc oopse} distribution contains a utitilty program called
+used.  The {\sc OpenMD} distribution contains a utitilty program called
 Hydro that performs this computation.
 
 Once this tensor is known for a given {\tt integrableObject},
@@ -2487,7 +2486,7 @@ frame, we consider the equation of motion for the angular momentum
 \frac{\partial}{\partial t}{\bf j}(t) = \tau^{~b}(t)
 \end{equation}
 By embedding the friction and random forces into the the total force
-and torque, {\sc oopse} integrates the Langevin equations of motion
+and torque, {\sc OpenMD} integrates the Langevin equations of motion
 for a rigid body of arbitrary shape in a velocity-Verlet style 2-part
 algorithm, where $h = \delta t$:
 
@@ -2605,7 +2604,7 @@ file which contains the information about the hydrodynamic properties
 of all complex rigid bodies being used during the simulation.  The
 {\tt HydroPropFile} keyword is used to specify the name of this
 file. A {\tt HydroPropFile} should be precalculated using the Hydro
-program that is included in the {\sc oopse} distribution.
+program that is included in the {\sc OpenMD} distribution.
 
 \begin{longtable}[c]{ABG}
 \caption{Meta-data Keywords: Required parameters for the Langevin integrator}
@@ -2630,11 +2629,11 @@ tensor.
 
 \section{\label{sec:constraints}Constraint Methods}
 
-\subsection{\label{oopseSec:rattle}The {\sc rattle} Method for Bond 
+\subsection{\label{section:rattle}The {\sc rattle} Method for Bond 
 	Constraints}
 
 In order to satisfy the constraints of fixed bond lengths within {\sc
-oopse}, we have implemented the {\sc rattle} algorithm of
+OpenMD}, we have implemented the {\sc rattle} algorithm of
 Andersen.\cite{andersen83} {\sc rattle} is a velocity-Verlet
 formulation of the {\sc shake} method\cite{ryckaert77} for iteratively
 solving the Lagrange multipliers which maintain the holonomic
@@ -2642,7 +2641,7 @@ constraints.  Both methods are covered in depth in the
 literature,\cite{leach01:mm,Allen87} and a detailed description of
 this method would be redundant.
 
-\subsection{\label{oopseSec:zcons}The Z-Constraint Method}
+\subsection{\label{section:zcons}The Z-Constraint Method}
 
 A force auto-correlation method based on the fluctuation-dissipation
 theorem was developed by Roux and Karplus to investigate the dynamics
@@ -2676,7 +2675,7 @@ system is a technique that was proposed to obtain the forces required
 for the force auto-correlation calculation.\cite{Marrink94} However,
 simply resetting the coordinate will move the center of the mass of
 the whole system. To avoid this problem, we have developed a new
-method that is utilized in {\sc oopse}. Instead of resetting the
+method that is utilized in {\sc OpenMD}. Instead of resetting the
 coordinates, we reset the forces of $z$-constrained molecules and
 subtract the total constraint forces from the rest of the system after
 the force calculation at each time step.
@@ -2684,7 +2683,7 @@ the force calculation at each time step.
 After the force calculation, the total force on molecule $\alpha$ is:
 \begin{equation}
 G_{\alpha} = \sum_i F_{\alpha i},
-\label{oopseEq:zc1}
+\label{eq:zc1}
 \end{equation}
 where $F_{\alpha i}$ is the force in the $z$ direction on atom $i$ in
 $z$-constrained molecule $\alpha$. The forces on the atoms in the
@@ -2746,7 +2745,7 @@ events on the time scale of a few hundreds of picoseconds.  For
 example,{\sc smd} has been used to observe the dissociation of
 Streptavidin-biotin Complex.\cite{smd}  
 
-To use of the $z$-constraint method in an {\sc oopse} simulation, the
+To use of the $z$-constraint method in an {\sc OpenMD} simulation, the
 molecules must be specified using the {\tt nZconstraints} keyword in
 the meta-data file.  The other parameters for modifying the behavior
 of the $z$-constraint method are listed in table~\ref{table:zconParams}.
@@ -2776,7 +2775,12 @@ Harmonic Forces are used by default
 \label{table:zconParams}
 \end{longtable}
 
-\chapter{\label{oopseSec:thermInt}Thermodynamic Integration}
+\chapter{\label{section:restraints}Restraints}
+Restraints are external potentials that are added to a system to keep
+particular molecules or collections of particles close to some
+reference structure.  A restraint can be a collective
+
+\chapter{\label{section:thermInt}Thermodynamic Integration}
 
 Thermodynamic integration is an established technique that has been
 used extensively in the calculation of free energies for condensed
@@ -2831,11 +2835,11 @@ K_\omega K_\theta)^{\frac{1}{2}}}\exp\left
 where $2\pi\nu = (K_\mathrm{v}/m)^{1/2}$, and $E_m$ is the minimum
 potential energy of the ideal crystal.\cite{Baez95a} 
 
-{\sc oopse} can perform the simulations that aid the user in
+{\sc OpenMD} can perform the simulations that aid the user in
 constructing the thermodynamic path from the molecular system to one
 of the reference systems.  To do this, the user sets the value of
 $\lambda$ (between 0 \& 1) in the meta-data file.  If the system of
-interest is crystalline, {\sc oopse} must be able to find the  {\it
+interest is crystalline, {\sc OpenMD} must be able to find the  {\it
 reference} configuration of the system in a file called {\tt
 idealCrystal.in} in the directory from which the simulation was run.
 This file is a standard {\tt .dump} file, but all information about
@@ -2864,7 +2868,7 @@ vHarm}, the user can obtain the integrand in Eq. (\ref{eq:thermInt})
 for fixed value of $\lambda$.  
 
 There are two additional files with the suffixes {\tt .zang0} and {\tt
-.zang} generated by {\sc oopse} during the first run of a solid
+.zang} generated by {\sc OpenMD} during the first run of a solid
 thermodynamic integration.  These files contain the initial ({\tt
 .zang0}) and  final ({\tt .zang}) values of the angular displacement
 coordinates for each of the molecules.  These are particularly useful
@@ -2915,7 +2919,7 @@ Einstein crystal
 \end{longtable}
 
 
-\chapter{\label{oopseSec:minimizer}Energy Minimization}
+\chapter{\label{section:minimizer}Energy Minimization}
 
 As one of the basic procedures of molecular modeling, energy
 minimization is used to identify local configurations that are stable
@@ -2925,7 +2929,7 @@ global energy minimum as well as to find local structures which are
 stable fixed points on the surface.  We have included two simple
 minimization algorithms: steepest descent, ({\sc sd}) and conjugate
 gradient ({\sc cg}) to help users find reasonable local minima from
-their initial configurations. Since {\sc oopse} handles atoms and
+their initial configurations. Since {\sc OpenMD} handles atoms and
 rigid bodies which have orientational coordinates as well as
 translational coordinates, there is some subtlety to the choice of
 parameters for minimization algorithms.
@@ -2959,7 +2963,7 @@ V(x_{k})^{T}\nabla V(x_{k})}%
 \end{equation}
 It is widely agreed that the Polak-Ribiere variant gives better
 convergence than the Fletcher-Reeves variant, so the conjugate
-gradient approach implemented in {\sc oopse} is the Polak-Ribiere
+gradient approach implemented in {\sc OpenMD} is the Polak-Ribiere
 variant.
 
 The conjugate gradient method assumes that the conformation is close
@@ -2968,7 +2972,7 @@ nearly quadratic.  When the initial structure is far from the minimum,
 the steepest descent method can be superior to the conjugate gradient
 method. Hence, the steepest descent method is often used for the first
 10-100 steps of minimization. Another useful feature of minimization
-methods in {\sc oopse} is that a modified {\sc shake} algorithm can be
+methods in {\sc OpenMD} is that a modified {\sc shake} algorithm can be
 applied during the minimization to constraint the bond lengths if this
 is required by the force field. Meta-data parameters concerning the
 minimizer are given in Table~\ref{table:minimizeParams}
@@ -3001,14 +3005,14 @@ iterations for each line search & The default value is 50\\
 \label{table:minimizeParams}
 \end{longtable}
 
-\chapter{\label{oopseSec:anal}Analysis of Physical Properties}
+\chapter{\label{section:anal}Analysis of Physical Properties}
 
-{\sc oopse} includes a few utility programs which compute properties
+{\sc OpenMD} includes a few utility programs which compute properties
 from the dump files that are generated during a molecular dynamics
 simulation.  These programs are:
 
 \begin{description}
-\item[{\bf Dump2XYZ}] Converts an {\sc oopse} dump file into a file
+\item[{\bf Dump2XYZ}] Converts an {\sc OpenMD} dump file into a file
 suitable for viewing in a molecular dynamics viewer like Jmol  
 \item[{\bf StaticProps}] Computes static properties like the pair
 distribution function, $g(r)$.
@@ -3022,7 +3026,7 @@ within a dump file.  For example, if you want only the {\it oxygen-oxygen}
 pair distribution from a water simulation, or if you want to make a
 movie including only the water molecules within a 6 angstrom radius of
 lipid head groups, you need a way to specify your selection to these
-utility programs.  OOPSE has a selection syntax which allows you to
+utility programs.  {\sc OpenMD} has a selection syntax which allows you to
 specify the selection in a compact form in order to generate only the
 data you want.  For example a common use of the StaticProps command
 would be:
@@ -3035,9 +3039,9 @@ this selection syntax and to make full use of the selection
 capabilities of the analysis programs, it is necessary to understand a
 few of the core concepts that are used to perform simulations. 
 
-\section{\label{oopseSec:concepts}Concepts}
+\section{\label{section:concepts}Concepts}
 
-OOPSE manipulates both traditional atoms as well as some objects that
+{\sc OpenMD} manipulates both traditional atoms as well as some objects that
 {\it behave like atoms}.  These objects can be rigid collections of
 atoms or atoms which have orientational degrees of freedom.  Here is a
 diagram of the class heirarchy:
@@ -3045,11 +3049,11 @@ diagram of the class heirarchy:
 \begin{figure}
 \centering
 \includegraphics[width=3in]{heirarchy.pdf}
-\caption[Class heirarchy for StuntDoubles in {\sc oopse}-4]{ \\ The
-class heirarchy of StuntDoubles in {\sc oopse}-4. The selection
+\caption[Class heirarchy for StuntDoubles in {\sc OpenMD}-4]{ \\ The
+class heirarchy of StuntDoubles in {\sc OpenMD}-4. The selection
 syntax allows the user to select any of the objects that are descended
 from a StuntDouble.}
-\label{oopseFig:heirarchy}
+\label{fig:heirarchy}
 \end{figure}
 
 \begin{itemize}
@@ -3061,7 +3065,7 @@ integrators and minimizers.
 DirectionalAtom}s which behaves as a single unit.
 \end{itemize} 
 
-Every Molecule, Atom and DirectionalAtom in {\sc oopse} have their own names
+Every Molecule, Atom and DirectionalAtom in {\sc OpenMD} have their own names
 which are specified in the {\tt .md} file. In contrast, RigidBodies are
 denoted by their membership and index inside a particular molecule:
 [MoleculeName]\_RB\_[index] (the contents inside the brackets
@@ -3069,18 +3073,18 @@ depend on the specifics of the simulation). The names of rigid bodies are
 generated automatically. For example, the name of the first rigid body
 in a DMPC molecule is DMPC\_RB\_0.
 
-\section{\label{oopseSec:syntax}Syntax of the Select Command}
+\section{\label{section:syntax}Syntax of the Select Command}
 
 The most general form of the select command is: {\tt select {\it expression}}
 
 This expression represents an arbitrary set of StuntDoubles (Atoms or
-RigidBodies) in {\sc oopse}. Expressions are composed of either name
+RigidBodies) in {\sc OpenMD}. Expressions are composed of either name
 expressions, index expressions, predefined sets, user-defined
 expressions, comparison operators, within expressions, or logical
 combinations of the above expression types. Expressions can be
 combined using parentheses and the Boolean operators.
 
-\subsection{\label{oopseSec:logical}Logical expressions}
+\subsection{\label{section:logical}Logical expressions}
 
 The logical operators allow complex queries to be constructed out of
 simpler ones using the standard boolean connectives {\bf and}, {\bf
@@ -3099,7 +3103,7 @@ not & ``!''  \\
 \end{tabular}
 \end{center}
 
-\subsection{\label{oopseSec:name}Name expressions}
+\subsection{\label{section:name}Name expressions}
 
 \begin{center}
 \begin{tabular}{|llp{3in}|}
@@ -3129,7 +3133,7 @@ belonging to all rigid bodies within all DMPC molecules \\
 \end{tabular}
 \end{center}
 
-\subsection{\label{oopseSec:index}Index expressions}
+\subsection{\label{section:index}Index expressions}
 
 \begin{center}
 \begin{tabular}{|lp{4in}|}
@@ -3144,7 +3148,7 @@ molecules which have global indices between 20 (inclusive) and 30
 \end{tabular}
 \end{center}
 
-\subsection{\label{oopseSec:predefined}Predefined sets}
+\subsection{\label{section:predefined}Predefined sets}
 
 \begin{center}
 \begin{tabular}{|ll|}
@@ -3157,7 +3161,7 @@ none & select none of the StuntDoubles \\
 \end{tabular}
 \end{center}
 
-\subsection{\label{oopseSec:userdefined}User-defined expressions}
+\subsection{\label{section:userdefined}User-defined expressions}
 
 Users can define arbitrary terms to represent groups of StuntDoubles,
 and then use the define terms in select commands. The general form for
@@ -3169,7 +3173,7 @@ Once defined, the user can specify such terms in boolean expressions
 
 {\tt select SSDWATER}
 
-\subsection{\label{oopseSec:comparison}Comparison expressions}
+\subsection{\label{section:comparison}Comparison expressions}
 
 StuntDoubles can be selected by using comparision operators on their
 properties. The general form for the comparison command is: a property
@@ -3189,7 +3193,7 @@ For example, the phrase {\tt select mass > 16.0 and charge < -2}
 wouldselect StuntDoubles which have mass greater than 16.0 and charges
 less than -2.
  
-\subsection{\label{oopseSec:within}Within expressions}
+\subsection{\label{section:within}Within expressions}
 
 The ``within'' keyword allows the user to select all StuntDoubles
 within the specified distance (in Angstroms) from a selection,
@@ -3200,11 +3204,11 @@ For example, the phrase {\tt select within(2.5, PO4 or NC4)} would
 select all StuntDoubles which are within 2.5 angstroms of PO4 or NC4
 atoms.
 
-\section{\label{oopseSec:tools}Tools which use the selection command}
+\section{\label{section:tools}Tools which use the selection command}
 
-\subsection{\label{oopseSec:Dump2XYZ}Dump2XYZ}
+\subsection{\label{section:Dump2XYZ}Dump2XYZ}
 
-Dump2XYZ can transform an OOPSE dump file into a xyz file which can
+Dump2XYZ can transform an {\sc OpenMD} dump file into a xyz file which can
 be opened by other molecular dynamics viewers such as Jmol and
 VMD. The options available for Dump2XYZ are as follows:
 
@@ -3237,7 +3241,7 @@ converted. \\
 \end{longtable}
 
 
-\subsection{\label{oopseSec:StaticProps}StaticProps}
+\subsection{\label{section:StaticProps}StaticProps}
 
 {\tt StaticProps} can compute properties which are averaged over some
 or all of the configurations that are contained within a dump file.
@@ -3249,7 +3253,7 @@ frame {\it fixed to the body-fixed reference frame} of a selected atom
 or rigid body.
 
 There are five seperate radial distribution functions availiable in
-OOPSE. Since every radial distrbution function invlove the calculation
+{\sc OpenMD}. Since every radial distrbution function invlove the calculation
 between pairs of bodies, {\tt -{}-sele1} and {\tt -{}-sele2} must be specified to tell
 StaticProps which bodies to include in the calculation.
 
@@ -3296,7 +3300,7 @@ distribution functions are most easily seen in the figure below:
 two directional objects (DirectionalAtoms and RigidBodies) have a set
 of two angles ($\theta$, and $\omega$) between the z-axes of their
 body-fixed frames.} 
-\label{oopseFig:gofr}
+\label{fig:gofr}
 \end{figure}
 
 The options available for {\tt StaticProps} are as follows:
@@ -3336,7 +3340,7 @@ The options available for {\tt StaticProps} are as follows:
     &  {\tt -{}-slab\_density}           &  slab density ({\tt -{}-sele1} must be specified)
 \end{longtable}
 
-\subsection{\label{oopseSec:DynamicProps}DynamicProps}
+\subsection{\label{section:DynamicProps}DynamicProps}
 
 {\tt DynamicProps} computes time correlation functions from the
 configurations stored in a dump file.  Typical examples of time
@@ -3382,18 +3386,18 @@ The options available for DynamicProps are as follows:
   -d& {\tt -{}-dcorr}                  & compute dipole correlation function
 \end{longtable}
 
-\chapter{\label{oopseSec:PreparingInput} Preparing Input Configurations}
+\chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
-{\sc oopse} version 4 comes with a few utility programs to aid in
+{\sc OpenMD} version 4 comes with a few utility programs to aid in
 setting up initial configuration and meta-data files.  Usually, a user
 is interested in either importing a structure from some other format
 (usually XYZ or PDB), or in building an initial configuration in some
-perfect crystalline lattice.  The programs bundled with {\sc oopse}
+perfect crystalline lattice.  The programs bundled with {\sc OpenMD}
 which import coordinate files are {\tt atom2md}, {\tt xyz2md}, and
 {\tt pdb2md}. The programs which generate perfect crystals are called
 {\tt SimpleBuilder} and {\tt RandomBuilder}
 
-\section{\label{oopseSec:atom2md}atom2md, xyz2md, and pdb2md}
+\section{\label{section:atom2md}atom2md, xyz2md, and pdb2md}
 
 {\tt atom2md}, {\tt xyz2md}, and {\tt pdb2md} attempt to construct
 {\tt .md} files from a single file containing only atomic coordinate
@@ -3433,7 +3437,7 @@ The options available for atom2md are as follows:
 \multicolumn{2}{|l|}{The following file formats are recognized:}\\
 \hline
   ent & Protein Data Bank format \\
-  in & {\sc oopse} cartesian coordinates format \\
+  in & {\sc OpenMD} cartesian coordinates format \\
   pdb & Protein Data Bank format \\
   prep & Amber Prep format  \\
   xyz & XYZ cartesian coordinates format \\
@@ -3446,10 +3450,10 @@ The specific programs {\tt xyz2md} and {\tt pdb2md} are identical
 to {\tt atom2md}, but they use a specific input format and do not
 expect the the input specifier on the command line. 
 
-\section{\label{oopseSec:SimpleBuilder}SimpleBuilder}
+\section{\label{section:SimpleBuilder}SimpleBuilder}
 
 {\tt SimpleBuilder} creates simple lattice structures.  It requires an
-initial, but skeletal OOPSE file to specify the components that are to
+initial, but skeletal {\sc OpenMD} file to specify the components that are to
 be placed on the lattice.  The total number of placed molecules will
 be shown at the top of the configuration file that is generated, and
 that number may not match the original meta-data file, so a new
@@ -3472,7 +3476,7 @@ The options available for SimpleBuilder are as follows:
     &  {\tt -{}-nz=INT}            &  number of unit cells in z
 \end{longtable}
 
-\section{\label{oopseSec:Hydro}Hydro}
+\section{\label{section:Hydro}Hydro}
 {\tt Hydro} generates resistance tensor ({\tt .diff}) files which are
 required when using the Langevin integrator using complex rigid
 bodies.  {\tt Hydro} supports two approximate models: the {\tt
@@ -3505,7 +3509,7 @@ hydrodynamic calculations will not be performed (default=off)\\
 \end{longtable}
 
 
-\chapter{\label{oopseSec:parallelization} Parallel Simulation Implementation}
+\chapter{\label{section:parallelization} Parallel Simulation Implementation}
 
 Although processor power is continually improving, it is still
 unreasonable to simulate systems of more than 10,000 atoms on a single
@@ -3540,7 +3544,7 @@ is not very efficient for small $N$, since the overall communication
 scales as the surface to volume ratio $\mathcal{O}(N/P)^{2/3}$ in
 three dimensions.
 
-The parallelization method used in {\sc oopse} is the force
+The parallelization method used in {\sc OpenMD} is the force
 decomposition method.\cite{hendrickson:95} Force decomposition assigns
 particles to processors based on a block decomposition of the force
 matrix. Processors are split into an optimally square grid forming row
@@ -3557,12 +3561,12 @@ found that force decompositions scale more favorably than spatial
 decompositions for systems up to 10,000 atoms and favorably compete
 with spatial methods up to 100,000 atoms.\cite{plimpton95}
  
-\chapter{\label{oopseSec:conclusion}Conclusion}
+\chapter{\label{section:conclusion}Conclusion}
 
 We have presented a new parallel simulation program called {\sc
-oopse}. This program offers some novel capabilities, but mostly makes
+OpenMD}. This program offers some novel capabilities, but mostly makes
 available a library of modern object-oriented code for the scientific
-community to use freely.  Notably, {\sc oopse} can handle symplectic
+community to use freely.  Notably, {\sc OpenMD} can handle symplectic
 integration of objects (atoms and rigid bodies) which have
 orientational degrees of freedom.  It can also work with transition
 metal force fields and point-dipoles. It is capable of scaling across
@@ -3576,12 +3580,12 @@ We encourage other researchers to download and apply this program to
 their own research problems.  By making the code available, we hope to
 encourage other researchers to contribute their own code and make it a
 more powerful package for everyone in the molecular dynamics community
-to use.  All source code for {\sc oopse} is available for download at
-{\tt http://oopse.org}.
+to use.  All source code for {\sc OpenMD} is available for download at
+{\tt http://openmd.net}.
 
 \chapter{Acknowledgments}
 
-Development of {\sc oopse} was funded by a New Faculty Award from the
+Development of {\sc OpenMD} was funded by a New Faculty Award from the
 Camille and Henry Dreyfus Foundation and by the National Science
 Foundation under grant CHE-0134881. Computation time was provided by
 the Notre Dame Bunch-of-Boxes (B.o.B) computer cluster under NSF grant
@@ -3589,6 +3593,6 @@ DMR-0079647.
 
 
 \bibliographystyle{jcc}
-\bibliography{oopseDoc}
+\bibliography{openmdDoc}
 
 \end{document}
