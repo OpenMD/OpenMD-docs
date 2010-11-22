@@ -64,8 +64,8 @@ OpenMD simulation is specified using a very simple meta-data language
 that is easy to learn.
 
 \tableofcontents
-%\listoffigures
-%\listoftables
+\listoffigures
+\listoftables
  
 \mainmatter
 
@@ -497,7 +497,7 @@ Every {\tt $<$MetaData$>$} block must have a component statement. \\
 {\tt minimizer} & string & Chooses a minimizer & Possible minimizers
 are SD and CG. Either {\tt ensemble} or {\tt minimizer} must be specified. \\
 {\tt ensemble} & string & Sets the ensemble. & Possible ensembles are
-NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, and LD.  Either {\tt ensemble}
+NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, LD and LHull.  Either {\tt ensemble}
 or {\tt minimizer} must be specified. \\
 {\tt dt} & fs & Sets the time step. & Selection of {\tt dt} should be
 small enough to sample the fastest motion of the simulation. ({\tt
@@ -1906,6 +1906,9 @@ NPTxyz & approximate isobaric-isothermal & {\tt ensemble = NPTxyz;} \\
  &  (with separate barostats on each box dimension) & \\
 LD & Langevin Dynamics & {\tt ensemble = LD;} \\
  &  (approximates the effects of an implicit solvent) & \\
+ LangevinHull & Non-periodic Langevin Dynamics  & {\tt ensemble = LHull;} \\
+ & (Langevin Dynamics for molecules on convex hull;\\
+ & Newtonian for interior molecules) & \\
 \end{tabular}
 \end{center}
 
@@ -2391,7 +2394,7 @@ includes the mass of the rigid body as well as the moments of inertia
 in the body-fixed frame) and ${\bf V}$ is a generalized velocity,
 ${\bf V} =
 \left\{{\bf v},{\bf \omega}\right\}$. The right side of
-Eq.~\ref{LDGeneralizedForm} consists of three generalized forces: a
+Eq. \ref{LDGeneralizedForm} consists of three generalized forces: a
 system force (${\bf F}_{s}$), a frictional or dissipative force (${\bf
 F}_{f}$) and a stochastic force (${\bf F}_{r}$). While the evolution
 of the system in Newtonian mechanics is typically done in the lab
@@ -2613,19 +2616,205 @@ program that is included in the {\sc OpenMD} distribution.
 \endhead
 \hline
 \endfoot
-{\tt viscosity} & centipoise & Sets the value of viscosity of the implicit
+{\tt viscosity} & poise & Sets the value of viscosity of the implicit
 solvent  \\ 
 {\tt targetTemp} & K & Sets the target temperature of the system.
 This parameter must be specified to use Langevin dynamics. \\ 
 {\tt HydroPropFile} & string & Specifies the name of the resistance
 tensor (usually a {\tt .diff} file) which is precalculated by {\tt
-Hydro}. This keyworkd is not necessary if the simulation contains only
+Hydro}. This keyword is not necessary if the simulation contains only
 simple bodies (spheres and ellipsoids). \\ 
 {\tt beadSize} & $\mbox{\AA}$ & Sets the diameter of the beads to use
 when the {\tt RoughShell} model is used to approximate the resistance
 tensor.
 \label{table:ldParameters}
 \end{longtable}
+
+\section{Langevin Hull Dynamics (LHull)}
+
+The Langevin Hull uses an external bath at a fixed constant pressure
+($P$) and temperature ($T$) with an effective solvent viscosity
+($\eta$).  This bath interacts only with the objects on the exterior
+hull of the system.  Defining the hull of the atoms in a simulation is
+done in a manner similar to the approach of Kohanoff, Caro and
+Finnis.\cite{Kohanoff:2005qm} That is, any instantaneous configuration
+of the atoms in the system is considered as a point cloud in three
+dimensional space.  Delaunay triangulation is used to find all facets
+between coplanar
+neighbors.\cite{delaunay,springerlink:10.1007/BF00977785} In highly
+symmetric point clouds, facets can contain many atoms, but in all but
+the most symmetric of cases, the facets are simple triangles in
+3-space which contain exactly three atoms.
+
+The convex hull is the set of facets that have {\it no concave
+  corners} at an atomic site.\cite{Barber96,EDELSBRUNNER:1994oq} This
+eliminates all facets on the interior of the point cloud, leaving only
+those exposed to the bath. Sites on the convex hull are dynamic; as
+molecules re-enter the cluster, all interactions between atoms on that
+molecule and the external bath are removed.  Since the edge is
+determined dynamically as the simulation progresses, no {\it a priori}
+geometry is defined. The pressure and temperature bath interacts only
+with the atoms on the edge and not with atoms interior to the
+simulation.
+
+Atomic sites in the interior of the simulation move under standard
+Newtonian dynamics,
+\begin{equation}
+m_i \dot{\mathbf v}_i(t)=-{\mathbf \nabla}_i U,
+\label{eq:Newton}
+\end{equation}
+where $m_i$ is the mass of site $i$, ${\mathbf v}_i(t)$ is the
+instantaneous velocity of site $i$ at time $t$, and $U$ is the total
+potential energy.  For atoms on the exterior of the cluster
+(i.e. those that occupy one of the vertices of the convex hull), the
+equation of motion is modified with an external force, ${\mathbf
+  F}_i^{\mathrm ext}$:
+\begin{equation}
+m_i \dot{\mathbf v}_i(t)=-{\mathbf \nabla}_i U + {\mathbf F}_i^{\mathrm ext}.
+\end{equation}
+
+The external bath interacts indirectly with the atomic sites through
+the intermediary of the hull facets.  Since each vertex (or atom)
+provides one corner of a triangular facet, the force on the facets are
+divided equally to each vertex.  However, each vertex can participate
+in multiple facets, so the resultant force is a sum over all facets
+$f$ containing vertex $i$:
+\begin{equation}
+{\mathbf F}_{i}^{\mathrm ext} = \sum_{\begin{array}{c}\mathrm{facets\
+    } f \\ \mathrm{containing\ } i\end{array}} \frac{1}{3}\  {\mathbf
+  F}_f^{\mathrm ext}
+\end{equation}
+
+The external pressure bath applies a force to the facets of the convex
+hull in direct proportion to the area of the facet, while the thermal
+coupling depends on the solvent temperature, viscosity and the size
+and shape of each facet. The thermal interactions are expressed as a
+standard Langevin description of the forces,
+\begin{equation}
+\begin{array}{rclclcl}
+{\mathbf F}_f^{\text{ext}} & = &  \text{external pressure} & + & \text{drag force} & + & \text{random force} \\
+& = &  -\hat{n}_f P A_f  & - & \Xi_f(t) {\mathbf v}_f(t)  & + & {\mathbf R}_f(t)
+\end{array}
+\end{equation}
+Here, $A_f$ and $\hat{n}_f$ are the area and (outward-facing) normal
+vectors for facet $f$, respectively.  ${\mathbf v}_f(t)$ is the
+velocity of the facet centroid,
+\begin{equation}
+{\mathbf v}_f(t) =  \frac{1}{3} \sum_{i=1}^{3} {\mathbf v}_i,
+\end{equation}
+and $\Xi_f(t)$ is an approximate ($3 \times 3$) resistance tensor that
+depends on the geometry and surface area of facet $f$ and the
+viscosity of the bath.  The resistance tensor is related to the
+fluctuations of the random force, $\mathbf{R}(t)$, by the
+fluctuation-dissipation theorem,
+\begin{eqnarray}
+\left< {\mathbf R}_f(t) \right> & = & 0 \\
+\left<{\mathbf R}_f(t) {\mathbf R}_f^T(t^\prime)\right> & = & 2 k_B T\
+\Xi_f(t)\delta(t-t^\prime).
+\label{eq:randomForce}
+\end{eqnarray}
+
+Once the resistance tensor is known for a given facet, a stochastic
+vector that has the properties in Eq. (\ref{eq:randomForce}) can be
+calculated efficiently by carrying out a Cholesky decomposition to
+obtain the square root matrix of the resistance tensor,
+\begin{equation} 
+\Xi_f = {\bf S} {\bf S}^{T},
+\label{eq:Cholesky}
+\end{equation} 
+where ${\bf S}$ is a lower triangular matrix.\cite{Schlick2002} A
+vector with the statistics required for the random force can then be
+obtained by multiplying ${\bf S}$ onto a random 3-vector ${\bf Z}$ which
+has elements chosen from a Gaussian distribution, such that:
+\begin{equation}
+\langle {\bf Z}_i \rangle = 0, \hspace{1in} \langle {\bf Z}_i \cdot
+{\bf Z}_j \rangle = \frac{2 k_B T}{\delta t} \delta_{ij},
+\end{equation}
+where $\delta t$ is the timestep in use during the simulation. The
+random force, ${\bf R}_{f} = {\bf S} {\bf Z}$, can be shown to
+have the correct properties required by Eq. (\ref{eq:randomForce}).
+
+Our treatment of the resistance tensor is approximate.  $\Xi_f$ for a
+rigid triangular plate would normally be treated as a $6 \times 6$
+tensor that includes translational and rotational drag as well as
+translational-rotational coupling. The computation of resistance
+tensors for rigid bodies has been detailed
+elsewhere,\cite{JoseGarciadelaTorre02012000,Garcia-de-la-Torre:2001wd,GarciadelaTorreJ2002,Sun:2008fk}
+but the standard approach involving bead approximations would be
+prohibitively expensive if it were recomputed at each step in a
+molecular dynamics simulation.
+
+Instead, we are utilizing an approximate resistance tensor obtained by
+first constructing the Oseen tensor for the interaction of the
+centroid of the facet ($f$) with each of the subfacets $\ell=1,2,3$,
+\begin{equation}
+T_{\ell f}=\frac{A_\ell}{8\pi\eta R_{\ell f}}\left(I +
+  \frac{\mathbf{R}_{\ell f}\mathbf{R}_{\ell f}^T}{R_{\ell f}^2}\right)
+\end{equation}
+Here, $A_\ell$ is the area of subfacet $\ell$ which is a triangle
+containing two of the vertices of the facet along with the centroid.
+$\mathbf{R}_{\ell f}$ is the vector between the centroid of facet $f$
+and the centroid of sub-facet $\ell$, and $I$ is the ($3 \times 3$)
+identity matrix.  $\eta$ is the viscosity of the external bath.
+
+The tensors for each of the sub-facets are added together, and the
+resulting matrix is inverted to give a $3 \times 3$ resistance tensor
+for translations of the triangular facet,
+\begin{equation}
+\Xi_f(t) =\left[\sum_{i=1}^3 T_{if}\right]^{-1}.
+\end{equation}
+Note that this treatment ignores rotations (and
+translational-rotational coupling) of the facet.  In compact systems,
+the facets stay relatively fixed in orientation between
+configurations, so this appears to be a reasonably good approximation.
+
+At each
+molecular dynamics time step, the following process is carried out:
+\begin{enumerate}
+\item The standard inter-atomic forces ($\nabla_iU$) are computed.
+\item Delaunay triangulation is carried out using the current atomic
+  configuration.
+\item The convex hull is computed and facets are identified.
+\item For each facet:
+\begin{itemize}
+\item[a.] The force from the pressure bath ($-\hat{n}_fPA_f$) is
+  computed.
+\item[b.] The resistance tensor ($\Xi_f(t)$) is computed using the
+  viscosity ($\eta$) of the bath.
+\item[c.] Facet drag ($-\Xi_f(t) \mathbf{v}_f(t)$) forces are
+  computed.
+\item[d.] Random forces ($\mathbf{R}_f(t)$) are computed using the
+  resistance tensor and the temperature ($T$) of the bath.
+\end{itemize}
+\item The facet forces are divided equally among the vertex atoms.
+\item Atomic positions and velocities are propagated.
+\end{enumerate}
+The Delaunay triangulation and computation of the convex hull are done
+using calls to the qhull library.\cite{Qhull} There is a minimal
+penalty for computing the convex hull and resistance tensors at each
+step in the molecular dynamics simulation (roughly 0.02 $\times$ cost
+of a single force evaluation), and the convex hull is remarkably easy
+to parallelize on distributed memory machines.
+
+
+\begin{longtable}[c]{GBF}
+\caption{Meta-data Keywords: Required parameters for the Langevin Hull integrator}
+\\
+{\bf keyword} & {\bf units} & {\bf use}  \\ \hline
+\endhead
+\hline
+\endfoot
+{\tt viscosity} & poise & Sets the value of viscosity of the implicit
+solven . \\ 
+{\tt targetTemp} & K & Sets the target temperature of the system.
+This parameter must be specified to use Langevin Hull dynamics. \\ 
+{\tt targetPressure} & atm & Sets the target pressure of the system.
+This parameter must be specified to use Langevin Hull dynamics. \\ 
+{\tt usePeriodicBoundaryConditions = false} & logical & Turns off periodic boundary conditions.
+This parameter must be set to \tt false \\
+\label{table:lhullParameters}
+\end{longtable}
+
 
 \section{\label{sec:constraints}Constraint Methods}
 
@@ -3190,7 +3379,7 @@ name, followed by a comparision operator and then a number.
 \end{center}
 
 For example, the phrase {\tt select mass > 16.0 and charge < -2}
-wouldselect StuntDoubles which have mass greater than 16.0 and charges
+would select StuntDoubles which have mass greater than 16.0 and charges
 less than -2.
  
 \subsection{\label{section:within}Within expressions}
