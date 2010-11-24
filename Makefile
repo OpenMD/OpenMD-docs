@@ -22,13 +22,12 @@ INFILES    = \
 all:: ${PAPER_ROOT}.view
 
 ${PAPER_ROOT}.pdf: ${INFILES} ${PICTURES}
-	$(LC) ${PAPER_ROOT}
+	$(LC) --src-specials ${PAPER_ROOT}
 	$(BC) ${PAPER_ROOT}
-	$(LC) ${PAPER_ROOT}
-	$(LC) ${PAPER_ROOT}
+	$(LC) --src-specials ${PAPER_ROOT}
+	$(LC) --src-specials ${PAPER_ROOT}
 
 ${PAPER_ROOT}.view: ${PAPER_ROOT}.pdf
-	osascript "reload_preview.scpt" ${PAPER_ROOT}.pdf       
 	open -a $(PDF) ${PAPER_ROOT}.pdf
 
 clean::

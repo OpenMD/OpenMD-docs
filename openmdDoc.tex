@@ -41,12 +41,13 @@
 
 \title{{\sc OpenMD}: Molecular Dynamics in the Open}
 
-\author{Shenyu Kuang, Chunlei Li, Charles F. Vardeman II, \\
-Teng Lin, Christopher J. Fennell,  Xiuquan Sun, \\
-Kyle Daily, Yang Zheng, Matthew A. Meineke, and J. Daniel Gezelter\\
-Department of Chemistry and Biochemistry\\
-University of Notre Dame\\
-Notre Dame, Indiana 46556}
+\author{Kelsey M. Stocker, Shenyu Kuang, Charles F. Vardeman II, \\
+  Teng Lin, Christopher J. Fennell,  Xiuquan Sun, \\
+  Chunlei Li, Kyle Daily, Yang Zheng, Matthew A. Meineke, and \\
+  J. Daniel Gezelter \\
+  Department of Chemistry and Biochemistry\\
+  University of Notre Dame\\
+  Notre Dame, Indiana 46556}
 
 \maketitle
 
@@ -497,7 +498,7 @@ Every {\tt $<$MetaData$>$} block must have a component statement. \\
 {\tt minimizer} & string & Chooses a minimizer & Possible minimizers
 are SD and CG. Either {\tt ensemble} or {\tt minimizer} must be specified. \\
 {\tt ensemble} & string & Sets the ensemble. & Possible ensembles are
-NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, LD and LHull.  Either {\tt ensemble}
+NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, LD and LangevinHull.  Either {\tt ensemble}
 or {\tt minimizer} must be specified. \\
 {\tt dt} & fs & Sets the time step. & Selection of {\tt dt} should be
 small enough to sample the fastest motion of the simulation. ({\tt
@@ -707,27 +708,15 @@ which the components were included}.}, label=sch:initEx1]
   <MetaData>
 molecule{
   name = "I2";
-  atom[0]{
-    type = "I";
-  }
-  atom[1]{
-    type = "I";
-  }
-  bond{
-    members( 0, 1);
-  }
+  atom[0]{ type = "I"; }
+  atom[1]{ type = "I"; }
+  bond{ members( 0, 1); }
 }
 molecule{
   name = "HCl"
-  atom[0]{
-    type = "H";
-  }
-  atom[1]{
-    type = "Cl";
-  }
-  bond{
-    members( 0, 1);
-  }
+  atom[0]{ type = "H";}
+  atom[1]{ type = "Cl";}
+  bond{ members( 0, 1); }
 }
 component{
   type = "HCl";
@@ -1906,7 +1895,7 @@ NPTxyz & approximate isobaric-isothermal & {\tt ensemble = NPTxyz;} \\
  &  (with separate barostats on each box dimension) & \\
 LD & Langevin Dynamics & {\tt ensemble = LD;} \\
  &  (approximates the effects of an implicit solvent) & \\
- LangevinHull & Non-periodic Langevin Dynamics  & {\tt ensemble = LHull;} \\
+ LangevinHull & Non-periodic Langevin Dynamics  & {\tt ensemble = LangevinHull;} \\
  & (Langevin Dynamics for molecules on convex hull;\\
  & Newtonian for interior molecules) & \\
 \end{tabular}
@@ -2630,7 +2619,7 @@ tensor.
 \label{table:ldParameters}
 \end{longtable}
 
-\section{Langevin Hull Dynamics (LHull)}
+\section{Constant Pressure without periodic boundary conditions (The LangevinHull)}
 
 The Langevin Hull uses an external bath at a fixed constant pressure
 ($P$) and temperature ($T$) with an effective solvent viscosity
@@ -2706,39 +2695,19 @@ and $\Xi_f(t)$ is an approximate ($3 \times 3$) resistance tensor that
 depends on the geometry and surface area of facet $f$ and the
 viscosity of the bath.  The resistance tensor is related to the
 fluctuations of the random force, $\mathbf{R}(t)$, by the
-fluctuation-dissipation theorem,
-\begin{eqnarray}
-\left< {\mathbf R}_f(t) \right> & = & 0 \\
-\left<{\mathbf R}_f(t) {\mathbf R}_f^T(t^\prime)\right> & = & 2 k_B T\
-\Xi_f(t)\delta(t-t^\prime).
-\label{eq:randomForce}
-\end{eqnarray}
+fluctuation-dissipation theorem (see Eq. \ref{eq:randomForce}).
 
 Once the resistance tensor is known for a given facet, a stochastic
 vector that has the properties in Eq. (\ref{eq:randomForce}) can be
 calculated efficiently by carrying out a Cholesky decomposition to
-obtain the square root matrix of the resistance tensor,
-\begin{equation} 
-\Xi_f = {\bf S} {\bf S}^{T},
-\label{eq:Cholesky}
-\end{equation} 
-where ${\bf S}$ is a lower triangular matrix.\cite{Schlick2002} A
-vector with the statistics required for the random force can then be
-obtained by multiplying ${\bf S}$ onto a random 3-vector ${\bf Z}$ which
-has elements chosen from a Gaussian distribution, such that:
-\begin{equation}
-\langle {\bf Z}_i \rangle = 0, \hspace{1in} \langle {\bf Z}_i \cdot
-{\bf Z}_j \rangle = \frac{2 k_B T}{\delta t} \delta_{ij},
-\end{equation}
-where $\delta t$ is the timestep in use during the simulation. The
-random force, ${\bf R}_{f} = {\bf S} {\bf Z}$, can be shown to
-have the correct properties required by Eq. (\ref{eq:randomForce}).
+obtain the square root matrix of the resistance tensor (see
+Eq. \ref{eq:Cholesky}).
 
-Our treatment of the resistance tensor is approximate.  $\Xi_f$ for a
-rigid triangular plate would normally be treated as a $6 \times 6$
-tensor that includes translational and rotational drag as well as
-translational-rotational coupling. The computation of resistance
-tensors for rigid bodies has been detailed
+Our treatment of the resistance tensor for the Langevin Hull facets is
+approximate.  $\Xi_f$ for a rigid triangular plate would normally be
+treated as a $6 \times 6$ tensor that includes translational and
+rotational drag as well as translational-rotational coupling. The
+computation of resistance tensors for rigid bodies has been detailed
 elsewhere,\cite{JoseGarciadelaTorre02012000,Garcia-de-la-Torre:2001wd,GarciadelaTorreJ2002,Sun:2008fk}
 but the standard approach involving bead approximations would be
 prohibitively expensive if it were recomputed at each step in a
@@ -2790,12 +2759,12 @@ molecular dynamics time step, the following process is carried out:
 \item Atomic positions and velocities are propagated.
 \end{enumerate}
 The Delaunay triangulation and computation of the convex hull are done
-using calls to the qhull library.\cite{Qhull} There is a minimal
-penalty for computing the convex hull and resistance tensors at each
-step in the molecular dynamics simulation (roughly 0.02 $\times$ cost
-of a single force evaluation), and the convex hull is remarkably easy
-to parallelize on distributed memory machines.
-
+using calls to the qhull library,\cite{Qhull} and for this reason, if
+qhull is not detected during the build, the Langevin Hull integrator
+will not be available.  There is a minimal penalty for computing the
+convex hull and resistance tensors at each step in the molecular
+dynamics simulation (roughly 0.02 $\times$ cost of a single force
+evaluation).
 
 \begin{longtable}[c]{GBF}
 \caption{Meta-data Keywords: Required parameters for the Langevin Hull integrator}
@@ -2810,7 +2779,7 @@ solven . \\
 This parameter must be specified to use Langevin Hull dynamics. \\ 
 {\tt targetPressure} & atm & Sets the target pressure of the system.
 This parameter must be specified to use Langevin Hull dynamics. \\ 
-{\tt usePeriodicBoundaryConditions = false} & logical & Turns off periodic boundary conditions.
+{\tt usePeriodicBoundaryConditions} & logical & Turns off periodic boundary conditions.
 This parameter must be set to \tt false \\
 \label{table:lhullParameters}
 \end{longtable}
