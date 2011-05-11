@@ -41,7 +41,7 @@
 
 \title{{\sc OpenMD}: Molecular Dynamics in the Open}
 
-\author{Kelsey M. Stocker, Shenyu Kuang, Charles F. Vardeman II, \\
+\author{Shenyu Kuang, Charles F. Vardeman II, \\
   Teng Lin, Christopher J. Fennell,  Xiuquan Sun, \\
   Chunlei Li, Kyle Daily, Yang Zheng, Matthew A. Meineke, and \\
   J. Daniel Gezelter \\
@@ -2621,7 +2621,7 @@ tensor.
 
 \section{Constant Pressure without periodic boundary conditions (The LangevinHull)}
 
-The Langevin Hull uses an external bath at a fixed constant pressure
+The Langevin Hull\cite{Vardeman2011} uses an external bath at a fixed constant pressure
 ($P$) and temperature ($T$) with an effective solvent viscosity
 ($\eta$).  This bath interacts only with the objects on the exterior
 hull of the system.  Defining the hull of the atoms in a simulation is
