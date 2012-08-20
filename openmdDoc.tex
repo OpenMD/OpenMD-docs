@@ -17,6 +17,9 @@
 \textwidth 6.5in
 \brokenpenalty=10000
 \renewcommand{\baselinestretch}{1.2}
+\usepackage[square, comma, sort&compress]{natbib}
+\bibpunct{[}{]}{,}{n}{}{;}
+
 
 %\renewcommand\citemid{\ } % no comma in optional reference note
 \lstset{language=C,frame=TB,basicstyle=\tiny,basicstyle=\ttfamily, %
@@ -44,10 +47,10 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-2}: Molecular Dynamics in the Open}
 
-\author{Shenyu Kuang, Charles F. Vardeman II, \\
-  Teng Lin, Christopher J. Fennell,  Xiuquan Sun, \\
+\author{Shenyu Kuang, Joseph Michalka, Kelsey Stocker, James Marr, \\
+  Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Xiuquan Sun, \\
   Chunlei Li, Kyle Daily, Yang Zheng, Matthew A. Meineke, and \\
   J. Daniel Gezelter \\
   Department of Chemistry and Biochemistry\\
@@ -496,8 +499,9 @@ fs}^{-1}$), and body-fixed moments of inertia ($\mbox{amu \AA}^{2}$).
 \endhead
 \hline
 \endfoot
-{\tt forceField} & string & Sets the force field. & Possible force
-fields are DUFF, WATER, LJ, EAM, SC, and CLAY. \\
+{\tt forceField} & string & Sets the base name for the force field file &
+OpenMD appends a {\tt .frc} to the end of this to look for a force
+field file.\\
 {\tt component} & & Defines the molecular components of the system &
 Every {\tt $<$MetaData$>$} block must have a component statement. \\
 {\tt minimizer} & string & Chooses a minimizer & Possible minimizers
@@ -2939,8 +2943,8 @@ Harmonic Forces are used by default
 \end{longtable}
 
 % \chapter{\label{section:restraints}Restraints}
-% Restraints are external potentials that are added to a system to keep
-% particular molecules or collections of particles close to some
+% Restraints are external potentials that are added to a system to
+% keep particular molecules or collections of particles close to some
 % reference structure.  A restraint can be a collective
 
 \chapter{\label{section:thermInt}Thermodynamic Integration}
@@ -3084,118 +3088,147 @@ Einstein crystal
 \chapter{\label{section:rnemd}RNEMD}
 
 There are many ways to compute transport properties from molecular
-dynamic simulations.  Equilibrium Molecular Dynamics (EMD) simulations
-can be used by computing relevant time correlation functions and
-assuming linear response theory holds.  These approaches are generally
-subject to noise and poor convergence of the relevant correlation
-functions. Traditional Non-equilibrium Molecular Dynamics (NEMD)
-methods impose a gradient (e.g. thermal or momentum) on a simulation.
-However, the resulting flux is often difficult to
+dynamics simulations.  Equilibrium Molecular Dynamics (EMD)
+simulations can be used by computing relevant time correlation
+functions and assuming linear response theory holds.  These approaches
+are generally subject to noise and poor convergence of the relevant
+correlation functions. Traditional Non-equilibrium Molecular Dynamics
+(NEMD) methods impose a gradient (e.g. thermal or momentum) on a
+simulation.  However, the resulting flux is often difficult to
 measure. Furthermore, problems arise for NEMD simulations of
 heterogeneous systems, such as phase-phase boundaries or interfaces,
 where the type of gradient to enforce at the boundary between
 materials is unclear.
 
-{\it Reverse} Non-Equilibrium Molecular Dynamics (RNEMD) methods adopt a
-different approach in that an unphysical {\it flux} is imposed between
-different regions or ``slabs'' of the simulation box.  The response of
-the system is to develop a temperature or momentum {\it gradient}
-between the two regions. Since the amount of the applied flux is known
-exactly, and the measurement of gradient is generally less
-complicated, imposed-flux methods typically take shorter simulation
-times to obtain converged results for transport properties.
+{\it Reverse} Non-Equilibrium Molecular Dynamics (RNEMD) methods adopt
+a different approach in that an unphysical {\it flux} is imposed
+between different regions or ``slabs'' of the simulation box.  The
+response of the system is to develop a temperature or momentum {\it
+  gradient} between the two regions. Since the amount of the applied
+flux is known exactly, and the measurement of gradient is generally
+less complicated, imposed-flux methods typically take shorter
+simulation times to obtain converged results for transport properties.
 
-%RNEMD figure
+\begin{figure}
+\includegraphics[width=\linewidth]{rnemdDemo}
+\caption{The (VSS) RNEMD approach imposes unphysical transfer of both
+  linear momentum and kinetic energy between a ``hot'' slab and a
+  ``cold'' slab in the simulation box.  The system responds to this
+  imposed flux by generating both momentum and temperature gradients.
+  The slope of the gradients can then be used to compute transport
+  properties (e.g. shear viscosity and thermal conductivity).}
+\label{rnemdDemo}
+\end{figure}
 
+The original ``swapping'' approaches by M\"{u}ller-Plathe {\it et
+  al.}\cite{ISI:000080382700030,MullerPlathe:1997xw} can be understood
+as a sequence of imaginary elastic collisions between particles in
+opposite slabs.  In each collision, the entire momentum vectors of
+both particles may be exchanged to generate a thermal
+flux. Alternatively, a single component of the momentum vectors may be
+exchanged to generate a shear flux.  This algorithm turns out to be
+quite useful in many simulations. However, the M\"{u}ller-Plathe
+swapping approach perturbs the system away from ideal
+Maxwell-Boltzmann distributions, and this may leads to undesirable
+side-effects when the applied flux becomes large.\cite{Maginn:2010}
+This limits the application of the swapping algorithm, so in OpenMD,
+we implement two additional algorithms for RNEMD in addition to the
+original swapping approach.
 
-RNEMD methods further its advantages by utilizing momentum- and
-energy-conserving approaches to apply fluxes. The original
-``swapping'' approach by Muller-Plathe {\it et al.} %CITATIONS
-can be seen as an imaginary elastic collision between selected
-particles for each momentum exchange. This simple to implement
-algorithm turned out to be quite useful in many simulations. However,
-the approach inherently perturbs the ideal Maxwell-Boltzmann
-distributions, which leads to undesirable side-effects when the
-applied exchanged flux becomes quite large. %CITATION
-This limits the range of flux available to the method, and also its
-applications.
+{\bf Non-Isotropic Velocity Scaling (NIVS):}\cite{kuang:164101}
+Instead of having momentum exchange between {\it individual particles}
+in each slab, the NIVS algorithm applies velocity scaling to all of
+the selected particles in both slabs.  A combination of linear
+momentum, kinetic energy, and flux constraint equations governs the
+amount of velocity scaling performed at each step.  Interested readers
+should consult ref. \citealp{kuang:164101} for further details on the
+methodology.
 
-In OpenMD, we improve the above method by introducing two alternative
-approaches:
+NIVS has been shown to be very effective at producing thermal
+gradients and for computing thermal conductivities, particularly for
+heterogeneous interfaces.  Although the NIVS algorithm can also be
+applied to impose a directional momentum flux, thermal anisotropy was
+observed in relatively high flux simulations, and the method is not
+suitable for imposing a shear flux.
 
-Non-Isotropic Velocity Scaling (NIVS): %CITATION
-Instead of have two individual particles involved in momentum
-exchange, this algorithm applies scaling to all the particles in
-particular regions:
+{\bf Velocity Shearing and Scaling (VSS)}:\cite{2012MolPh.110..691K}
+The third RNEMD algorithm implemented in OpenMD utilizes a series of
+simultaneous velocity shearing and scaling exchanges between the two
+slabs.  This method results in a set of simpler equations to satisfy
+the conservation constraints while creating a desired flux between the
+two slabs.
 
-%NIVS equations
+The VSS approach is versatile in that it may be used to implement both
+thermal and shear transport either separately or simultaneously.
+Perturbations of velocities away from the ideal Maxwell-Boltzmann
+distributions are minimal, and thermal anisotropy is kept to a
+minimum.  This ability to generate simultaneous thermal and shear
+fluxes has been utilized to map out the shear viscosity of SPC/E water
+in a wide range of temperature (90~K) just with a single simulation.
+VSS-RNEMD also allows the directional momentum flux to have quite
+arbitary directions, which could aid in the study of anisotropic solid
+surfaces in contact with liquid environments.
 
-Although the above matrices can be diagonal as shown, these
-coefficients cannot be always the same, in order to satisfy the linear
-momentum and kinetic energy conservation constraints:
+{\bf What the user needs to specify:} To carry out a RNEMD simulation,
+a user must specify a number of parameters in the MetaData (.md) file.
+Because the RNEMD methods have a large number of parameters, these
+must be enclosed in a {\tt RNEMD\{...\}} block.  The most important
+parameters to specify are the {\tt useRNEMD}, {\tt fluxType} and flux
+parameters. Most other parameters (summarized in table
+\ref{table:rnemd}) have reasonable default values.  {\tt fluxType}
+sets up the kind of exchange that will be carried out between the two
+slabs (either Kinetic Energy ({\tt KE}) or momentum ({\tt Px, Py, Pz,
+  Pvector}), or some combination of these).  The flux is specified
+with the use of three possible parameters: {\tt kineticFlux} for
+kinetic energy exchange, as well as {\tt momentumFlux} or {\tt
+  momentumFluxVector} for simulations with directional exchange.
 
-%Conservation equations
+{\bf How to process the results:} OpenMD will generate a {\tt .rnemd}
+file with the same prefix as the original {\tt .md} file.  This file
+contains a running average of properties of interest computed within a
+set of bins that divide the simulation cell along the $z$-axis.  The
+first column of the {\tt .rnemd} file is the $z$ coordinate of the
+center of each bin, while following columns may contain the average
+temperature, velocity, or density within each bin.  The output format
+in the {\tt .rnemd} file can be altered with the {\tt outputFields},
+{\tt outputBins}, and {\tt outputFileName} parameters.  A report at
+the top of the {\tt .rnemd} file contains the current exchange totals
+as well as the average flux applied during the simulation.  Using the
+slope of the temperature or velocity gradient obtaine from the {\tt
+  .rnemd} file along with the applied flux, the user can very simply
+arrive at estimates of thermal conductivities ($\lambda$),
+\begin{equation}
+J_z = -\lambda \frac{\partial T}{\partial z},
+\end{equation}
+and shear viscosities ($\eta$),
+\begin{equation}
+j_z(p_x) = -\eta \frac{\partial \langle v_x \rangle}{\partial z}.
+\end{equation}
+Here, the quantities on the left hand side are the actual flux values
+(in the header of the {\tt .rnemd} file), while the slopes are
+obtained from linear fits to the gradients observed in the {\tt
+  .rnemd} file.
 
-And to apply a kinetic energy exchange between the two regions, the
-following should be satisfied as well:
+More complicated simulations (including interfaces) require a bit more
+care.  Here the second derivative may be required to compute the
+interfacial thermal conductance,
+\begin{align}
+  G^\prime &= \left(\nabla\lambda \cdot \mathbf{\hat{n}}\right)_{z_0} \\
+  &= \frac{\partial}{\partial z}\left(-\frac{J_z}{
+      \left(\frac{\partial T}{\partial z}\right)}\right)_{z_0} \\
+  &= J_z\left(\frac{\partial^2 T}{\partial z^2}\right)_{z_0} \Big/
+  \left(\frac{\partial T}{\partial z}\right)_{z_0}^2.
+  \label{derivativeG}
+\end{align}
+where $z_0$ is the location of the interface between two materials and
+$\mathbf{\hat{n}}$ is a unit vector normal to the interface.  We
+suggest that users interested in interfacial conductance consult
+reference \citealp{kuang:AuThl} for other approaches to computing $G$.
+Users interested in {\it friction coefficients} at heterogeneous
+interfaces may also find reference \citealp{2012MolPh.110..691K}
+useful.
 
-%Flux equations
-
-Mathematically, any points in the 3-dimensional space of the solution
-set would satisfy the equations. However, to avoid solving an
-ill-conditioned high-order polynomial in actual practice, another
-constraint, ${x_c=y_c}$, is applied, taking into consideration of its
-physical relevance. Therefore, a quartic equation is solved in actual
-practice to determine the sets of possible coefficients. To determine
-which set is actually used to perform the scaling, two criteria are
-mainly considered: 1. ${x,y,z\rightarrow 1}$ so that the perturbation
-could be as gentle as possible. 2. ${K^x, K^y, K^z}$ have minimal
-difference among each other, so that the anisotropy introduced by the
-algorithm can be offset to some extend. One set of scaling
-coefficients is chosen against these criteria, and the best one is
-used to perform the scaling for that particular step. However, if no
-solution found, the NIVS move is not performed in that step.
-
-Although the NIVS algorithm can also be applied to impose a
-directional momentum flux, thermal anisotropy was observed in
-relatively high flux simulations. %This is because...
-However, the gentleness and ability to apply a wide range of kinetic
-energy flux makes the method useful in thermal transport simulations,
-particularly for complex and heterogeneous systems including
-interfaces. %CITATION
-
-Velocity Shearing and Scaling (VSS): %CITATION
-Learning from NIVS that imposing directional momentum flux by velocity
-scaling could cause problem, we shift the approach to combine the move
-of velocity shearing and scaling:
-
-%VSS equations
-
-It turned out that this approach results in a set of simpler-to-solve
-equations for conservation and to satisfy momentum exchange:
-
-%conservation equations
-
-Furthermore, isotropic scaling is now possible, with the presence of
-velocity shearing quantities. Only a set of simple quadratic equations
-need to be solved, and the positive set of coefficients are chosen, in
-order to reach minimal perturbations. Similar to the NIVS method, no
-VSS is performed in a step given that no solution can be found.
-
-The VSS approach turned out to be versatile in both thermal and
-directional momentum transport simulations. It is found that the
-perturbation is minimal and undesired side-effects like thermal
-anisotropy can be avoided. Another nice feature of VSS is its ability
-to combine a thermal and a directional momentum flux. This feature has
-been utilized to map out the shear viscosity of SPC/E water in a wide
-range of temperature (90~K) just with one single simulation. Possible
-applications may also include the studies of thermal-momentum coupled
-transport phenomena. VSS also allows the directional momentum flux to
-have quite arbitary directions, which could benefit researches of
-anisotropic systems.
-
-Table \ref{table:rnemd} summarizes the parameters used in RNEMD
-simulations.
+\newpage
 
 \begin{longtable}[c]{JKLM}
 \caption{The following keywords must be enclosed inside a {\tt RNEMD\{\}} block}
@@ -3225,7 +3258,7 @@ of the following: {\tt KE, Px, Py, Pz, Pvector, KE+Px, KE+Py, KE+Pvector} \\
 {\tt outputBins} & int & number of $z$-bins in the output histogram &
 default is 20 \\
 {\tt outputFields} & string & columns to print in the {\tt .rnemd}
-file where each column is separated by a pipe ($\mid$) symbol. & Allowed column names are: {\sc z, temperature, velocity, density}} \\
+file where each column is separated by a pipe ($\mid$) symbol. & Allowed column names are: {\sc z, temperature, velocity, density} \\
 \label{table:rnemd}
 \end{longtable}
 
@@ -3903,7 +3936,7 @@ the Notre Dame Bunch-of-Boxes (B.o.B) computer cluster under NSF grant
 DMR-0079647.
 
 
-\bibliographystyle{jcc}
+\bibliographystyle{aip}
 \bibliography{openmdDoc}
 
 \end{document}
