@@ -3085,13 +3085,13 @@ Einstein crystal
 \label{table:thermIntParams}
 \end{longtable}
 
-\chapter{\label{section:rnemd}RNEMD}
+\chapter{\label{section:rnemd}Reverse Non-Equilibrium Molecular Dynamics (RNEMD)}
 
 There are many ways to compute transport properties from molecular
 dynamics simulations.  Equilibrium Molecular Dynamics (EMD)
 simulations can be used by computing relevant time correlation
-functions and assuming linear response theory holds.  These approaches
-are generally subject to noise and poor convergence of the relevant
+functions and assuming linear response theory holds.  For some transport properties (notably thermal conductivity), EMD approaches
+are subject to noise and poor convergence of the relevant
 correlation functions. Traditional Non-equilibrium Molecular Dynamics
 (NEMD) methods impose a gradient (e.g. thermal or momentum) on a
 simulation.  However, the resulting flux is often difficult to
@@ -3120,6 +3120,8 @@ simulation times to obtain converged results for transport properties.
 \label{rnemdDemo}
 \end{figure}
 
+\section{\label{section:algo}Three algorithms for carrying out RNEMD simulations}
+\subsection{\label{subsection:swapping}The swapping algorithm}
 The original ``swapping'' approaches by M\"{u}ller-Plathe {\it et
   al.}\cite{ISI:000080382700030,MullerPlathe:1997xw} can be understood
 as a sequence of imaginary elastic collisions between particles in
@@ -3131,16 +3133,16 @@ quite useful in many simulations. However, the M\"{u}ller-Plathe
 swapping approach perturbs the system away from ideal
 Maxwell-Boltzmann distributions, and this may leads to undesirable
 side-effects when the applied flux becomes large.\cite{Maginn:2010}
-This limits the application of the swapping algorithm, so in OpenMD,
-we implement two additional algorithms for RNEMD in addition to the
+This limits the applicability of the swapping algorithm, so in OpenMD,
+we have implemented two additional algorithms for RNEMD in addition to the
 original swapping approach.
 
-{\bf Non-Isotropic Velocity Scaling (NIVS):}\cite{kuang:164101}
+\subsection{\label{subsection:nivs}Non-Isotropic Velocity Scaling (NIVS)}
 Instead of having momentum exchange between {\it individual particles}
 in each slab, the NIVS algorithm applies velocity scaling to all of
-the selected particles in both slabs.  A combination of linear
+the selected particles in both slabs.\cite{kuang:164101} A combination of linear
 momentum, kinetic energy, and flux constraint equations governs the
-amount of velocity scaling performed at each step.  Interested readers
+amount of velocity scaling performed at each step. Interested readers
 should consult ref. \citealp{kuang:164101} for further details on the
 methodology.
 
@@ -3149,12 +3151,12 @@ gradients and for computing thermal conductivities, particularly for
 heterogeneous interfaces.  Although the NIVS algorithm can also be
 applied to impose a directional momentum flux, thermal anisotropy was
 observed in relatively high flux simulations, and the method is not
-suitable for imposing a shear flux.
+suitable for imposing a shear flux or for computing shear viscosities.
 
-{\bf Velocity Shearing and Scaling (VSS)}:\cite{2012MolPh.110..691K}
+\subsection{\label{subsection:vss}Velocity Shearing and Scaling (VSS)}
 The third RNEMD algorithm implemented in OpenMD utilizes a series of
 simultaneous velocity shearing and scaling exchanges between the two
-slabs.  This method results in a set of simpler equations to satisfy
+slabs.\cite{2012MolPh.110..691K}  This method results in a set of simpler equations to satisfy
 the conservation constraints while creating a desired flux between the
 two slabs.
 
@@ -3164,15 +3166,17 @@ Perturbations of velocities away from the ideal Maxwell-Boltzmann
 distributions are minimal, and thermal anisotropy is kept to a
 minimum.  This ability to generate simultaneous thermal and shear
 fluxes has been utilized to map out the shear viscosity of SPC/E water
-in a wide range of temperature (90~K) just with a single simulation.
-VSS-RNEMD also allows the directional momentum flux to have quite
+over a wide range of temperatures (90~K) just with a single simulation.
+VSS-RNEMD also allows the directional momentum flux to have
 arbitary directions, which could aid in the study of anisotropic solid
 surfaces in contact with liquid environments.
 
-{\bf What the user needs to specify:} To carry out a RNEMD simulation,
+\section{\label{section:usingRNEMD}Using OpenMD to perform a RNEMD simulation}
+\subsection{\label{section:rnemdParams} What the user needs to specify}
+To carry out a RNEMD simulation,
 a user must specify a number of parameters in the MetaData (.md) file.
 Because the RNEMD methods have a large number of parameters, these
-must be enclosed in a {\tt RNEMD\{...\}} block.  The most important
+must be enclosed in a {\it separate} {\tt RNEMD\{...\}} block.  The most important
 parameters to specify are the {\tt useRNEMD}, {\tt fluxType} and flux
 parameters. Most other parameters (summarized in table
 \ref{table:rnemd}) have reasonable default values.  {\tt fluxType}
@@ -3183,7 +3187,8 @@ with the use of three possible parameters: {\tt kineticFlux} for
 kinetic energy exchange, as well as {\tt momentumFlux} or {\tt
   momentumFluxVector} for simulations with directional exchange.
 
-{\bf How to process the results:} OpenMD will generate a {\tt .rnemd}
+\subsection{\label{section:rnemdResults} Processing the results} 
+OpenMD will generate a {\tt .rnemd}
 file with the same prefix as the original {\tt .md} file.  This file
 contains a running average of properties of interest computed within a
 set of bins that divide the simulation cell along the $z$-axis.  The
@@ -3231,8 +3236,9 @@ useful.
 \newpage
 
 \begin{longtable}[c]{JKLM}
-\caption{The following keywords must be enclosed inside a {\tt RNEMD\{\}} block}
-\\
+\caption{Meta-data Keywords: Parameters for RNEMD simulations}\\
+\multicolumn{4}{c}{The following keywords must be enclosed inside a {\tt RNEMD\{...\}} block.}
+\\ \hline
 {\bf keyword} & {\bf units} & {\bf use} & {\bf remarks}  \\ \hline
 \endhead
 \hline
@@ -3262,11 +3268,9 @@ file where each column is separated by a pipe ($\mid$) symbol. & Allowed column 
 \label{table:rnemd}
 \end{longtable}
 
-
 \chapter{\label{section:minimizer}Energy Minimization}
 
-As one of the basic procedures of molecular modeling, energy
-minimization is used to identify local configurations that are stable
+Energy minimization is used to identify local configurations that are stable
 points on the potential energy surface. There is a vast literature on
 energy minimization algorithms have been developed to search for the
 global energy minimum as well as to find local structures which are
