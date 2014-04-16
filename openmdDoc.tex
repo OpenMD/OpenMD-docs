@@ -22,7 +22,7 @@
 
 
 %\renewcommand\citemid{\ } % no comma in optional reference note
-\lstset{language=C,frame=TB,basicstyle=\tiny,basicstyle=\ttfamily, %
+\lstset{language=C,frame=TB,basicstyle=\footnotesize,basicstyle=\ttfamily, %
 	xleftmargin=0.25in, xrightmargin=0.25in,captionpos=b, %
 	abovecaptionskip=0.5cm, belowcaptionskip=0.5cm, escapeinside={~}{~}}
 \renewcommand{\lstlistingname}{Scheme}
@@ -47,10 +47,12 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD-2}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-2.1}: Molecular Dynamics in the Open}
 
-\author{Shenyu Kuang, Joseph Michalka, Kelsey Stocker, James Marr, \\
-  Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Xiuquan Sun, \\
+\author{Joseph Michalka, James Marr, Kelsey Stocker, Madan Lamichhane,
+  Patrick Louden, \\
+  Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Shenyu
+  Kuang, Xiuquan Sun, \\
   Chunlei Li, Kyle Daily, Yang Zheng, Matthew A. Meineke, and \\
   J. Daniel Gezelter \\
   Department of Chemistry and Biochemistry\\
@@ -141,9 +143,10 @@ generalized switching function which insures that the atoms in the two
 leave an interaction region.
 
 {\tt Atoms} may also be grouped in more traditional ways into {\tt
-bonds}, {\tt bends}, and {\tt torsions}.  These groupings allow the
-correct choice of interaction parameters for short-range interactions
-to be chosen from the definitions in the {\tt forceField}.
+  bonds}, {\tt bends}, {\tt torsions}, and {\tt inversions}.  These
+groupings allow the correct choice of interaction parameters for
+short-range interactions to be chosen from the definitions in the {\tt
+  forceField}.
 
 All of these groups of {\tt atoms} are brought together in the {\tt
 molecule}, which is the fundamental structure for setting up and {\sc
@@ -571,12 +574,13 @@ file where each column is separated by a pipe ($\mid$) symbol. & (The
 default is the first eight of these columns in order.)  \\
  & & \multicolumn{2}{p{3.5in}}{Allowed
 column names are: {\sc time, total\_energy, potential\_energy, kinetic\_energy,
-temperature, pressure, volume, conserved\_quantity,
+temperature, pressure, volume, conserved\_quantity, hullvolume, gyrvolume, 
 translational\_kinetic, rotational\_kinetic,  long\_range\_potential,
 short\_range\_potential, vanderwaals\_potential,
-electrostatic\_potential, bond\_potential, bend\_potential,
-dihedral\_potential, improper\_potential, vraw, vharm,
-pressure\_tensor\_x, pressure\_tensor\_y, pressure\_tensor\_z}} \\
+electrostatic\_potential, metallic\_potential,
+hydrogen\_bonding\_potential, bond\_potential, bend\_potential,
+dihedral\_potential, inversion\_potential, raw\_potential, restraint\_potential,
+pressure\_tensor, system\_dipole, heatflux, electronic\_temperature}} \\
 {\tt printPressureTensor} & logical & sets whether {\sc OpenMD} will print
 out the pressure tensor & can be useful for calculations of the bulk
 modulus \\
@@ -771,31 +775,603 @@ monitor the conserved quantity of a given simulation ensemble,
 allowing the user to gauge the stability of the integrator. The
 statistics file is denoted with the \texttt{.stat} file extension.
 
-\chapter{\label{section:empiricalEnergy}The Empirical Energy
-Functions}
+\chapter{\label{section:forceFields}Force Fields}
 
-Like many simulation packages, {\sc OpenMD} splits the potential energy
-into the short-ranged (bonded) portion and a long-range (non-bonded)
-potential,
+Like many molecular simulation packages, {\sc OpenMD} splits the
+potential energy into the short-ranged (bonded) portion and a
+long-range (non-bonded) potential,
 \begin{equation}
 V = V_{\mathrm{short-range}} + V_{\mathrm{long-range}}.
 \end{equation}
-The short-ranged portion includes the explicit bonds, bends, and
-torsions which have been defined in the meta-data file for the
-molecules which are present in the simulation.  The functional forms and
-parameters for these interactions are defined by the force field which
-is chosen.
+The short-ranged portion includes the bonds, bends, torsions, and
+inversions which have been defined in the meta-data file for the
+molecules.  The functional forms and parameters for these interactions
+are defined by the force field which is selected in the MetaData
+section.
+
+\section{\label{section:shortRange}The basic interactions}
+
+The energy function for a system composed of $N$ molecules is
+traditionally written
+\begin{equation}
+V = \sum^{N}_{I=1} V^{I}_{\text{Internal}}
+	+ \sum^{N-1}_{I=1} \sum_{J>I} V^{IJ}_{\text{Cross}},
+\label{eq:totalPotential}
+\end{equation}
+where $V^{IJ}_{\text{Cross}}$ contains all intermolecular interactions
+between molecules $I$ and $J$, and $V^{I}_{\text{Internal}}$ is the
+internal potential of molecule $I$:
+\begin{align*}
+ V^{I}_{\text{Internal}} =  &
+ \sum_{r_{ij} \in I} V_{\text{bond}}(r_{ij})
+ + \sum_{\theta_{ijk} \in I} V_{\text{bend}}(\theta_{ijk})
+ + \sum_{\phi_{ijkl} \in I} V_{\text{torsion}}(\phi_{ijkl})
+ + \sum_{\omega_{ijkl} \in I} V_{\text{inversion}}(\omega_{ijkl}) \\
+ & + \sum_{i \in I} \sum_{(j>i+4) \in I} 
+ \biggl[ V_{\text{dispersion}}(r_{ij}) +  V_{\text{electrostatic}}
+ (\mathbf{r}_{ij},\boldsymbol{\Omega}_{i},\boldsymbol{\Omega}_{j})
+ \biggr].
+\label{eq:internalPotential}
+\end{align*}
+Here $V_{\text{bond}}, V_{\text{bend}},
+V_{\text{torsion}},\mathrm{~and~} V_{\text{inversion}}$ represent the
+bond, bend, torsion, and inversion potentials for all
+topologically-connected sets of atoms within the molecule.  Bonds are
+the primary way of specifying how the atoms are connected together to
+form the molecule (i.e. they define the molecular topology).  The
+other short-range interactions may be specified explicitly in the
+molecule definition, or they may be deduced from bonding information.
+For example, bends can be implicitly deduced from two bonds which
+share an atom.  Torsions can be deduced from two bends that share a
+bond.  Inversion potentials are utilized primarily to enforce
+planarity around $sp^2$-hybridized sites, and these are specified with
+central atoms and satellites (or an atom with bonds to exactly three
+satellites).  The pairwise portions of the non-bonded interactions are
+usually excluded for atom pairs that are involved in the same bond,
+bend, or torsion. All other atom pairs within a molecule are subject
+to non-bonded pair potentials.
+
+The types of atoms being simulated, as well as the specific functional
+forms and parameters of the intra-molecular functions and the
+long-range potentials are defined by the force field. In the following
+sections we discuss the stucture of an OpenMD force field file and the
+specification of blocks that may be present within these files.
+
+\section{\label{section:frcFile}Force Field Files}
+
+Force field files have a number of ``Blocks'' to demarkate different
+types of information.  The blocks contain AtomType data, which provide
+properties belonging to a single AtomType, as well as interaction
+information which provides information about bonded or non-bonded
+interactions that cannot be deduced from AtomType information alone.
+A simple example of a forceField file is shown in scheme
+\ref{sch:frcExample}. 
+
+\begin{lstlisting}[float,caption={[An example of a complete OpenMD
+ force field file for straight-chain united-atom alkanes.] An example
+ showing a complete OpenMD force field for straight-chain united-atom
+ alkanes.}, label={sch:frcExample}] 
+begin Options 
+  Name = "alkane" end
+Options
+
+begin BaseAtomTypes  
+//name          mass  
+C               12.0107
+end BaseAtomTypes
+
+begin AtomTypes
+//name  base    mass
+CH4	C	16.05		
+CH3	C	15.04		
+CH2	C	14.03		
+end AtomTypes
+
+begin LennardJonesAtomTypes
+//name          epsilon         sigma
+CH4       	0.2941          3.73
+CH3       	0.1947          3.75
+CH2       	0.09140         3.95
+end LennardJonesAtomTypes
+
+begin BondTypes
+//AT1       AT2 Type                    r0              k
+CH3	    CH3	Harmonic		1.526		260
+CH3	    CH2	Harmonic		1.526		260
+CH2	    CH2	Harmonic		1.526		260
+end BondTypes
+
+begin BendTypes
+//AT1   AT2     AT3     Type            theta0   k
+CH3     CH2     CH3     Harmonic        114.0    124.19
+CH3     CH2     CH2     Harmonic        114.0    124.19
+CH2     CH2     CH2     Harmonic        114.0    124.19
+end BendTypes
+
+begin TorsionTypes
+//AT1 AT2  AT3  AT4  Type    
+CH3   CH2  CH2  CH3  Trappe  0.0  0.70544  -0.13549  1.5723
+CH3   CH2  CH2  CH2  Trappe  0.0  0.70544  -0.13549  1.5723  
+CH2   CH2  CH2  CH2  Trappe  0.0  0.70544  -0.13549  1.5723  
+end TorsionTypes
+\end{lstlisting}
+
+\subsection{\label{section:ffOptions}The Options block}
+
+The Options block defines properties governing how the force field
+interactions are carried out.  This block is delineated with the text
+tags {\tt begin Options} and {\tt end Options}.  Most options don't
+need to be set as they come with fairly sensible default values, but
+the various keywords and their possible values are given in Scheme
+\ref{sch:optionsBlock}. 
+
+\begin{lstlisting}[caption={[A force field Options block showing default values
+for many force field options.] A force field Options block showing default values
+for many force field options.  Most of these options do not need to be
+specified if the default values are working.},
+label={sch:optionsBlock}] 
+begin Options
+ Name                      = "alkane"       // any string
+ vdWtype                   = "Lennard-Jones" 
+ DistanceMixingRule        = "arithmetic"   // can also be "geometric" or "cubic"
+ DistanceType              = "sigma"        // can also be Rmin
+ EnergyMixingRule          = "geometric"    // can also be "arithmetic" or "hhg"
+ EnergyUnitScaling         = 1.0
+ MetallicEnergyUnitScaling = 1.0
+ DistanceUnitScaling       = 1.0
+ AngleUnitScaling          = 1.0
+ TorsionAngleConvention    = "180_is_trans" // can also be "0_is_trans"
+ vdW-12-scale              = 0.0
+ vdW-13-scale              = 0.0
+ vdW-14-scale              = 0.0
+ electrostatic-12-scale    = 0.0
+ electrostatic-13-scale    = 0.0
+ electrostatic-14-scale    = 0.0
+ GayBerneMu                = 2.0
+ GayBerneNu                = 1.0
+ EAMMixingMethod           = "Johnson"      // can also be "Daw"
+end Options
+\end{lstlisting}
+
+\subsection{\label{section:ffBase}The BaseAtomTypes block}
+
+An AtomType the primary data structure that OpenMD uses to store
+static data about an atom.  Things that belong to AtomType are
+universal properties (i.e. does this atom have a fixed charge?  What
+is its mass?)  Dynamic properties of an atom are not intended to be
+properties of an atom type.  A BaseAtomType can be used to build
+extended sets of related atom types that all fall back to one
+particular type.  For example, one might want a series of atomTypes
+that inherit from more basic types:
+\begin{displaymath}
+\mathtt{ALA-CA} \rightarrow \mathtt{CT} \rightarrow \mathtt{CSP3} \rightarrow \mathtt{C}
+\end{displaymath}
+where for each step to the right, the atomType falls back to more
+primitive data.  That is, the mass could be a property of the {\tt C}
+type, while Lennard-Jones parameters could be properties of the {\tt
+  CSP3} type.  {\tt CT} could have charge information and its own set
+of Lennard-Jones parameter that override the CSP3 parameters.  And the
+{\tt ALA-CA} type might have specific torsion or charge information
+that override the lower level types.  A BaseAtomType contains only
+information a primitive name and the mass of this atom type.
+BaseAtomTypes can also be useful in creating files that can be easily
+viewed in visualization programs.  The {\tt Dump2XYZ} utility has the
+ability to print out the names of the base atom types for displaying
+simulations in Jmol or VMD.
+
+\begin{lstlisting}[caption={[A simple example of a BaseAtomType
+block.] A simple example of a BaseAtomType block.},
+label={sch:baseAtomTypesBlock}] 
+begin BaseAtomTypes
+//Name  mass (amu)
+H       1.0079
+O       15.9994
+Si      28.0855
+Al      26.981538
+Mg      24.3050
+Ca      40.078
+Fe      55.845
+Li      6.941
+Na      22.98977
+K       39.0983
+Cs      132.90545
+Ca      40.078
+Ba      137.327
+Cl      35.453
+end BaseAtomTypes
+\end{lstlisting}
+
+\subsection{\label{section:ffAtom}The AtomTypes block}
+
+AtomTypes inherit most properties from BaseAtomTypes, but can override
+their lower-level properties as well.  Scheme \ref{sch:atomTypesBlock}
+shows an example where multiple types of oxygen atoms can inherit mass
+from the oxygen base type.
+
+\begin{lstlisting}[caption={[An example of a AtomTypes block.] A
+simple example of an AtomType block which
+shows how multiple types can inherit from the same base type.},
+label={sch:atomTypesBlock}]
+begin AtomTypes    
+//Name  baseatomtype
+h*      H
+ho      H
+o*      O
+oh      O
+ob      O
+obos    O
+obts    O
+obss    O
+ohs     O
+st      Si
+ao      Al
+at      Al
+mgo     Mg
+mgh     Mg
+cao     Ca
+cah     Ca
+feo     Fe
+lio     Li
+end AtomTypes
+\end{lstlisting}
+
+\subsection{\label{section:ffDirectionalAtom}The DirectionalAtomTypes
+  block}
+DirectionalAtoms have orientational degrees of freedom as well as
+translation, so they have moment of inertia tensors.  
+
+\begin{lstlisting}[caption={[An example of a DirectionalAtomTypes block.] A
+simple example of a DirectionalAtomTypes block.},
+label={sch:datomTypesBlock}]
+begin DirectionalAtomTypes
+//Name          I_xx    I_yy    I_zz    (All moments in (amu*Ang^2)
+SSD             1.7696  0.6145  1.1550  
+SSD_E           1.7696  0.6145  1.1550  
+GBC6H6          88.781  88.781  177.561
+GBCH3OH         4.056   20.258  20.999
+GBH2O           1.777   0.581   1.196
+end DirectionalAtomTypes                    
+
+\end{lstlisting}
+
+
+\subsection{\label{section::ffAtomProperties}AtomType properties}
+\subsubsection{\label{section:ffLJ}The LennardJonesAtomTypes block}
+The most basic interatomic interaction implemented in {\sc OpenMD} is
+the Lennard-Jones potential, which mimics the van der Waals
+interaction at long distances and uses an empirical repulsion at short
+distances. The Lennard-Jones potential is given by:
+\begin{equation}
+V_{\text{LJ}}(r_{ij}) = 
+	4\epsilon_{ij} \biggl[
+	\biggl(\frac{\sigma_{ij}}{r_{ij}}\biggr)^{12}
+	- \biggl(\frac{\sigma_{ij}}{r_{ij}}\biggr)^{6}
+	\biggr],
+\label{eq:lennardJonesPot}
+\end{equation}
+where $r_{ij}$ is the distance between particles $i$ and $j$,
+$\sigma_{ij}$ scales the length of the interaction, and
+$\epsilon_{ij}$ scales the well depth of the potential.
+
+Interactions between dissimilar particles requires the generation of
+cross term parameters for $\sigma$ and $\epsilon$. These parameters
+are determined using the Lorentz-Berthelot mixing
+rules:\cite{Allen87}
+\begin{equation}
+\sigma_{ij} = \frac{1}{2}[\sigma_{ii} + \sigma_{jj}],
+\label{eq:sigmaMix}
+\end{equation}
+and
+\begin{equation}
+\epsilon_{ij} = \sqrt{\epsilon_{ii} \epsilon_{jj}}.
+\label{eq:epsilonMix}
+\end{equation}
+
+\subsubsection{\label{section:ffCharge}The ChargeAtomTypes block}
+\subsubsection{\label{section:ffMultipole}The MultipoleAtomTypes  block}
+The dipole-dipole potential has the following form:
+\begin{equation}
+V_{\text{dipole}}(\mathbf{r}_{ij},\boldsymbol{\Omega}_{i},
+	\boldsymbol{\Omega}_{j}) = \frac{|\mu_i||\mu_j|}{4\pi\epsilon_{0}r_{ij}^{3}} \biggl[
+	\boldsymbol{\hat{u}}_{i} \cdot \boldsymbol{\hat{u}}_{j}
+	-
+	3(\boldsymbol{\hat{u}}_i \cdot \hat{\mathbf{r}}_{ij}) %
+		(\boldsymbol{\hat{u}}_j \cdot \hat{\mathbf{r}}_{ij}) \biggr].
+\label{eq:dipolePot}
+\end{equation}
+Here $\mathbf{r}_{ij}$ is the vector starting at atom $i$ pointing
+towards $j$, and $\boldsymbol{\Omega}_i$ and $\boldsymbol{\Omega}_j$
+are the orientational degrees of freedom for atoms $i$ and $j$
+respectively. The magnitude of the dipole moment of atom $i$ is
+$|\mu_i|$, $\boldsymbol{\hat{u}}_i$ is the standard unit orientation
+vector of $\boldsymbol{\Omega}_i$, and $\boldsymbol{\hat{r}}_{ij}$ is
+the unit vector pointing along $\mathbf{r}_{ij}$
+($\boldsymbol{\hat{r}}_{ij}=\mathbf{r}_{ij}/|\mathbf{r}_{ij}|$).
+
+\subsubsection{\label{section:ffGB}The FluctuatingChargeAtomTypes  block}
+\subsubsection{\label{section:ffPol}The PolarizableAtomTypes block}
+\subsubsection{\label{section:ffGB}The GayBerneAtomTypes block}
+\subsubsection{\label{section:ffSticky}The StickyAtomTypes block}
+
+One of the solvents used by {\sc OpenMD} is the extended Soft Sticky
+Dipole (SSD/E) water model.\cite{fennell04} The original SSD was
+developed by Ichiye \emph{et al.}\cite{liu96:new_model} as a modified
+form of the hard-sphere water model proposed by Bratko, Blum, and
+Luzar.\cite{Bratko85,Bratko95} It consists of a single point dipole
+with a Lennard-Jones core and a sticky potential that directs the
+particles to assume the proper hydrogen bond orientation in the first
+solvation shell. Thus, the interaction between two SSD water molecules
+\emph{i} and \emph{j} is given by the potential
+\begin{equation}
+V_{ij} = 
+	V_{ij}^{LJ} (r_{ij})\ + V_{ij}^{dp}
+	(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)\ +
+	V_{ij}^{sp}
+	(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j),
+\label{eq:ssdPot}
+\end{equation}
+where the $\mathbf{r}_{ij}$ is the position vector between molecules
+\emph{i} and \emph{j} with magnitude equal to the distance $r_{ij}$, and
+$\boldsymbol{\Omega}_i$ and $\boldsymbol{\Omega}_j$ represent the
+orientations of the respective molecules. The Lennard-Jones and dipole
+parts of the potential are given by equations \ref{eq:lennardJonesPot}
+and \ref{eq:dipolePot} respectively. The sticky part is described by
+the following,
+\begin{equation}
+u_{ij}^{sp}(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)=
+	\frac{\nu_0}{2}[s(r_{ij})w(\mathbf{r}_{ij},
+	\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j) +
+	s^\prime(r_{ij})w^\prime(\mathbf{r}_{ij},
+	\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)]\ ,
+\label{eq:stickyPot}
+\end{equation}
+where $\nu_0$ is a strength parameter for the sticky potential, and
+$s$ and $s^\prime$ are cubic switching functions which turn off the
+sticky interaction beyond the first solvation shell. The $w$ function
+can be thought of as an attractive potential with tetrahedral
+geometry:
+\begin{equation}
+w({\bf r}_{ij},{\bf \Omega}_i,{\bf \Omega}_j)=
+	\sin\theta_{ij}\sin2\theta_{ij}\cos2\phi_{ij},
+\label{eq:stickyW}
+\end{equation}
+while the $w^\prime$ function counters the normal aligned and
+anti-aligned structures favored by point dipoles:
+\begin{equation}
+w^\prime({\bf r}_{ij},{\bf \Omega}_i,{\bf \Omega}_j)=
+	(\cos\theta_{ij}-0.6)^2(\cos\theta_{ij}+0.8)^2-w^0,
+\label{eq:stickyWprime}
+\end{equation}
+It should be noted that $w$ is proportional to the sum of the $Y_3^2$
+and $Y_3^{-2}$ spherical harmonics (a linear combination which
+enhances the tetrahedral geometry for hydrogen bonded structures),
+while $w^\prime$ is a purely empirical function.  A more detailed
+description of the functional parts and variables in this potential
+can be found in the original SSD
+articles.\cite{liu96:new_model,liu96:monte_carlo,chandra99:ssd_md,Ichiye03}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{waterAngle.pdf}
+\caption[Coordinate definition for the SSD/E water model]{Coordinates
+for the interaction between two SSD/E water molecules.  $\theta_{ij}$
+is the angle that $r_{ij}$ makes with the $\hat{z}$ vector in the
+body-fixed frame for molecule $i$.  The $\hat{z}$ vector bisects the
+HOH angle in each water molecule. } 
+\label{fig:ssd}
+\end{figure}
+
+Since SSD/E is a single-point {\it dipolar} model, the force
+calculations are simplified significantly relative to the standard
+{\it charged} multi-point models. In the original Monte Carlo
+simulations using this model, Ichiye {\it et al.} reported that using
+SSD decreased computer time by a factor of 6-7 compared to other
+models.\cite{liu96:new_model} What is most impressive is that these
+savings did not come at the expense of accurate depiction of the
+liquid state properties.  Indeed, SSD/E maintains reasonable agreement
+with the Head-Gordon diffraction data for the structural features of
+liquid water.\cite{hura00,liu96:new_model} Additionally, the dynamical
+properties exhibited by SSD/E agree with experiment better than those
+of more computationally expensive models (like TIP3P and
+SPC/E).\cite{chandra99:ssd_md} The combination of speed and accurate
+depiction of solvent properties makes SSD/E a very attractive model
+for the simulation of large scale biochemical simulations.
+
+Recent constant pressure simulations revealed issues in the original
+SSD model that led to lower than expected densities at all target
+pressures.\cite{Ichiye03,fennell04} The default model in {\sc OpenMD}
+is therefore SSD/E, a density corrected derivative of SSD that
+exhibits improved liquid structure and transport behavior. If the use
+of a reaction field long-range interaction correction is desired, it
+is recommended that the parameters be modified to those of the SSD/RF
+model (an SSD variant parameterized for reaction field). These solvent
+parameters are listed and can be easily modified in the {\sc duff}
+force field file ({\tt DUFF.frc}).  A table of the parameter values
+and the drawbacks and benefits of the different density corrected SSD
+models can be found in reference~\cite{fennell04}. 
+
+\subsection{\label{section::ffMetals}Metallic Atom Types}
+\subsubsection{\label{section:ffEAM}The EAMAtomTypes block}
+{\sc OpenMD} implements a potential that describes bonding in
+transition metal
+systems.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02} This
+potential has an attractive interaction which models ``Embedding'' a
+positively charged pseudo-atom core in the electron density due to the
+free valance ``sea'' of electrons created by the surrounding atoms in
+the system.  A pairwise part of the potential (which is primarily
+repulsive) describes the interaction of the positively charged metal
+core ions with one another.  The Embedded Atom Method ({\sc
+eam})~\cite{Daw84,FBD86,johnson89,Lu97} has been widely adopted in the
+materials science community and has been included in {\sc OpenMD}. A
+good review of {\sc eam} and other formulations of metallic potentials
+was given by Voter.\cite{Voter:95}
+
+The {\sc eam} potential has the form:
+\begin{equation}
+V  =  \sum_{i} F_{i}\left[\rho_{i}\right] + \sum_{i} \sum_{j \neq i}
+\phi_{ij}({\bf r}_{ij})
+\end{equation}
+where $F_{i} $ is an embedding functional that approximates the energy
+required to embed a positively-charged core ion $i$ into a linear
+superposition of spherically averaged atomic electron densities given
+by $\rho_{i}$,
+\begin{equation}
+\rho_{i}   =  \sum_{j \neq i} f_{j}({\bf r}_{ij}),
+\end{equation}
+Since the density at site $i$ ($\rho_i$) must be computed before the
+embedding functional can be evaluated, {\sc eam} and the related
+transition metal potentials require two loops through the atom pairs
+to compute the inter-atomic forces.
+
+The pairwise portion of the potential, $\phi_{ij}$, is a primarily
+repulsive interaction between atoms $i$ and $j$. In the original
+formulation of {\sc eam}\cite{Daw84}, $\phi_{ij}$ was an entirely
+repulsive term; however later refinements to {\sc eam} allowed for
+more general forms for $\phi$.\cite{Daw89} The effective cutoff
+distance, $r_{{\text cut}}$ is the distance at which the values of
+$f(r)$ and $\phi(r)$ drop to zero for all atoms present in the
+simulation.  In practice, this distance is fairly small, limiting the
+summations in the {\sc eam} equation to the few dozen atoms
+surrounding atom $i$ for both the density $\rho$ and pairwise $\phi$
+interactions.
+
+In computing forces for alloys, mixing rules as outlined by
+Johnson~\cite{johnson89} are used to compute the heterogenous pair
+potential,
+\begin{equation}
+\label{eq:johnson}
+\phi_{ab}(r)=\frac{1}{2}\left(
+\frac{f_{b}(r)}{f_{a}(r)}\phi_{aa}(r)+
+\frac{f_{a}(r)}{f_{b}(r)}\phi_{bb}(r)
+\right).
+\end{equation}
+No mixing rule is needed for the densities, since the density at site
+$i$ is simply the linear sum of density contributions of all the other
+atoms.
+
+The {\sc eam} force field illustrates an additional feature of {\sc
+OpenMD}.  Foiles, Baskes and Daw fit {\sc eam} potentials for Cu, Ag,
+Au, Ni, Pd, Pt and alloys of these metals.\cite{FBD86} These fits are
+included in {\sc OpenMD} as the {\tt u3} variant of the {\sc eam} force
+field.  Voter and Chen reparamaterized a set of {\sc eam} functions
+which do a better job of predicting melting points.\cite{Voter:87}
+These functions are included in {\sc OpenMD} as the {\tt VC} variant of
+the {\sc eam} force field.  An additional set of functions (the
+``Universal 6'' functions) are included in {\sc OpenMD} as the {\tt u6}
+variant of {\sc eam}.  For example, to specify the Voter-Chen variant
+of the {\sc eam} force field, the user would add the {\tt
+forceFieldVariant = "VC";} line to the meta-data file.
+
+The potential files used by the {\sc eam} force field are in the
+standard {\tt funcfl} format, which is the format utilized by a number
+of other codes (e.g. ParaDyn~\cite{Paradyn}, {\sc dynamo 86}).  It
+should be noted that the energy units in these files are in eV, not
+$\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD} force field
+files.  
+
+\subsubsection{\label{section:ffSC}The SuttonChenAtomTypes block}
+
+The Sutton-Chen ({\sc sc})~\cite{Chen90} potential has been used to
+study a wide range of phenomena in metals.  Although it is similar in
+form to the {\sc eam} potential, the Sutton-Chen model takes on a
+simpler form,
+\begin{equation}
+\label{eq:SCP1}
+U_{tot}=\sum _{i}\left[ \frac{1}{2}\sum _{j\neq
+i}D_{ij}V^{pair}_{ij}(r_{ij})-c_{i}D_{ii}\sqrt{\rho_{i}}\right] ,
+\end{equation}
+ where $V^{pair}_{ij}$ and $\rho_{i}$ are given by 
+\begin{equation}
+\label{eq:SCP2}
+V^{pair}_{ij}(r)=\left(
+\frac{\alpha_{ij}}{r_{ij}}\right)^{n_{ij}}, \rho_{i}=\sum_{j\neq i}\left(
+\frac{\alpha_{ij}}{r_{ij}}\right) ^{m_{ij}}
+\end{equation}
+
+$V^{pair}_{ij}$ is a repulsive pairwise potential that accounts for
+interactions of the pseudo-atom cores.  The $\sqrt{\rho_i}$ term in
+Eq. (\ref{eq:SCP1}) is an attractive many-body potential that models
+the interactions between the valence electrons and the cores of the
+pseudo-atoms.  $D_{ij}$, $D_{ii}$, $c_i$ and $\alpha_{ij}$ are
+parameters used to tune the potential for different transition
+metals. 
+
+The {\sc sc} potential form has also been parameterized by Qi {\it et
+al.}\cite{Qi99} These parameters were obtained via empirical and {\it
+ab initio} calculations to match structural features of the FCC
+crystal.  To specify the original Sutton-Chen variant of the {\sc sc}
+force field, the user would add the {\tt forceFieldVariant = "SC";}
+line to the meta-data file, while specification of the Qi {\it et al.}
+quantum-adapted variant of the {\sc sc} potential, the user would add
+the {\tt forceFieldVariant = "QSC";} line to the meta-data file.
+
+\subsection{\label{section::ffShortRange}Short Range Interactions}
+\subsubsection{\label{section:ffBond}The BondTypes block}
+\subsubsection{\label{section:ffBend}The BendTypes block}
+A harmonic bend potential is represented by the following function:
+\begin{equation}
+V_{\text{bend}}(\theta_{ijk}) = k_{\theta}( \theta_{ijk} - \theta_0
+)^2, \label{eq:bendPot}
+\end{equation}
+where $\theta_{ijk}$ is the angle defined by atoms $i$, $j$, and $k$,
+$\theta_0$ is the equilibrium bond angle, and $k_{\theta}$ is the
+force constant which determines the strength of the harmonic bend.
+
+\subsubsection{\label{section:ffTorsion}The TorsionTypes block}
+The torsion potential is often represented as a cosine series of the
+form:
+\begin{equation}
+V_{\text{torsion}}(\phi) = c_1[1 + \cos \phi] 
+	+ c_2[1 + \cos(2\phi)] 
+ 	+ c_3[1 + \cos(3\phi)],
+\label{eq:origTorsionPot}
+\end{equation}
+where:
+\begin{equation}
+\cos\phi = (\hat{\mathbf{r}}_{ij} \times \hat{\mathbf{r}}_{jk}) \cdot
+	(\hat{\mathbf{r}}_{jk} \times \hat{\mathbf{r}}_{kl}).
+\label{eq:torsPhi}
+\end{equation}
+Here, $\hat{\mathbf{r}}_{\alpha\beta}$ are the set of unit bond
+vectors between atoms $i$, $j$, $k$, and $l$. For computational
+efficiency, the torsion potential has been recast after the method of
+{\sc charmm},\cite{Brooks83} in which the angle series is converted to
+a power series of the form:
+\begin{equation}
+V_{\text{torsion}}(\phi) =  
+	k_3 \cos^3 \phi + k_2 \cos^2 \phi + k_1 \cos \phi + k_0,
+\label{eq:torsionPot}
+\end{equation}
+where:
+\begin{align*}
+k_0 &= c_1 + c_3, \\
+k_1 &= c_1 - 3c_3, \\
+k_2 &= 2 c_2, \\
+k_3 &= 4c_3.
+\end{align*}
+By recasting the potential as a power series, repeated trigonometric
+evaluations are avoided during the calculation of the potential
+energy.
+
+\subsubsection{\label{section:ffInversion}The InversionTypes block}
+\subsection{\label{section::ffLongRange}Long Range Interactions}
+\subsubsection{\label{section:ffInversion}The NonBondedInteraction block}
+
+
+
+(see Fig.~\ref{fig:lipidModel}), The parameters for $k_{\theta}$ and
+$\theta_0$ are borrowed from those in TraPPE.\cite{Siepmann1998}
 
 Calculating the long-range (non-bonded) potential involves a sum over
 all pairs of atoms (except for those atoms which are involved in a
 bond, bend, or torsion with each other).  If done poorly, calculating
 the the long-range interactions for $N$ atoms would involve $N(N-1)/2$
 evaluations of atomic distances.  To reduce the number of distance
-evaluations between pairs of atoms, {\sc OpenMD} uses a switched cutoff
-with Verlet neighbor lists.\cite{Allen87} It is well known that
-neutral groups which contain charges will exhibit pathological forces
-unless the cutoff is applied to the neutral groups evenly instead of
-to the individual atoms.\cite{leach01:mm} {\sc OpenMD} allows users to
+evaluations between pairs of atoms, {\sc OpenMD} allows the use of
+switched cutoffs with Verlet neighbor lists.\cite{Allen87} Neutral
+groups which contain charges will exhibit pathological forces unless
+the cutoff is applied to the neutral groups evenly instead of to the
+individual atoms.\cite{leach01:mm}  {\sc OpenMD} allows users to
 specify cutoff groups which may contain an arbitrary number of atoms
 in the molecule.  Atoms in a cutoff group are treated as a single unit
 for the evaluation of the switching function:
@@ -846,21 +1422,7 @@ eam}) which are explained in the following sections.
 
 \section{\label{sec:LJPot}The Lennard Jones Force Field}
 
-The most basic force field implemented in {\sc OpenMD} is the
-Lennard-Jones force field, which mimics the van der Waals interaction
-at long distances and uses an empirical repulsion at short
-distances. The Lennard-Jones potential is given by:
-\begin{equation}
-V_{\text{LJ}}(r_{ij}) = 
-	4\epsilon_{ij} \biggl[
-	\biggl(\frac{\sigma_{ij}}{r_{ij}}\biggr)^{12}
-	- \biggl(\frac{\sigma_{ij}}{r_{ij}}\biggr)^{6}
-	\biggr],
-\label{eq:lennardJonesPot}
-\end{equation}
-where $r_{ij}$ is the distance between particles $i$ and $j$,
-$\sigma_{ij}$ scales the length of the interaction, and
-$\epsilon_{ij}$ scales the well depth of the potential. Scheme
+ Scheme
 \ref{sch:LJFF} gives an example meta-data file that
 sets up a system of 108 Ar particles to be simulated using the
 Lennard-Jones force field.
@@ -884,19 +1446,6 @@ forceField = "LJ";
 </OpenMD>
 \end{lstlisting}
 
-Interactions between dissimilar particles requires the generation of
-cross term parameters for $\sigma$ and $\epsilon$. These parameters
-are determined using the Lorentz-Berthelot mixing
-rules:\cite{Allen87}
-\begin{equation}
-\sigma_{ij} = \frac{1}{2}[\sigma_{ii} + \sigma_{jj}],
-\label{eq:sigmaMix}
-\end{equation}
-and
-\begin{equation}
-\epsilon_{ij} = \sqrt{\epsilon_{ii} \epsilon_{jj}}.
-\label{eq:epsilonMix}
-\end{equation}
 
 \section{\label{section:DUFF}Dipolar Unified-Atom Force Field}
 
@@ -982,77 +1531,6 @@ forceField = "DUFF";
 </OpenMD>
 \end{lstlisting}
 
-\subsection{\label{section:energyFunctions}{\sc duff} Energy Functions}
-
-The total potential energy function in {\sc duff} is
-\begin{equation}
-V = \sum^{N}_{I=1} V^{I}_{\text{Internal}}
-	+ \sum^{N-1}_{I=1} \sum_{J>I} V^{IJ}_{\text{Cross}},
-\label{eq:totalPotential}
-\end{equation}
-where $V^{I}_{\text{Internal}}$ is the internal potential of molecule $I$:
-\begin{equation}
- V^{I}_{\text{Internal}} = 
-	\sum_{\theta_{ijk} \in I} V_{\text{bend}}(\theta_{ijk})
-	+ \sum_{\phi_{ijkl} \in I} V_{\text{torsion}}(\phi_{ijkl})
-	+ \sum_{i \in I} \sum_{(j>i+4) \in I} 
-	\biggl[ V_{\text{LJ}}(r_{ij}) +  V_{\text{dipole}}
-	(\mathbf{r}_{ij},\boldsymbol{\Omega}_{i},\boldsymbol{\Omega}_{j})
-	\biggr].
-\label{eq:internalPotential}
-\end{equation}
-Here $V_{\text{bend}}$ is the bend potential for all 1, 3 bonded pairs
-within the molecule $I$, and $V_{\text{torsion}}$ is the torsion
-potential for all 1, 4 bonded pairs.  The pairwise portions of the
-non-bonded interactions are excluded for atom pairs that are involved
-in the smae bond, bend, or torsion. All other atom pairs within a
-molecule are subject to the LJ pair potential.
-
-The bend potential of a molecule is represented by the following function:
-\begin{equation}
-V_{\text{bend}}(\theta_{ijk}) = k_{\theta}( \theta_{ijk} - \theta_0
-)^2, \label{eq:bendPot}
-\end{equation}
-where $\theta_{ijk}$ is the angle defined by atoms $i$, $j$, and $k$
-(see Fig.~\ref{fig:lipidModel}), $\theta_0$ is the equilibrium
-bond angle, and $k_{\theta}$ is the force constant which determines the
-strength of the harmonic bend. The parameters for $k_{\theta}$ and
-$\theta_0$ are borrowed from those in TraPPE.\cite{Siepmann1998}
-
-The torsion potential and parameters are also borrowed from TraPPE. It is
-of the form:
-\begin{equation}
-V_{\text{torsion}}(\phi) = c_1[1 + \cos \phi] 
-	+ c_2[1 + \cos(2\phi)] 
- 	+ c_3[1 + \cos(3\phi)],
-\label{eq:origTorsionPot}
-\end{equation}
-where:
-\begin{equation}
-\cos\phi = (\hat{\mathbf{r}}_{ij} \times \hat{\mathbf{r}}_{jk}) \cdot
-	(\hat{\mathbf{r}}_{jk} \times \hat{\mathbf{r}}_{kl}).
-\label{eq:torsPhi}
-\end{equation}
-Here, $\hat{\mathbf{r}}_{\alpha\beta}$ are the set of unit bond
-vectors between atoms $i$, $j$, $k$, and $l$. For computational
-efficiency, the torsion potential has been recast after the method of
-{\sc charmm},\cite{Brooks83} in which the angle series is converted to
-a power series of the form:
-\begin{equation}
-V_{\text{torsion}}(\phi) =  
-	k_3 \cos^3 \phi + k_2 \cos^2 \phi + k_1 \cos \phi + k_0,
-\label{eq:torsionPot}
-\end{equation}
-where:
-\begin{align*}
-k_0 &= c_1 + c_3, \\
-k_1 &= c_1 - 3c_3, \\
-k_2 &= 2 c_2, \\
-k_3 &= 4c_3.
-\end{align*}
-By recasting the potential as a power series, repeated trigonometric
-evaluations are avoided during the calculation of the potential
-energy.
 
 
 The cross potential between molecules $I$ and $J$,
@@ -1073,126 +1551,6 @@ $V_{\text{sticky}}$ is the sticky potential defined by the SSD model
 (Sec.~\ref{section:SSD}). Note that not all atom types include all
 interactions.
 
-The dipole-dipole potential has the following form:
-\begin{equation}
-V_{\text{dipole}}(\mathbf{r}_{ij},\boldsymbol{\Omega}_{i},
-	\boldsymbol{\Omega}_{j}) = \frac{|\mu_i||\mu_j|}{4\pi\epsilon_{0}r_{ij}^{3}} \biggl[
-	\boldsymbol{\hat{u}}_{i} \cdot \boldsymbol{\hat{u}}_{j}
-	-
-	3(\boldsymbol{\hat{u}}_i \cdot \hat{\mathbf{r}}_{ij}) %
-		(\boldsymbol{\hat{u}}_j \cdot \hat{\mathbf{r}}_{ij}) \biggr].
-\label{eq:dipolePot}
-\end{equation}
-Here $\mathbf{r}_{ij}$ is the vector starting at atom $i$ pointing
-towards $j$, and $\boldsymbol{\Omega}_i$ and $\boldsymbol{\Omega}_j$
-are the orientational degrees of freedom for atoms $i$ and $j$
-respectively. The magnitude of the dipole moment of atom $i$ is
-$|\mu_i|$, $\boldsymbol{\hat{u}}_i$ is the standard unit orientation
-vector of $\boldsymbol{\Omega}_i$, and $\boldsymbol{\hat{r}}_{ij}$ is
-the unit vector pointing along $\mathbf{r}_{ij}$
-($\boldsymbol{\hat{r}}_{ij}=\mathbf{r}_{ij}/|\mathbf{r}_{ij}|$).
-
-\subsection{\label{section:SSD}The {\sc duff} Water Models: SSD/E
-and SSD/RF} 
-
-In the interest of computational efficiency, the default solvent used
-by {\sc OpenMD} is the extended Soft Sticky Dipole (SSD/E) water
-model.\cite{fennell04} The original SSD was developed by Ichiye
-\emph{et al.}\cite{liu96:new_model} as a modified form of the hard-sphere 
-water model proposed by Bratko, Blum, and
-Luzar.\cite{Bratko85,Bratko95} It consists of a single point dipole
-with a Lennard-Jones core and a sticky potential that directs the
-particles to assume the proper hydrogen bond orientation in the first
-solvation shell. Thus, the interaction between two SSD water molecules
-\emph{i} and \emph{j} is given by the potential
-\begin{equation}
-V_{ij} = 
-	V_{ij}^{LJ} (r_{ij})\ + V_{ij}^{dp}
-	(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)\ +
-	V_{ij}^{sp}
-	(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j),
-\label{eq:ssdPot}
-\end{equation}
-where the $\mathbf{r}_{ij}$ is the position vector between molecules
-\emph{i} and \emph{j} with magnitude equal to the distance $r_{ij}$, and
-$\boldsymbol{\Omega}_i$ and $\boldsymbol{\Omega}_j$ represent the
-orientations of the respective molecules. The Lennard-Jones and dipole
-parts of the potential are given by equations \ref{eq:lennardJonesPot}
-and \ref{eq:dipolePot} respectively. The sticky part is described by
-the following,
-\begin{equation}
-u_{ij}^{sp}(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)=
-	\frac{\nu_0}{2}[s(r_{ij})w(\mathbf{r}_{ij},
-	\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j) +
-	s^\prime(r_{ij})w^\prime(\mathbf{r}_{ij},
-	\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)]\ ,
-\label{eq:stickyPot}
-\end{equation}
-where $\nu_0$ is a strength parameter for the sticky potential, and
-$s$ and $s^\prime$ are cubic switching functions which turn off the
-sticky interaction beyond the first solvation shell. The $w$ function
-can be thought of as an attractive potential with tetrahedral
-geometry:
-\begin{equation}
-w({\bf r}_{ij},{\bf \Omega}_i,{\bf \Omega}_j)=
-	\sin\theta_{ij}\sin2\theta_{ij}\cos2\phi_{ij},
-\label{eq:stickyW}
-\end{equation}
-while the $w^\prime$ function counters the normal aligned and
-anti-aligned structures favored by point dipoles:
-\begin{equation}
-w^\prime({\bf r}_{ij},{\bf \Omega}_i,{\bf \Omega}_j)=
-	(\cos\theta_{ij}-0.6)^2(\cos\theta_{ij}+0.8)^2-w^0,
-\label{eq:stickyWprime}
-\end{equation}
-It should be noted that $w$ is proportional to the sum of the $Y_3^2$
-and $Y_3^{-2}$ spherical harmonics (a linear combination which
-enhances the tetrahedral geometry for hydrogen bonded structures),
-while $w^\prime$ is a purely empirical function.  A more detailed
-description of the functional parts and variables in this potential
-can be found in the original SSD
-articles.\cite{liu96:new_model,liu96:monte_carlo,chandra99:ssd_md,Ichiye03}
-
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{waterAngle.pdf}
-\caption[Coordinate definition for the SSD/E water model]{Coordinates
-for the interaction between two SSD/E water molecules.  $\theta_{ij}$
-is the angle that $r_{ij}$ makes with the $\hat{z}$ vector in the
-body-fixed frame for molecule $i$.  The $\hat{z}$ vector bisects the
-HOH angle in each water molecule. } 
-\label{fig:ssd}
-\end{figure}
-
-
-Since SSD/E is a single-point {\it dipolar} model, the force
-calculations are simplified significantly relative to the standard
-{\it charged} multi-point models. In the original Monte Carlo
-simulations using this model, Ichiye {\it et al.} reported that using
-SSD decreased computer time by a factor of 6-7 compared to other
-models.\cite{liu96:new_model} What is most impressive is that these
-savings did not come at the expense of accurate depiction of the
-liquid state properties.  Indeed, SSD/E maintains reasonable agreement
-with the Head-Gordon diffraction data for the structural features of
-liquid water.\cite{hura00,liu96:new_model} Additionally, the dynamical
-properties exhibited by SSD/E agree with experiment better than those
-of more computationally expensive models (like TIP3P and
-SPC/E).\cite{chandra99:ssd_md} The combination of speed and accurate
-depiction of solvent properties makes SSD/E a very attractive model
-for the simulation of large scale biochemical simulations.
-
-Recent constant pressure simulations revealed issues in the original
-SSD model that led to lower than expected densities at all target
-pressures.\cite{Ichiye03,fennell04} The default model in {\sc OpenMD}
-is therefore SSD/E, a density corrected derivative of SSD that
-exhibits improved liquid structure and transport behavior. If the use
-of a reaction field long-range interaction correction is desired, it
-is recommended that the parameters be modified to those of the SSD/RF
-model (an SSD variant parameterized for reaction field). These solvent
-parameters are listed and can be easily modified in the {\sc duff}
-force field file ({\tt DUFF.frc}).  A table of the parameter values
-and the drawbacks and benefits of the different density corrected SSD
-models can be found in reference~\cite{fennell04}. 
 
 \section{\label{section:WATER}The {\sc water} Force Field}
 
@@ -1219,120 +1577,9 @@ force field file ({\tt WATER.frc}). By adding atom types and inserting
 the appropriate parameters, it is possible to extend the force field
 to handle rigid molecules other than water.
 
-\section{\label{section:eam}Embedded Atom Method}
-
-{\sc OpenMD} implements a potential that describes bonding in
-transition metal
-systems.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02} This
-potential has an attractive interaction which models ``Embedding'' a
-positively charged pseudo-atom core in the electron density due to the
-free valance ``sea'' of electrons created by the surrounding atoms in
-the system.  A pairwise part of the potential (which is primarily
-repulsive) describes the interaction of the positively charged metal
-core ions with one another.  The Embedded Atom Method ({\sc
-eam})~\cite{Daw84,FBD86,johnson89,Lu97} has been widely adopted in the
-materials science community and has been included in {\sc OpenMD}. A
-good review of {\sc eam} and other formulations of metallic potentials
-was given by Voter.\cite{Voter:95}
-
-The {\sc eam} potential has the form:
-\begin{equation}
-V  =  \sum_{i} F_{i}\left[\rho_{i}\right] + \sum_{i} \sum_{j \neq i}
-\phi_{ij}({\bf r}_{ij})
-\end{equation}
-where $F_{i} $ is an embedding functional that approximates the energy
-required to embed a positively-charged core ion $i$ into a linear
-superposition of spherically averaged atomic electron densities given
-by $\rho_{i}$,
-\begin{equation}
-\rho_{i}   =  \sum_{j \neq i} f_{j}({\bf r}_{ij}),
-\end{equation}
-Since the density at site $i$ ($\rho_i$) must be computed before the
-embedding functional can be evaluated, {\sc eam} and the related
-transition metal potentials require two loops through the atom pairs
-to compute the inter-atomic forces.
-
-The pairwise portion of the potential, $\phi_{ij}$, is a primarily
-repulsive interaction between atoms $i$ and $j$. In the original
-formulation of {\sc eam}\cite{Daw84}, $\phi_{ij}$ was an entirely
-repulsive term; however later refinements to {\sc eam} allowed for
-more general forms for $\phi$.\cite{Daw89} The effective cutoff
-distance, $r_{{\text cut}}$ is the distance at which the values of
-$f(r)$ and $\phi(r)$ drop to zero for all atoms present in the
-simulation.  In practice, this distance is fairly small, limiting the
-summations in the {\sc eam} equation to the few dozen atoms
-surrounding atom $i$ for both the density $\rho$ and pairwise $\phi$
-interactions.
-
-In computing forces for alloys, mixing rules as outlined by
-Johnson~\cite{johnson89} are used to compute the heterogenous pair
-potential,
-\begin{equation}
-\label{eq:johnson}
-\phi_{ab}(r)=\frac{1}{2}\left(
-\frac{f_{b}(r)}{f_{a}(r)}\phi_{aa}(r)+
-\frac{f_{a}(r)}{f_{b}(r)}\phi_{bb}(r)
-\right).
-\end{equation}
-No mixing rule is needed for the densities, since the density at site
-$i$ is simply the linear sum of density contributions of all the other
-atoms.
-
-The {\sc eam} force field illustrates an additional feature of {\sc
-OpenMD}.  Foiles, Baskes and Daw fit {\sc eam} potentials for Cu, Ag,
-Au, Ni, Pd, Pt and alloys of these metals.\cite{FBD86} These fits are
-included in {\sc OpenMD} as the {\tt u3} variant of the {\sc eam} force
-field.  Voter and Chen reparamaterized a set of {\sc eam} functions
-which do a better job of predicting melting points.\cite{Voter:87}
-These functions are included in {\sc OpenMD} as the {\tt VC} variant of
-the {\sc eam} force field.  An additional set of functions (the
-``Universal 6'' functions) are included in {\sc OpenMD} as the {\tt u6}
-variant of {\sc eam}.  For example, to specify the Voter-Chen variant
-of the {\sc eam} force field, the user would add the {\tt
-forceFieldVariant = "VC";} line to the meta-data file.
-
-The potential files used by the {\sc eam} force field are in the
-standard {\tt funcfl} format, which is the format utilized by a number
-of other codes (e.g. ParaDyn~\cite{Paradyn}, {\sc dynamo 86}).  It
-should be noted that the energy units in these files are in eV, not
-$\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD} force field
-files.  
 
 \section{\label{section:sc}The Sutton-Chen Force Field}
 
-The Sutton-Chen ({\sc sc})~\cite{Chen90} potential has been used to
-study a wide range of phenomena in metals.  Although it is similar in
-form to the {\sc eam} potential, the Sutton-Chen model takes on a
-simpler form,
-\begin{equation}
-\label{eq:SCP1}
-U_{tot}=\sum _{i}\left[ \frac{1}{2}\sum _{j\neq
-i}D_{ij}V^{pair}_{ij}(r_{ij})-c_{i}D_{ii}\sqrt{\rho_{i}}\right] ,
-\end{equation}
- where $V^{pair}_{ij}$ and $\rho_{i}$ are given by 
-\begin{equation}
-\label{eq:SCP2}
-V^{pair}_{ij}(r)=\left(
-\frac{\alpha_{ij}}{r_{ij}}\right)^{n_{ij}}, \rho_{i}=\sum_{j\neq i}\left(
-\frac{\alpha_{ij}}{r_{ij}}\right) ^{m_{ij}}
-\end{equation}
-
-$V^{pair}_{ij}$ is a repulsive pairwise potential that accounts for
-interactions of the pseudo-atom cores.  The $\sqrt{\rho_i}$ term in
-Eq. (\ref{eq:SCP1}) is an attractive many-body potential that models
-the interactions between the valence electrons and the cores of the
-pseudo-atoms.  $D_{ij}$, $D_{ii}$, $c_i$ and $\alpha_{ij}$ are
-parameters used to tune the potential for different transition
-metals. 
-
-The {\sc sc} potential form has also been parameterized by Qi {\it et
-al.}\cite{Qi99} These parameters were obtained via empirical and {\it
-ab initio} calculations to match structural features of the FCC
-crystal.  To specify the original Sutton-Chen variant of the {\sc sc}
-force field, the user would add the {\tt forceFieldVariant = "SC";}
-line to the meta-data file, while specification of the Qi {\it et al.}
-quantum-adapted variant of the {\sc sc} potential, the user would add
-the {\tt forceFieldVariant = "QSC";} line to the meta-data file.
 
 \section{\label{section:clay}The CLAY force field}
 
@@ -3397,8 +3644,8 @@ diagram of the class heirarchy:
 \begin{figure}
 \centering
 \includegraphics[width=3in]{heirarchy.pdf}
-\caption[Class heirarchy for StuntDoubles in {\sc OpenMD}-4]{ \\ The
-class heirarchy of StuntDoubles in {\sc OpenMD}-4. The selection
+\caption[Class heirarchy for StuntDoubles in {\sc OpenMD}]{ \\ The
+class heirarchy of StuntDoubles in {\sc OpenMD}. The selection
 syntax allows the user to select any of the objects that are descended
 from a StuntDouble.}
 \label{fig:heirarchy}
@@ -3578,7 +3825,15 @@ VMD. The options available for Dump2XYZ are as follows:
   -z & {\tt -{}-zconstraint}  &                replace the atom types of zconstraint molecules  (default=off) \\
   -r & {\tt -{}-rigidbody}  &                  add a pseudo COM atom to rigidbody  (default=off) \\
   -t & {\tt -{}-watertype} &                   replace the atom type of water model (default=on) \\
-  -b & {\tt -{}-basetype}  &                   using base atom type  (default=off) \\
+  -b & {\tt -{}-basetype}  &                   using base atom type
+  (default=off) \\
+  -v& {\tt -{}-velocities}             & Print velocities in xyz file  (default=off)\\
+  -f& {\tt -{}-forces}                 & Print forces xyz file  (default=off)\\
+  -u& {\tt -{}-vectors}                & Print vectors (dipoles, etc) in xyz file  
+                                  (default=off)\\
+  -c& {\tt -{}-charges}                & Print charges in xyz file  (default=off)\\
+  -e& {\tt -{}-efield}                 & Print electric field vector in xyz file  
+                                  (default=off)\\
      & {\tt -{}-repeatX=INT}  &                 The number of images to repeat in the x direction  (default=`0') \\
      & {\tt -{}-repeatY=INT} &                 The number of images to repeat in the y direction  (default=`0') \\
      &  {\tt -{}-repeatZ=INT}  &                The number of images to repeat in the z direction  (default=`0') \\
@@ -3670,22 +3925,56 @@ The options available for {\tt StaticProps} are as follows:
     & {\tt -{}-sele1=selection script}   & select the first StuntDouble set \\
     & {\tt -{}-sele2=selection script}   & select the second StuntDouble set \\
     & {\tt -{}-sele3=selection script}   & select the third StuntDouble set \\
-    & {\tt -{}-refsele=selection script} & select reference (can only be used with {\tt -{}-gxyz}) \\
+    & {\tt -{}-refsele=selection script} & select reference (can only
+    be used with {\tt -{}-gxyz}) \\
+    & {\tt -{}-comsele=selection script}
+                               & select stunt doubles for center-of-mass 
+                                  reference point\\
+    & {\tt -{}-seleoffset=INT}        & global index offset for a second object (used 
+                                  to define a vector between sites in molecule)\\
+
     & {\tt -{}-molname=STRING}           & molecule name \\
     & {\tt -{}-begin=INT}                & begin internal index \\
     & {\tt -{}-end=INT}                  & end internal index \\
+    & {\tt -{}-radius=DOUBLE}            & nanoparticle radius\\
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
-    &  {\tt -{}-gofr}                    &  $g(r)$ \\
-    &  {\tt -{}-r\_theta}                 &  $g(r, \cos(\theta))$ \\
-    &  {\tt -{}-r\_omega}                 &  $g(r, \cos(\omega))$ \\
-    &  {\tt -{}-theta\_omega}             &  $g(\cos(\theta), \cos(\omega))$ \\
+    & {\tt -{}-bo}          & bond order parameter ({\tt -{}-rcut} must be specified) \\
+    & {\tt -{}-bor}         & bond order parameter as a function of
+    radius  ({\tt -{}-rcut} must be specified) \\
+    & {\tt -{}-bad}         & $N(\theta)$ bond angle density within ({\tt -{}-rcut} must be specified) \\
+    & {\tt -{}-count}       & count of molecules matching selection
+    criteria (and associated statistics) \\
+  -g&  {\tt -{}-gofr}                    &  $g(r)$ \\
+    &  {\tt -{}-gofz}                    &  $g(z)$ \\
+    &  {\tt -{}-r\_theta}                &  $g(r, \cos(\theta))$ \\
+    &  {\tt -{}-r\_omega}                &  $g(r, \cos(\omega))$ \\
+    &  {\tt -{}-r\_z}                    &  $g(r, z)$ \\
+    &  {\tt -{}-theta\_omega}            &  $g(\cos(\theta), \cos(\omega))$ \\
     &  {\tt -{}-gxyz}                    &  $g(x, y, z)$ \\
-    &  {\tt -{}-p2}                      &  $P_2$ order parameter ({\tt -{}-sele1} and {\tt -{}-sele2} must be specified) \\
+    &  {\tt -{}-twodgofr}                & 2D $g(r)$ (Slab width {\tt -{}-dz} must be specified)\\
+  -p&  {\tt -{}-p2}                      &  $P_2$ order parameter  ({\tt -{}-sele1} must be specified, {\tt -{}-sele2} is optional) \\
+    &  {\tt -{}-rp2}                     &  Ripple order parameter ({\tt -{}-sele1} and {\tt -{}-sele2} must be specified) \\
     &  {\tt -{}-scd}                     &  $S_{CD}$ order parameter(either {\tt -{}-sele1}, {\tt -{}-sele2}, {\tt -{}-sele3} are specified or {\tt -{}-molname}, {\tt -{}-begin}, {\tt -{}-end} are specified) \\
-    &  {\tt -{}-density}                 &  density plot ({\tt -{}-sele1} must be specified) \\
-    &  {\tt -{}-slab\_density}           &  slab density ({\tt -{}-sele1} must be specified)
+  -d&  {\tt -{}-density}                 &  density plot \\
+    &  {\tt -{}-slab\_density}           &  slab density \\
+    &  {\tt -{}-p\_angle}                & $p(\cos(\theta))$ ($\theta$
+    is the angle between molecular axis and radial vector from origin\\
+    &  {\tt -{}-hxy}                     & Calculates the undulation  spectrum, $h(x,y)$, of an interface \\
+    &  {\tt -{}-rho\_r}                  & $\rho(r)$\\
+    &  {\tt -{}-angle\_r}                &  $\theta(r)$ (spatially resolves the
+    angle between the molecular axis and the radial vector from the
+    origin)\\
+    &  {\tt -{}-hullvol}                 & hull volume of nanoparticle\\
+    &  {\tt -{}-rodlength}               & length of nanorod\\
+  -Q&  {\tt -{}-tet\_param}              & tetrahedrality order parameter ($Q$)\\
+    &  {\tt -{}-tet\_param\_z}           & spatially-resolved tetrahedrality order 
+                                   parameter $Q(z)$\\
+    &  {\tt -{}-rnemdz}                  & slab-resolved RNEMD statistics (temperature, 
+                                  density, velocity)\\
+    &  {\tt -{}-rnemdr}                  & shell-resolved RNEMD statistics (temperature, 
+                                  density, angular velocity)
 \end{longtable}
 
 \subsection{\label{section:DynamicProps}DynamicProps}
@@ -3726,12 +4015,28 @@ The options available for DynamicProps are as follows:
   -o& {\tt -{}-output=filename}        & output file name \\
     & {\tt -{}-sele1=selection script} & select first StuntDouble set \\
     & {\tt -{}-sele2=selection script} & select second StuntDouble set (if sele2 is not set, use script from sele1) \\
+    & {\tt -{}-order=INT}              & Lengendre Polynomial Order\\
+  -z& {\tt -{}-nzbins=INT}             & Number of $z$ bins (default=`100`)\\
+  -m& {\tt -{}-memory=memory specification}
+                                &Available memory  
+                                  (default=`2G`)\\
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
-  -r& {\tt -{}-rcorr}                  & compute mean square displacement \\
-  -v& {\tt -{}-vcorr}                  & compute velocity correlation function \\
-  -d& {\tt -{}-dcorr}                  & compute dipole correlation function
+  -s& {\tt -{}-selecorr}               & selection correlation function \\
+  -r& {\tt -{}-rcorr}                  & compute mean squared displacement \\
+  -v& {\tt -{}-vcorr}                  & velocity autocorrelation function \\
+  -d& {\tt -{}-dcorr}                  & dipole correlation function \\
+  -l& {\tt -{}-lcorr}                  & Lengendre correlation function \\
+    & {\tt -{}-lcorrZ}                 & Lengendre correlation function binned by $z$ \\
+    & {\tt -{}-cohZ}                   & Lengendre correlation function for OH bond vectors binned by $z$\\
+  -M& {\tt -{}-sdcorr}                 & System dipole correlation function\\
+    & {\tt -{}-r\_rcorr}               & Radial mean squared displacement\\
+    & {\tt -{}-thetacorr}              & Angular mean squared displacement\\
+    & {\tt -{}-drcorr}                 & Directional mean squared displacement for particles with unit vectors\\
+    & {\tt -{}-helfandEcorr}           & Helfand moment for thermal conductvity\\
+  -p& {\tt -{}-momentum}               & Helfand momentum for viscosity\\
+    & {\tt -{}-stresscorr}             & Stress tensor correlation function
 \end{longtable}
 
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
@@ -3798,6 +4103,7 @@ The specific programs {\tt xyz2md} and {\tt pdb2md} are identical
 to {\tt atom2md}, but they use a specific input format and do not
 expect the the input specifier on the command line. 
 
+
 \section{\label{section:SimpleBuilder}SimpleBuilder}
 
 {\tt SimpleBuilder} creates simple lattice structures.  It requires an
@@ -3823,6 +4129,46 @@ The options available for SimpleBuilder are as follows:
     &  {\tt -{}-ny=INT}           &  number of unit cells in y\\
     &  {\tt -{}-nz=INT}            &  number of unit cells in z
 \end{longtable}
+
+\section{\label{section:icosahedralBuilder}icosahedralBuilder}
+
+{\tt icosahedralBuilder} creates single-component geometric solids
+that can be useful in simulating nanostructures.  Like the other
+builders, it requires an initial, but skeletal {\sc OpenMD} file to
+specify the component that is to be placed on the lattice.  The total
+number of placed molecules will be shown at the top of the
+configuration file that is generated, and that number may not match
+the original meta-data file, so a new meta-data file is also generated
+which matches the lattice structure.
+
+The options available for icosahedralBuilder are as follows:
+\begin{longtable}[c]{|EFG|}
+\caption{icosahedralBuilder Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -V& {\tt -{}-version}            & Print version and exit\\
+  -o& {\tt -{}-output=STRING}      & Output file name\\
+  -n& {\tt -{}-shells=INT}         & Nanoparticle shells\\
+  -d& {\tt -{}-latticeConstant=DOUBLE} & Lattice spacing in Angstroms for cubic lattice.\\
+  -c& {\tt -{}-columnAtoms=INT}        & Number of atoms along central
+  column (Decahedron only)\\
+  -t& {\tt -{}-twinAtoms=INT}          & Number of atoms along twin
+  boundary (Decahedron only) \\
+  -p& {\tt -{}-truncatedPlanes=INT}   & Number of truncated planes (Curling-stone Decahedron only)\\
+\hline
+\multicolumn{3}{|l|}{One option from the following group of options is required:} \\
+\hline
+   & {\tt -{}-ico}    & Create an Icosahedral cluster \\
+   & {\tt -{}-deca}   & Create a regualar Decahedral cluster\\
+   & {\tt -{}-ino}    & Create an Ino Decahedral cluster\\
+   & {\tt -{}-marks}  & Create a Marks Decahedral cluster\\
+   & {\tt -{}-stone}  & Create a Curling-stone Decahedral cluster
+\end{longtable}
+
 
 \section{\label{section:Hydro}Hydro}
 {\tt Hydro} generates resistance tensor ({\tt .diff}) files which are
@@ -3855,6 +4201,9 @@ The options available for Hydro are as follows:
   -b&  {\tt -{}-beads}            & generate the beads only,
 hydrodynamic calculations will not be performed (default=off)\\
 \end{longtable}
+
+
+
 
 
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
