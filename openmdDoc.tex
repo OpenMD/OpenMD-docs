@@ -9,6 +9,7 @@
 \usepackage{longtable}
 \pagestyle{plain}
 \pagenumbering{arabic}
+\usepackage{floatrow}
 \oddsidemargin 0.0cm 
 \evensidemargin 0.0cm
 \topmargin -21pt
@@ -20,9 +21,12 @@
 \usepackage[square, comma, sort&compress]{natbib}
 \bibpunct{[}{]}{,}{n}{}{;}
 
+\DeclareFloatFont{tiny}{\scriptsize}% "scriptsize" is defined by floatrow, "tiny" not
+\floatsetup[table]{font=tiny}
+
 
 %\renewcommand\citemid{\ } % no comma in optional reference note
-\lstset{language=C,frame=TB,basicstyle=\footnotesize,basicstyle=\ttfamily, %
+\lstset{language=C,frame=TB,basicstyle=\footnotesize\ttfamily, %
 	xleftmargin=0.25in, xrightmargin=0.25in,captionpos=b, %
 	abovecaptionskip=0.5cm, belowcaptionskip=0.5cm, escapeinside={~}{~}}
 \renewcommand{\lstlistingname}{Scheme}
@@ -47,7 +51,7 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD-2.1}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-2.2}: Molecular Dynamics in the Open}
 
 \author{Joseph Michalka, James Marr, Kelsey Stocker, Madan Lamichhane,
   Patrick Louden, \\
@@ -839,21 +843,21 @@ specification of blocks that may be present within these files.
 
 \section{\label{section:frcFile}Force Field Files}
 
-Force field files have a number of ``Blocks'' to demarkate different
+Force field files have a number of ``Blocks'' to delineate different
 types of information.  The blocks contain AtomType data, which provide
 properties belonging to a single AtomType, as well as interaction
 information which provides information about bonded or non-bonded
 interactions that cannot be deduced from AtomType information alone.
 A simple example of a forceField file is shown in scheme
-\ref{sch:frcExample}. 
+\ref{sch:frcExample}.
 
 \begin{lstlisting}[float,caption={[An example of a complete OpenMD
  force field file for straight-chain united-atom alkanes.] An example
  showing a complete OpenMD force field for straight-chain united-atom
  alkanes.}, label={sch:frcExample}] 
 begin Options 
-  Name = "alkane" end
-Options
+  Name = "alkane" 
+end Options
 
 begin BaseAtomTypes  
 //name          mass  
@@ -959,8 +963,8 @@ viewed in visualization programs.  The {\tt Dump2XYZ} utility has the
 ability to print out the names of the base atom types for displaying
 simulations in Jmol or VMD.
 
-\begin{lstlisting}[caption={[A simple example of a BaseAtomType
-block.] A simple example of a BaseAtomType block.},
+\begin{lstlisting}[caption={[A simple example of a BaseAtomTypes
+block.] A simple example of a BaseAtomTypes block.},
 label={sch:baseAtomTypesBlock}] 
 begin BaseAtomTypes
 //Name  mass (amu)
@@ -989,7 +993,7 @@ shows an example where multiple types of oxygen atoms can inherit mass
 from the oxygen base type.
 
 \begin{lstlisting}[caption={[An example of a AtomTypes block.] A
-simple example of an AtomType block which
+simple example of an AtomTypes block which
 shows how multiple types can inherit from the same base type.},
 label={sch:atomTypesBlock}]
 begin AtomTypes    
@@ -1018,7 +1022,17 @@ end AtomTypes
 \subsection{\label{section:ffDirectionalAtom}The DirectionalAtomTypes
   block}
 DirectionalAtoms have orientational degrees of freedom as well as
-translation, so they have moment of inertia tensors.  
+translation, so moving these atoms requires information about the
+moments of inertias in the same way that translational motion requires
+mass.  For DirectionalAtoms, OpenMD treats the mass distribution with
+higher priority than electrostatic distributions; the moment of
+inertia tensor, $\overleftrightarrow{\mathsf I}$, should be
+diagonalized to obtain body-fixed axes, and the three diagonal moments
+should correspond to rotational motion \textit{around} each of these
+body-fixed axes.  Charge distributions may then result in dipole
+vectors that are oriented along a linear combination of the body-axes,
+and in quadrupole tensors that are not necessarily diagonal in the
+body frame. 
 
 \begin{lstlisting}[caption={[An example of a DirectionalAtomTypes block.] A
 simple example of a DirectionalAtomTypes block.},
@@ -1026,21 +1040,26 @@ label={sch:datomTypesBlock}]
 begin DirectionalAtomTypes
 //Name          I_xx    I_yy    I_zz    (All moments in (amu*Ang^2)
 SSD             1.7696  0.6145  1.1550  
-SSD_E           1.7696  0.6145  1.1550  
 GBC6H6          88.781  88.781  177.561
 GBCH3OH         4.056   20.258  20.999
 GBH2O           1.777   0.581   1.196
+CO2             43.06   43.06   0.0    // single-site model for CO2
 end DirectionalAtomTypes                    
 
 \end{lstlisting}
 
+For a DirectionalAtom that represents a linear object, it is
+appropriate for one of the moments of inertia to be zero.  In this
+case, OpenMD identifies that DirectionalAtom as having only 5 degrees
+of freedom (three translations and two rotations), and will alter
+calculation of temperatures to reflect this.
 
 \subsection{\label{section::ffAtomProperties}AtomType properties}
 \subsubsection{\label{section:ffLJ}The LennardJonesAtomTypes block}
-The most basic interatomic interaction implemented in {\sc OpenMD} is
-the Lennard-Jones potential, which mimics the van der Waals
-interaction at long distances and uses an empirical repulsion at short
-distances. The Lennard-Jones potential is given by:
+One of the most basic interatomic interactions implemented in {\sc
+  OpenMD} is the Lennard-Jones potential, which mimics the van der
+Waals interaction at long distances and uses an empirical repulsion at
+short distances. The Lennard-Jones potential is given by:
 \begin{equation}
 V_{\text{LJ}}(r_{ij}) = 
 	4\epsilon_{ij} \biggl[
@@ -1055,7 +1074,7 @@ $\epsilon_{ij}$ scales the well depth of the potential.
 
 Interactions between dissimilar particles requires the generation of
 cross term parameters for $\sigma$ and $\epsilon$. These parameters
-are determined using the Lorentz-Berthelot mixing
+are usually determined using the Lorentz-Berthelot mixing
 rules:\cite{Allen87}
 \begin{equation}
 \sigma_{ij} = \frac{1}{2}[\sigma_{ii} + \sigma_{jj}],
@@ -1067,12 +1086,107 @@ and
 \label{eq:epsilonMix}
 \end{equation}
 
+The values of $\sigma_{ii}$ and $\epsilon_{ii}$ are properties of atom
+type $i$, and must be specified in a section of the force field file
+called the {\tt LennardJonesAtomTypes} block (see listing
+\ref{sch:LJatomTypesBlock}).  Separate Lennard-Jones interactions
+which are not determined by the mixing rules can also be specified in
+the {\tt NonbondedInteractionTypes} block (see section
+\ref{section:ffNBinteraction}).
+
+\begin{lstlisting}[caption={[An example of a LennardJonesAtomTypes block.] A
+simple example of a LennardJonesAtomTypee block.   Units for
+$\epsilon$ are kcal / mol and for $\sigma$ are \AA\ .},
+label={sch:LJatomTypesBlock}]
+begin LennardJonesAtomTypes
+//Name          epsilon             sigma       
+O_TIP4P         0.1550          3.15365 
+O_TIP4P-Ew      0.16275         3.16435
+O_TIP5P         0.16            3.12   
+O_TIP5P-E       0.178           3.097   
+O_SPCE          0.15532         3.16549
+O_SPC           0.15532         3.16549
+CH4             0.279           3.73
+CH3             0.185           3.75
+CH2             0.0866          3.95
+CH              0.0189          4.68
+end LennardJonesAtomTypes
+\end{lstlisting}
+
 \subsubsection{\label{section:ffCharge}The ChargeAtomTypes block}
-\subsubsection{\label{section:ffMultipole}The MultipoleAtomTypes  block}
-The dipole-dipole potential has the following form:
+
+In molecular simulations, proper accumulation of the electrostatic
+interactions is essential and is one of the most
+computationally-demanding tasks.  Most common molecular mechanics
+force fields represent atomic sites with full or partial charges
+protected by Lennard-Jones (short range) interactions.  Partial charge
+values, $q_i$ are empirical representations of the distribution of
+electronic charge in a molecule.  This means that nearly every pair
+interaction involves a calculation of charge-charge forces.  Coupled
+with relatively long-ranged $r^{-1}$ decay, the monopole interactions
+quickly become the most expensive part of molecular simulations.  The
+interactions between point charges can be handled via a number of
+different algorithms, but Coulomb's law is the fundamental physical
+principle governing these interactions,
+\begin{equation}
+  V_{\text{charge}}(r_{ij}) = \sum_{ij}\frac{q_iq_je^2}{4 \pi \epsilon_0
+    r_{ij}}, 
+\end{equation}
+where $q$ represents the charge on particle $i$ or $j$, and $e$ is the
+charge of an electron in Coulombs.  $\epsilon_0$ is the permittivity
+of free space.
+
+\begin{lstlisting}[caption={[An example of a ChargeAtomTypes block.] A
+simple example of a ChargeAtomTypes block.   Units for
+charge are in multiples of electron charge.},
+label={sch:ChargeAtomTypesBlock}]
+begin ChargeAtomTypes
+// Name         charge
+O_TIP3P        -0.834
+O_SPCE         -0.8476
+H_TIP3P         0.417
+H_TIP4P         0.520
+H_SPCE          0.4238
+EP_TIP4P       -1.040
+Na+             1.0
+Cl-            -1.0
+end ChargeAtomTypes
+\end{lstlisting}
+
+\subsubsection{\label{section:ffMultipole}The MultipoleAtomTypes
+  block}
+For complex charge distributions that are centered on single sites, it
+is convenient to write the total electrostatic potential in terms of
+multipole moments,
+\begin{equation}
+U_{\bf{ab}}(r)=\hat{M}_{\bf a} \hat{M}_{\bf b} \frac{1}{r}  \label{kernel}.
+\end{equation}
+where the multipole operator on site $\bf a$,
+\begin{equation}
+\hat{M}_{\bf a} = C_{\bf a} - D_{{\bf a}\alpha} \frac{\partial}{\partial r_{\alpha}} 
++  Q_{{\bf a}\alpha\beta}
+ \frac{\partial^2}{\partial r_{\alpha} \partial r_{\beta}} + \dots
+\end{equation}
+Here, the point charge, dipole, and quadrupole for site $\bf a$ are
+given by $C_{\bf a}$, $D_{{\bf a}\alpha}$, and $Q_{{\bf
+    a}\alpha\beta}$, respectively.  These are the primitive
+multipoles.  If the site is representing a distribution of charges,
+these can be expressed as,
+\begin{align}
+C_{\bf a} =&\sum_{k \, \text{in \bf a}} q_k , \label{eq:charge} \\
+D_{{\bf a}\alpha} =&\sum_{k \, \text{in \bf a}} q_k r_{k\alpha}, \label{eq:dipole}\\
+Q_{{\bf a}\alpha\beta} =& \frac{1}{2} \sum_{k \, \text{in \bf a}} q_k
+r_{k\alpha}  r_{k\beta} . \label{eq:quadrupole}
+\end{align}
+Note that the definition of the primitive quadrupole here differs from
+the standard traceless form, and contains an additional Taylor-series
+based factor of $1/2$.  
+
+The details of the multipolar interactions will be given later, but
+many readers are familiar with the dipole-dipole potential:
 \begin{equation}
 V_{\text{dipole}}(\mathbf{r}_{ij},\boldsymbol{\Omega}_{i},
-	\boldsymbol{\Omega}_{j}) = \frac{|\mu_i||\mu_j|}{4\pi\epsilon_{0}r_{ij}^{3}} \biggl[
+	\boldsymbol{\Omega}_{j}) = \frac{|{\bf D}_i||{\bf D}_j|}{4\pi\epsilon_{0}r_{ij}^{3}} \biggl[
 	\boldsymbol{\hat{u}}_{i} \cdot \boldsymbol{\hat{u}}_{j}
 	-
 	3(\boldsymbol{\hat{u}}_i \cdot \hat{\mathbf{r}}_{ij}) %
@@ -1082,21 +1196,119 @@ V_{\text{dipole}}(\mathbf{r}_{ij},\boldsymbol{\Omega}_{i},
 Here $\mathbf{r}_{ij}$ is the vector starting at atom $i$ pointing
 towards $j$, and $\boldsymbol{\Omega}_i$ and $\boldsymbol{\Omega}_j$
 are the orientational degrees of freedom for atoms $i$ and $j$
-respectively. The magnitude of the dipole moment of atom $i$ is
-$|\mu_i|$, $\boldsymbol{\hat{u}}_i$ is the standard unit orientation
+respectively. The magnitude of the dipole moment of atom $i$ is $|{\bf
+  D}_i|$, $\boldsymbol{\hat{u}}_i$ is the standard unit orientation
 vector of $\boldsymbol{\Omega}_i$, and $\boldsymbol{\hat{r}}_{ij}$ is
 the unit vector pointing along $\mathbf{r}_{ij}$
 ($\boldsymbol{\hat{r}}_{ij}=\mathbf{r}_{ij}/|\mathbf{r}_{ij}|$).
 
+
+\begin{lstlisting}[caption={[An example of a MultipoleAtomTypes block.] A
+simple example of a MultipoleAtomTypes block.   Dipoles are given in
+units of Debyes, and Quadrupole moments are given in units of Debye
+\AA~(or $10^{-26} \mathrm{~esu~cm}^2$)},
+label={sch:MultipoleAtomTypesBlock}]
+begin MultipoleAtomTypes
+// Euler angles are given in zxz convention in units of degrees.
+//
+// point dipoles:
+// name d phi theta psi dipole_moment
+DIP     d 0.0 0.0   0.0     1.91   // dipole points along z-body axis
+//
+// point quadrupoles:
+// name q phi theta psi Qxx Qyy Qzz
+CO2     q 0.0 0.0   0.0 0.0 0.0 -0.430592  //quadrupole tensor has zz element
+//
+// Atoms with both dipole and quadrupole moments:
+// name dq phi theta psi dipole_moment  Qxx    Qyy     Qzz
+SSD     dq 0.0 0.0   0.0     2.35      -1.682  1.762   -0.08
+end MultipoleAtomTypes
+\end{lstlisting}
+
+Specifying a MultipoleAtomType requires declaring how the
+electrostatic frame for the site is rotated relative to the body-fixed
+axes for that atom. The Euler angles $(\phi, \theta, \psi)$ for this
+rotation must be given, and then the dipole, quadrupole, or all of
+these moments are specified in the electrostatic frame.  In OpenMD,
+the Euler angles are specified in the $zxz$ convention and are entered
+in units of degrees.  Dipole moments are entered in units of Debye,
+and Quadrupole moments in units of Debye \AA.
+
 \subsubsection{\label{section:ffGB}The FluctuatingChargeAtomTypes  block}
 \subsubsection{\label{section:ffPol}The PolarizableAtomTypes block}
 \subsubsection{\label{section:ffGB}The GayBerneAtomTypes block}
+
+The Gay-Berne potential has been widely used in the liquid crystal
+community to describe this anisotropic phase
+behavior.~\cite{Gay:1981yu,Berne:1972pb,Kushick:1976xy,Luckhurst:1990fy,Cleaver:1996rt}
+The form of the Gay-Berne potential implemented in OpenMD was
+generalized by Cleaver {\it et al.} and is appropriate for dissimilar
+uniaxial ellipsoids.\cite{Cleaver:1996rt}  The potential is constructed in the
+familiar form of the Lennard-Jones function using
+orientation-dependent $\sigma$ and $\epsilon$ parameters,
+\begin{equation*}
+V_{ij}({{\bf \hat u}_i}, {{\bf \hat u}_j}, {{\bf \hat
+r}_{ij}}) = 4\epsilon ({{\bf \hat u}_i}, {{\bf \hat u}_j},
+{{\bf \hat r}_{ij}})\left[\left(\frac{\sigma_0}{r_{ij}-\sigma({{\bf \hat u
+}_i},
+{{\bf \hat u}_j}, {{\bf \hat r}_{ij}})+\sigma_0}\right)^{12}
+-\left(\frac{\sigma_0}{r_{ij}-\sigma({{\bf \hat u}_i}, {{\bf \hat u}_j},
+{{\bf \hat r}_{ij}})+\sigma_0}\right)^6\right]
+\label{eq:gb}
+\end{equation*}
+
+The range $(\sigma({\bf \hat{u}}_{i},{\bf \hat{u}}_{j},{\bf
+\hat{r}}_{ij}))$, and strength $(\epsilon({\bf \hat{u}}_{i},{\bf
+\hat{u}}_{j},{\bf \hat{r}}_{ij}))$ parameters 
+are dependent on the relative orientations of the two ellipsoids (${\bf
+\hat{u}}_{i},{\bf \hat{u}}_{j}$) as well as the direction of the
+inter-ellipsoid separation (${\bf \hat{r}}_{ij}$).  The shape and
+attractiveness of each ellipsoid is governed by a relatively small set
+of parameters: 
+\begin{itemize}
+\item  $d$:  range parameter for the side-by-side (S) and cross (X) configurations
+\item  $l$:  range parameter for the end-to-end (E) configuration
+\item  $\epsilon_X$:  well-depth parameter for the cross (X) configuration
+\item  $\epsilon_S$:  well-depth parameter for the side-by-side (S) configuration
+\item  $\epsilon_E$:  well depth parameter for the end-to-end (E) configuration
+\item  $dw$: The ``softness'' of the potential
+\end{itemize}
+Additionally, there are two universal paramters to govern the overall
+importance of the purely orientational ($\nu$) and the mixed
+orientational / translational ($\mu$) parts of strength of the
+interactions.  These parameters have default or ``canonical'' values,
+but may be changed as a force field option:
+\begin{itemize}
+  \item $\nu$: purely orientational part : defaults to 1
+  \item $\mu$: mixed orientational / translational part : defaults to
+    2
+\end{itemize}
+Further details of the potential are given
+elsewhere,\cite{Luckhurst:1990fy,Golubkov06,SunX._jp0762020} and an
+excellent overview of the computational methods that can be used to
+efficiently compute forces and torques for this potential can be found
+in Ref. \citealp{Golubkov06}
+
+\begin{lstlisting}[caption={[An example of a GayBerneAtomTypes block.] A
+simple example of a GayBerneAtomTypes block.  Distances ($d$ and $l$)
+are given in \AA\ and energies ($\epsilon_X, \epsilon_S, \epsilon_E$)
+are in units of kcal/mol. $dw$ is unitless.},
+label={sch:GayBerneAtomTypes}]
+begin GayBerneAtomTypes
+//Name          d       l       eps_X           eps_S           eps_E     dw
+GBlinear        2.8104  9.993   0.774729        0.774729        0.116839  1.0
+GBC6H6          4.65    2.03    0.540           0.540           1.9818    0.6
+GBCH3OH         2.55    3.18    0.542           0.542           0.55826   1.0
+end GayBerneAtomTypes                   
+\end{lstlisting}
+
 \subsubsection{\label{section:ffSticky}The StickyAtomTypes block}
 
-One of the solvents used by {\sc OpenMD} is the extended Soft Sticky
-Dipole (SSD/E) water model.\cite{fennell04} The original SSD was
-developed by Ichiye \emph{et al.}\cite{liu96:new_model} as a modified
-form of the hard-sphere water model proposed by Bratko, Blum, and
+One of the solvents that can be simulated by {\sc OpenMD} is the
+extended Soft Sticky Dipole (SSD/E) water model.\cite{fennell04} The
+original SSD was developed by Ichiye \emph{et
+  al.}\cite{liu96:new_model} as a modified form of the hard-sphere
+water model proposed by Bratko, Blum, and
 Luzar.\cite{Bratko85,Bratko95} It consists of a single point dipole
 with a Lennard-Jones core and a sticky potential that directs the
 particles to assume the proper hydrogen bond orientation in the first
@@ -1179,34 +1391,37 @@ for the simulation of large scale biochemical simulations.
 
 Recent constant pressure simulations revealed issues in the original
 SSD model that led to lower than expected densities at all target
-pressures.\cite{Ichiye03,fennell04} The default model in {\sc OpenMD}
-is therefore SSD/E, a density corrected derivative of SSD that
-exhibits improved liquid structure and transport behavior. If the use
-of a reaction field long-range interaction correction is desired, it
-is recommended that the parameters be modified to those of the SSD/RF
-model (an SSD variant parameterized for reaction field). These solvent
-parameters are listed and can be easily modified in the {\sc duff}
-force field file ({\tt DUFF.frc}).  A table of the parameter values
-and the drawbacks and benefits of the different density corrected SSD
-models can be found in reference~\cite{fennell04}. 
+pressures,\cite{Ichiye03,fennell04} so variants on the sticky
+potential can be specified by using one of a number of substitute atom
+types (see listing \ref{sch:StickyAtomTypes}).  A table of the
+parameter values and the drawbacks and benefits of the different
+density corrected SSD models can be found in
+reference~\citealp{fennell04}.
 
-\subsection{\label{section::ffMetals}Metallic Atom Types}
-\subsubsection{\label{section:ffEAM}The EAMAtomTypes block}
-{\sc OpenMD} implements a potential that describes bonding in
-transition metal
-systems.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02} This
-potential has an attractive interaction which models ``Embedding'' a
-positively charged pseudo-atom core in the electron density due to the
-free valance ``sea'' of electrons created by the surrounding atoms in
-the system.  A pairwise part of the potential (which is primarily
-repulsive) describes the interaction of the positively charged metal
-core ions with one another.  The Embedded Atom Method ({\sc
-eam})~\cite{Daw84,FBD86,johnson89,Lu97} has been widely adopted in the
-materials science community and has been included in {\sc OpenMD}. A
-good review of {\sc eam} and other formulations of metallic potentials
-was given by Voter.\cite{Voter:95}
+\begin{lstlisting}[caption={[An example of a StickyAtomTypes block.] A
+simple example of a StickyAtomTypes block.  Distances ($r_l$, $r_u$,
+$r_{l}'$ and $r_{u}'$) are given in \AA\ and energies ($v_0, v_{0}'$)
+are in units of kcal/mol. $w_0$ is unitless.},
+label={sch:StickyAtomTypes}]
+begin StickyAtomTypes
+//name  w0      v0 (kcal/mol)   v0p     rl (Ang)  ru    rlp     rup
+SSD_E   0.07715 3.90            3.90    2.40      3.80  2.75    3.35
+SSD_RF  0.07715 3.90            3.90    2.40      3.80  2.75    3.35
+SSD     0.07715 3.7284          3.7284  2.75      3.35  2.75    4.0
+SSD1    0.07715 3.6613          3.6613  2.75      3.35  2.75    4.0
+end StickyAtomTypes
+\end{lstlisting}
 
-The {\sc eam} potential has the form:
+\subsection{\label{section::ffMetals}Metallic Atom Types} 
+
+{\sc OpenMD} implements a number of related potentials that describe
+bonding in transition metals. These potentials have an attractive
+interaction which models ``Embedding'' a positively charged
+pseudo-atom core in the electron density due to the free valance
+``sea'' of electrons created by the surrounding atoms in the system.
+A pairwise part of the potential (which is primarily repulsive)
+describes the interaction of the positively charged metal core ions
+with one another.  These potentials have the form:
 \begin{equation}
 V  =  \sum_{i} F_{i}\left[\rho_{i}\right] + \sum_{i} \sum_{j \neq i}
 \phi_{ij}({\bf r}_{ij})
@@ -1223,21 +1438,29 @@ embedding functional can be evaluated, {\sc eam} and the related
 transition metal potentials require two loops through the atom pairs
 to compute the inter-atomic forces.
 
-The pairwise portion of the potential, $\phi_{ij}$, is a primarily
-repulsive interaction between atoms $i$ and $j$. In the original
-formulation of {\sc eam}\cite{Daw84}, $\phi_{ij}$ was an entirely
-repulsive term; however later refinements to {\sc eam} allowed for
-more general forms for $\phi$.\cite{Daw89} The effective cutoff
-distance, $r_{{\text cut}}$ is the distance at which the values of
-$f(r)$ and $\phi(r)$ drop to zero for all atoms present in the
-simulation.  In practice, this distance is fairly small, limiting the
-summations in the {\sc eam} equation to the few dozen atoms
-surrounding atom $i$ for both the density $\rho$ and pairwise $\phi$
-interactions.
+The pairwise portion of the potential, $\phi_{ij}$, is usually a
+repulsive interaction between atoms $i$ and $j$.
 
-In computing forces for alloys, mixing rules as outlined by
-Johnson~\cite{johnson89} are used to compute the heterogenous pair
-potential,
+\subsubsection{\label{section:ffEAM}The EAMAtomTypes block}
+The Embedded Atom Method ({\sc eam}) is one of the most widely-used
+potentials for transition
+metals.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02,Daw84,FBD86,johnson89,Lu97}
+It has been widely adopted in the materials science community and a
+good review of {\sc eam} and other formulations of metallic potentials
+was given by Voter.\cite{Voter:95}
+
+In the original formulation of {\sc eam}\cite{Daw84}, the pair
+potential, $\phi_{ij}$ was an entirely repulsive term; however later
+refinements to {\sc eam} allowed for more general forms for
+$\phi$.\cite{Daw89} The effective cutoff distance, $r_{{\text cut}}$
+is the distance at which the values of $f(r)$ and $\phi(r)$ drop to
+zero for all atoms present in the simulation.  In practice, this
+distance is fairly small, limiting the summations in the {\sc eam}
+equation to the few dozen atoms surrounding atom $i$ for both the
+density $\rho$ and pairwise $\phi$ interactions.
+
+In computing forces for alloys, OpenMD uses mixing rules outlined by
+Johnson~\cite{johnson89} to compute the heterogenous pair potential,
 \begin{equation}
 \label{eq:johnson}
 \phi_{ab}(r)=\frac{1}{2}\left(
@@ -1269,22 +1492,38 @@ should be noted that the energy units in these files are in eV, not
 $\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD} force field
 files.  
 
+\begin{lstlisting}[caption={[An example of a EAMAtomTypes block.] A
+simple example of a EAMAtomTypes block. Here the only data provided is
+the name of a {\tt funcfl} file which contains the raw data for spline
+interpolations for the density, functional, and pair potential.},
+label={sch:EAMAtomTypes}]
+begin EAMAtomTypes
+Au      Au.u3.funcfl
+Ag      Ag.u3.funcfl
+Cu      Cu.u3.funcfl
+Ni      Ni.u3.funcfl
+Pd      Pd.u3.funcfl
+Pt      Pt.u3.funcfl
+end EAMAtomTypes
+\end{lstlisting}
+
+
 \subsubsection{\label{section:ffSC}The SuttonChenAtomTypes block}
 
 The Sutton-Chen ({\sc sc})~\cite{Chen90} potential has been used to
-study a wide range of phenomena in metals.  Although it is similar in
-form to the {\sc eam} potential, the Sutton-Chen model takes on a
-simpler form,
+study a wide range of phenomena in metals.  Although it has the same
+basic form as the {\sc eam} potential, the Sutton-Chen model takes on
+a simpler form,
 \begin{equation}
 \label{eq:SCP1}
 U_{tot}=\sum _{i}\left[ \frac{1}{2}\sum _{j\neq
-i}D_{ij}V^{pair}_{ij}(r_{ij})-c_{i}D_{ii}\sqrt{\rho_{i}}\right] ,
+i}\epsilon_{ij}V^{pair}_{ij}(r_{ij})-c_{i}\epsilon_{ii}\sqrt{\rho_{i}}\right] ,
 \end{equation}
  where $V^{pair}_{ij}$ and $\rho_{i}$ are given by 
 \begin{equation}
 \label{eq:SCP2}
 V^{pair}_{ij}(r)=\left(
-\frac{\alpha_{ij}}{r_{ij}}\right)^{n_{ij}}, \rho_{i}=\sum_{j\neq i}\left(
+\frac{\alpha_{ij}}{r_{ij}}\right)^{n_{ij}} \hspace{1in} \rho_{i}=\sum_{j\neq i}\left(
 \frac{\alpha_{ij}}{r_{ij}}\right) ^{m_{ij}}
 \end{equation}
 
@@ -1292,18 +1531,37 @@ $V^{pair}_{ij}$ is a repulsive pairwise potential that accounts for
 interactions of the pseudo-atom cores.  The $\sqrt{\rho_i}$ term in
 Eq. (\ref{eq:SCP1}) is an attractive many-body potential that models
 the interactions between the valence electrons and the cores of the
-pseudo-atoms.  $D_{ij}$, $D_{ii}$, $c_i$ and $\alpha_{ij}$ are
-parameters used to tune the potential for different transition
-metals. 
+pseudo-atoms.  $\epsilon_{ij}$, $\epsilon_{ii}$, $c_i$ and
+$\alpha_{ij}$ are parameters used to tune the potential for different
+transition metals.
 
 The {\sc sc} potential form has also been parameterized by Qi {\it et
 al.}\cite{Qi99} These parameters were obtained via empirical and {\it
 ab initio} calculations to match structural features of the FCC
-crystal.  To specify the original Sutton-Chen variant of the {\sc sc}
-force field, the user would add the {\tt forceFieldVariant = "SC";}
-line to the meta-data file, while specification of the Qi {\it et al.}
-quantum-adapted variant of the {\sc sc} potential, the user would add
-the {\tt forceFieldVariant = "QSC";} line to the meta-data file.
+crystal.  Interested readers are encouraged to consult reference
+\citealp{Qi99} for further details.
+
+\begin{lstlisting}[caption={[An example of a SCAtomTypes block.] A
+simple example of a SCAtomTypes block.  Distances ($\alpha$)
+are given in \AA\ and energies ($\epsilon$) are (by convention) given in
+units of eV.  These units must be specified in the {\tt Options} block
+using the keyword {\tt MetallicEnergyUnitScaling}.  Without this {\tt
+Options} keyword, the default units for $\epsilon$ are kcal/mol.  The
+other parameters, $m$, $n$, and $c$ are unitless.},
+label={sch:SCAtomTypes}]
+begin SCAtomTypes
+// Name  epsilon(eV)      c      m       n      alpha(angstroms)
+Ni      0.0073767       84.745  5.0     10.0    3.5157 
+Cu      0.0057921       84.843  5.0     10.0    3.6030
+Rh      0.0024612       305.499 5.0     13.0    3.7984
+Pd      0.0032864       148.205 6.0     12.0    3.8813
+Ag      0.0039450       96.524  6.0     11.0    4.0691
+Ir      0.0037674       224.815 6.0     13.0    3.8344  
+Pt      0.0097894       71.336  7.0     11.0    3.9163
+Au      0.0078052       53.581  8.0     11.0    4.0651
+Au2     0.0078052       53.581  8.0     11.0    4.0651
+end SCAtomTypes
+\end{lstlisting}
 
 \subsection{\label{section::ffShortRange}Short Range Interactions}
 \subsubsection{\label{section:ffBond}The BondTypes block}
@@ -1355,7 +1613,7 @@ energy.
 
 \subsubsection{\label{section:ffInversion}The InversionTypes block}
 \subsection{\label{section::ffLongRange}Long Range Interactions}
-\subsubsection{\label{section:ffInversion}The NonBondedInteraction block}
+\subsubsection{\label{section:ffNBinteraction}The NonBondedInteraction block}
 
 
 
