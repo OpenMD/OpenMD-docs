@@ -10,6 +10,8 @@
 \pagestyle{plain}
 \pagenumbering{arabic}
 \usepackage{floatrow}
+\usepackage[margin=0.5cm,font=small,format=hang]{caption}
+
 \oddsidemargin 0.0cm 
 \evensidemargin 0.0cm
 \topmargin -21pt
@@ -29,7 +31,17 @@
 \lstset{language=C,frame=TB,basicstyle=\footnotesize\ttfamily, %
 	xleftmargin=0.25in, xrightmargin=0.25in,captionpos=b, %
 	abovecaptionskip=0.5cm, belowcaptionskip=0.5cm, escapeinside={~}{~}}
-\renewcommand{\lstlistingname}{Scheme}
+\renewcommand{\lstlistingname}{Example}
+
+\lstnewenvironment{code}[1][]%
+  {\noindent\minipage{\linewidth}\vspace{0.5\baselineskip} 
+   \lstset{language=C,basicstyle=\footnotesize\ttfamily,%
+     captionpos=b,aboveskip=0.5cm,belowskip=0.5cm,abovecaptionskip=0.5cm,%
+     belowcaptionskip=0.5cm,%
+     escapeinside={~}{~},frame=single,#1}}
+  {\endminipage}
+
+
 
 \begin{document}
 
@@ -185,14 +197,13 @@ information is specified for all {\tt integrableObjects} in a {\tt
 $<$Snapshot$>$} block.  Both the {\tt $<$MetaData$>$} and {\tt $<$Snapshot$>$}
 formats are described in the following sections.
 
-\begin{lstlisting}[float,caption={[The structure of an {\sc OpenMD} file]
+\begin{code}[caption={[The structure of an {\sc OpenMD} file]
 The basic structure of an {\sc OpenMD} file contains HTML-like tags to
 define simulation meta-data and subsequent instantaneous configuration
-information. A well-formed {\sc OpenMD} file must contain one $<$MetaData$>$ 
-block and {\it at least one} $<$Snapshot$>$ block.  Each
-$<$Snapshot$>$ is further divided into $<$FrameData$>$ and 
-$<$StuntDoubles$>$ sections.},
-label=sch:mdFormat]
+information. A well-formed {\sc OpenMD} file must contain one {\tt <MetaData>}
+block and {\it at least one} {\tt <Snapshot>} block.  Each
+{\tt <Snapshot>} is further divided into {\tt <FrameData>} and 
+ {\tt <StuntDoubles>} sections.},label={sch:mdFormat}]
 <OpenMD>
   <MetaData>
       // see section ~\ref{sec:miscConcepts}~ for details on the formatting
@@ -218,7 +229,7 @@ label=sch:mdFormat]
   <Snapshot>         // Further information on <Snapshot> blocks
   </Snapshot>        // can be found in section ~\ref{section:coordFiles}~.
 </OpenMD>
-\end{lstlisting}
+\end{code}
 
 
 \section{OpenMD Files and $<$MetaData$>$ blocks}
@@ -234,7 +245,7 @@ depending on the user's mood). An overview of an {\sc OpenMD} file is
 shown in Scheme~\ref{sch:mdFormat} and example file is shown in
 Scheme~\ref{sch:mdExample}.
 
-\begin{lstlisting}[float,caption={[An example of a complete OpenMD
+\begin{code}[caption={[An example of a complete OpenMD
 file] An example showing a complete OpenMD file.},
 label={sch:mdExample}] 
 <OpenMD>
@@ -273,7 +284,7 @@ statusTime = 50;  // statistics file frequency
     </StuntDoubles>
   </Snapshot>
 </OpenMD>
-\end{lstlisting}
+\end{code}
 
 Within the {\tt $<$MetaData$>$} block it is necessary to provide a
 complete description of the molecule before it is actually placed in
@@ -287,7 +298,7 @@ Scheme~\ref{sch:mdExample}, the include file's contents would be
 Scheme~\ref{sch:mdIncludeExample}, and the new {\sc OpenMD} file would
 become Scheme~\ref{sch:mdExPrime}.
 
-\begin{lstlisting}[float,caption={An example molecule definition in an
+\begin{code}[caption={An example molecule definition in an
 include file.},label={sch:mdIncludeExample}]
 molecule{
   name = "Ar";
@@ -296,9 +307,9 @@ molecule{
     position( 0.0, 0.0, 0.0 );
   }
 }
-\end{lstlisting}
+\end{code}
 
-\begin{lstlisting}[float,caption={Revised OpenMD input file
+\begin{code}[caption={Revised OpenMD input file
 example.},label={sch:mdExPrime}]
 <OpenMD>
   <MetaData>
@@ -331,7 +342,7 @@ statusTime = 50;
     </StuntDoubles>
   </Snapshot>
 </OpenMD>
-\end{lstlisting}
+\end{code}
 
 \section{\label{section:atomsMolecules}Atoms, Molecules, and other
 ways of grouping atoms}
@@ -402,7 +413,7 @@ found in Sec.~\ref{section:integrate}. An example definition of a
 rigid body can be seen in Scheme
 \ref{sch:rigidBody}.
 
-\begin{lstlisting}[float,caption={[Defining rigid bodies]A sample
+\begin{code}[caption={[Defining rigid bodies]A sample
 definition of a molecule containing a rigid body and a cutoff
 group},label={sch:rigidBody}] 
 molecule{
@@ -428,7 +439,7 @@ molecule{
     members(0, 1, 2);
   }
 }
-\end{lstlisting}
+\end{code}
 
 \section{\label{sec:miscConcepts}Creating a $<$MetaData$>$ block}
 
@@ -636,7 +647,7 @@ It is important to note that although the simulation propagates the
 complete rotation matrix, directional entities are written out using
 quaternions to save space in the output files.
 
-\begin{lstlisting}[float,caption={[The format of the {\tt $<$Snapshot$>$} block]
+\begin{code}[caption={[The format of the {\tt $<$Snapshot$>$} block]
 An example of the format of the {\tt $<$Snapshot$>$} block.  There is an
 initial sub-block called {\tt $<$FrameData$>$} which contains the time
 stamp, the three column vectors of $\mathsf{H}$, and optional extra
@@ -645,12 +656,11 @@ $<$StuntDoubles$>$} sub-block provide information about the instantaneous
 configuration of each integrable object.  For each integrable object,
 the global index is followed by a short string describing what
 additional information is present on the line.  Atoms with only
-position and velocity information use the ``pv'' string which must
+position and velocity information use the {\tt pv} string which must
 then be followed by the position and velocity vectors for that atom.
-Directional atoms and Rigid Bodies typically use the ``pvqj'' string
+Directional atoms and Rigid Bodies typically use the {\tt pvqj} string
 which is followed by position, velocity, quaternions, and
-lastly, body fixed angular momentum for that integrable object.},
-label=sch:dumpFormat]
+lastly, body fixed angular momentum for that integrable object.},label={sch:dumpFormat}]
   <Snapshot>
     <FrameData>
         Time: 0
@@ -665,7 +675,7 @@ label=sch:dumpFormat]
          3      pvqj        x y z vx vy vz  qw qx qy qz jx jy jz
     </StuntDoubles>
   </Snapshot>
-\end{lstlisting}
+\end{code}
 
 There are three {\sc OpenMD} files that are written using the combined
 format.  They are: the initial startup file (\texttt{.md}), the
@@ -716,10 +726,10 @@ given.
 \end{enumerate}
 An example is given in the {\sc OpenMD} file in Scheme~\ref{sch:initEx1}.
 
-\begin{lstlisting}[float,caption={Example declaration of the
-$\text{I}_2$ molecule and the HCl molecule in $<$MetaData$>$ and
-$<$Snapshot$>$ blocks.  Note that even though $\text{I}_2$ is
-declared before HCl, the $<$Snapshot$>$ block follows the order {\it in
+\begin{code}[caption={Example declaration of the
+$\text{I}_2$ molecule and the HCl molecule in {\tt <MetaData>} and
+{\tt <Snapshot>} blocks.  Note that even though $\text{I}_2$ is
+declared before HCl, the {\tt <Snapshot>} block follows the order {\it in
 which the components were included}.}, label=sch:initEx1] 
 <OpenMD>
   <MetaData>
@@ -763,7 +773,7 @@ component{
     </StuntDoubles>
   </Snapshot>
 </OpenMD>
-\end{lstlisting}
+\end{code}
 
 \section{The Statistics File}
 
@@ -826,7 +836,7 @@ interactions that cannot be deduced from AtomType information alone.
 A simple example of a forceField file is shown in scheme
 \ref{sch:frcExample}.
 
-\begin{lstlisting}[float,caption={[An example of a complete OpenMD
+\begin{code}[caption={[An example of a complete OpenMD
  force field file for straight-chain united-atom alkanes.] An example
  showing a complete OpenMD force field for straight-chain united-atom
  alkanes.}, label={sch:frcExample}] 
@@ -873,7 +883,7 @@ CH3   CH2  CH2  CH3  Trappe  0.0  0.70544  -0.13549  1.5723
 CH3   CH2  CH2  CH2  Trappe  0.0  0.70544  -0.13549  1.5723  
 CH2   CH2  CH2  CH2  Trappe  0.0  0.70544  -0.13549  1.5723  
 end TorsionTypes
-\end{lstlisting}
+\end{code}
 
 \section{\label{section:ffOptions}The Options block}
 
@@ -884,7 +894,7 @@ need to be set as they come with fairly sensible default values, but
 the various keywords and their possible values are given in Scheme
 \ref{sch:optionsBlock}. 
 
-\begin{lstlisting}[caption={[A force field Options block showing default values
+\begin{code}[caption={[A force field Options block showing default values
 for many force field options.] A force field Options block showing default values
 for many force field options.  Most of these options do not need to be
 specified if the default values are working.},
@@ -910,7 +920,7 @@ begin Options
  GayBerneNu                = 1.0
  EAMMixingMethod           = "Johnson"      // can also be "Daw"
 end Options
-\end{lstlisting}
+\end{code}
 
 \section{\label{section:ffBase}The BaseAtomTypes block}
 
@@ -938,7 +948,7 @@ viewed in visualization programs.  The {\tt Dump2XYZ} utility has the
 ability to print out the names of the base atom types for displaying
 simulations in Jmol or VMD.
 
-\begin{lstlisting}[caption={[A simple example of a BaseAtomTypes
+\begin{code}[caption={[A simple example of a BaseAtomTypes
 block.] A simple example of a BaseAtomTypes block.},
 label={sch:baseAtomTypesBlock}] 
 begin BaseAtomTypes
@@ -958,7 +968,7 @@ Ca      40.078
 Ba      137.327
 Cl      35.453
 end BaseAtomTypes
-\end{lstlisting}
+\end{code}
 
 \section{\label{section:ffAtom}The AtomTypes block}
 
@@ -967,7 +977,7 @@ their lower-level properties as well.  Scheme \ref{sch:atomTypesBlock}
 shows an example where multiple types of oxygen atoms can inherit mass
 from the oxygen base type.
 
-\begin{lstlisting}[caption={[An example of a AtomTypes block.] A
+\begin{code}[caption={[An example of a AtomTypes block.] A
 simple example of an AtomTypes block which
 shows how multiple types can inherit from the same base type.},
 label={sch:atomTypesBlock}]
@@ -992,7 +1002,7 @@ cah     Ca
 feo     Fe
 lio     Li
 end AtomTypes
-\end{lstlisting}
+\end{code}
 
 \section{\label{section:ffDirectionalAtom}The DirectionalAtomTypes
   block}
@@ -1009,7 +1019,7 @@ vectors that are oriented along a linear combination of the body-axes,
 and in quadrupole tensors that are not necessarily diagonal in the
 body frame. 
 
-\begin{lstlisting}[caption={[An example of a DirectionalAtomTypes block.] A
+\begin{code}[caption={[An example of a DirectionalAtomTypes block.] A
 simple example of a DirectionalAtomTypes block.},
 label={sch:datomTypesBlock}]
 begin DirectionalAtomTypes
@@ -1021,7 +1031,7 @@ GBH2O           1.777   0.581   1.196
 CO2             43.06   43.06   0.0    // single-site model for CO2
 end DirectionalAtomTypes                    
 
-\end{lstlisting}
+\end{code}
 
 For a DirectionalAtom that represents a linear object, it is
 appropriate for one of the moments of inertia to be zero.  In this
@@ -1069,7 +1079,7 @@ which are not determined by the mixing rules can also be specified in
 the {\tt NonbondedInteractionTypes} block (see section
 \ref{section:ffNBinteraction}).
 
-\begin{lstlisting}[caption={[An example of a LennardJonesAtomTypes block.] A
+\begin{code}[caption={[An example of a LennardJonesAtomTypes block.] A
 simple example of a LennardJonesAtomTypee block.   Units for
 $\epsilon$ are kcal / mol and for $\sigma$ are \AA\ .},
 label={sch:LJatomTypesBlock}]
@@ -1086,7 +1096,7 @@ CH3             0.185           3.75
 CH2             0.0866          3.95
 CH              0.0189          4.68
 end LennardJonesAtomTypes
-\end{lstlisting}
+\end{code}
 
 \subsection{\label{section:ffCharge}The ChargeAtomTypes block}
 
@@ -1111,7 +1121,7 @@ where $q$ represents the charge on particle $i$ or $j$, and $e$ is the
 charge of an electron in Coulombs.  $\epsilon_0$ is the permittivity
 of free space.
 
-\begin{lstlisting}[caption={[An example of a ChargeAtomTypes block.] A
+\begin{code}[caption={[An example of a ChargeAtomTypes block.] A
 simple example of a ChargeAtomTypes block.   Units for
 charge are in multiples of electron charge.},
 label={sch:ChargeAtomTypesBlock}]
@@ -1126,7 +1136,7 @@ EP_TIP4P       -1.040
 Na+             1.0
 Cl-            -1.0
 end ChargeAtomTypes
-\end{lstlisting}
+\end{code}
 
 \subsection{\label{section:ffMultipole}The MultipoleAtomTypes
   block}
@@ -1178,7 +1188,7 @@ the unit vector pointing along $\mathbf{r}_{ij}$
 ($\boldsymbol{\hat{r}}_{ij}=\mathbf{r}_{ij}/|\mathbf{r}_{ij}|$).
 
 
-\begin{lstlisting}[caption={[An example of a MultipoleAtomTypes block.] A
+\begin{code}[caption={[An example of a MultipoleAtomTypes block.] A
 simple example of a MultipoleAtomTypes block.   Dipoles are given in
 units of Debyes, and Quadrupole moments are given in units of Debye
 \AA~(or $10^{-26} \mathrm{~esu~cm}^2$)},
@@ -1198,7 +1208,7 @@ CO2     q 0.0 0.0   0.0 0.0 0.0 -0.430592  //quadrupole tensor has zz element
 // name dq phi theta psi dipole_moment  Qxx    Qyy     Qzz
 SSD     dq 0.0 0.0   0.0     2.35      -1.682  1.762   -0.08
 end MultipoleAtomTypes
-\end{lstlisting}
+\end{code}
 
 Specifying a MultipoleAtomType requires declaring how the
 electrostatic frame for the site is rotated relative to the body-fixed
@@ -1265,7 +1275,7 @@ excellent overview of the computational methods that can be used to
 efficiently compute forces and torques for this potential can be found
 in Ref. \citealp{Golubkov06}
 
-\begin{lstlisting}[caption={[An example of a GayBerneAtomTypes block.] A
+\begin{code}[caption={[An example of a GayBerneAtomTypes block.] A
 simple example of a GayBerneAtomTypes block.  Distances ($d$ and $l$)
 are given in \AA\ and energies ($\epsilon_X, \epsilon_S, \epsilon_E$)
 are in units of kcal/mol. $dw$ is unitless.},
@@ -1276,7 +1286,7 @@ GBlinear        2.8104  9.993   0.774729        0.774729        0.116839  1.0
 GBC6H6          4.65    2.03    0.540           0.540           1.9818    0.6
 GBCH3OH         2.55    3.18    0.542           0.542           0.55826   1.0
 end GayBerneAtomTypes                   
-\end{lstlisting}
+\end{code}
 
 \subsection{\label{section:ffSticky}The StickyAtomTypes block}
 
@@ -1374,7 +1384,7 @@ parameter values and the drawbacks and benefits of the different
 density corrected SSD models can be found in
 reference~\citealp{fennell04}.
 
-\begin{lstlisting}[caption={[An example of a StickyAtomTypes block.] A
+\begin{code}[caption={[An example of a StickyAtomTypes block.] A
 simple example of a StickyAtomTypes block.  Distances ($r_l$, $r_u$,
 $r_{l}'$ and $r_{u}'$) are given in \AA\ and energies ($v_0, v_{0}'$)
 are in units of kcal/mol. $w_0$ is unitless.},
@@ -1386,7 +1396,7 @@ SSD_RF  0.07715 3.90            3.90    2.40      3.80  2.75    3.35
 SSD     0.07715 3.7284          3.7284  2.75      3.35  2.75    4.0
 SSD1    0.07715 3.6613          3.6613  2.75      3.35  2.75    4.0
 end StickyAtomTypes
-\end{lstlisting}
+\end{code}
 
 \section{\label{section::ffMetals}Metallic Atom Types} 
 
@@ -1468,7 +1478,7 @@ should be noted that the energy units in these files are in eV, not
 $\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD} force field
 files.  
 
-\begin{lstlisting}[caption={[An example of a EAMAtomTypes block.] A
+\begin{code}[caption={[An example of a EAMAtomTypes block.] A
 simple example of a EAMAtomTypes block. Here the only data provided is
 the name of a {\tt funcfl} file which contains the raw data for spline
 interpolations for the density, functional, and pair potential.},
@@ -1481,7 +1491,7 @@ Ni      Ni.u3.funcfl
 Pd      Pd.u3.funcfl
 Pt      Pt.u3.funcfl
 end EAMAtomTypes
-\end{lstlisting}
+\end{code}
 
 \subsection{\label{section:ffSC}The SuttonChenAtomTypes block}
 
@@ -1516,7 +1526,7 @@ ab initio} calculations to match structural features of the FCC
 crystal.  Interested readers are encouraged to consult reference
 \citealp{Qi99} for further details.
 
-\begin{lstlisting}[caption={[An example of a SCAtomTypes block.] A
+\begin{code}[caption={[An example of a SCAtomTypes block.] A
 simple example of a SCAtomTypes block.  Distances ($\alpha$)
 are given in \AA\ and energies ($\epsilon$) are (by convention) given in
 units of eV.  These units must be specified in the {\tt Options} block
@@ -1536,7 +1546,7 @@ Pt      0.0097894       71.336  7.0     11.0    3.9163
 Au      0.0078052       53.581  8.0     11.0    4.0651
 Au2     0.0078052       53.581  8.0     11.0    4.0651
 end SCAtomTypes
-\end{lstlisting}
+\end{code}
 
 \section{\label{section::ffShortRange}Short Range Interactions}
 The internal structure of a molecule is usually specified in terms of
@@ -1650,7 +1660,7 @@ The order of terms in the BondTypes block is:
 \item any other parameters required by the {\tt BondType}
 \end{itemize}
 
-\begin{lstlisting}[caption={[An example of a BondTypes block.] A
+\begin{code}[caption={[An example of a BondTypes block.] A
 simple example of a BondTypes block.  Distances ($b_0$)
 are given in \AA\ and force constants are given in
 units so that when multiplied by the correct power of distance they
@@ -1668,7 +1678,7 @@ CT      HC      Fixed           1.09
 //Atom1 Atom2   Quartic         b0        K4      K3      K2      K1      K0
 //Atom1 Atom2   Polynomial      b0        n       Kn      [m      Km]
 end BondTypes
-\end{lstlisting}
+\end{code}
 
 There are advantages and disadvantages of all of the different types
 of bonds, but specific simulation tasks may call for specific
@@ -1761,7 +1771,7 @@ The order of terms in the BendTypes block is:
 \item any other parameters required by the {\tt BendType}
 \end{itemize}
 
-\begin{lstlisting}[caption={[An example of a BendTypes block.] A
+\begin{code}[caption={[An example of a BendTypes block.] A
 simple example of a BendTypes block.  By convention, equilibrium angles
 ($\theta_0$) are given in degrees but force constants are given in
 units so that when multiplied by the correct power of angle (in
@@ -1784,7 +1794,7 @@ CH3     CH2     SH      Harmonic       96.0        67.220
 //Polynomial
 //Atom1 Atom2   Atom3   Polynomial    theta0      n       Kn  [m   Km]
 end BendTypes
-\end{lstlisting}
+\end{code}
 
 Note that the parameters for a particular bend type are the same for
 any bending triplet of the same atomic types (in the same or reversed
@@ -1909,7 +1919,7 @@ that is measured in degrees, while $d_0$ has units of
 kcal/mol/degrees$^2$.  All other torsion parameters are measured in
 units of kcal/mol.
 
-\begin{lstlisting}[caption={[An example of a TorsionTypes block.] A
+\begin{code}[caption={[An example of a TorsionTypes block.] A
 simple example of a TorsionTypes block.  Energy constants are given in
 kcal / mol, and when required by the form, $\delta$ angles are given
 in degrees.},
@@ -1933,7 +1943,7 @@ HC      CT      CM      CM      Charmm  1.150    1    0.00    0.38  3 180
 //Atom1 Atom2   Atom3   Atom4   Polynomial  n Kn     [m  Km] 
 S       CH2     CH2     C       Polynomial  0 2.218   1  2.905  2 -3.136  3 -0.7313  4 6.272  5 -7.528
 end TorsionTypes
-\end{lstlisting}
+\end{code}
 
 Note that the parameters for a particular torsion type are the same
 for any torsional quartet of the same atomic types (in the same or
@@ -1987,7 +1997,7 @@ V_{\text{torsion}}(\omega) = \sum_n \frac{K_n}{2} \left( 1 + cos(n
 V_{\text{torsion}}(\omega) =  \frac{d}{2} \left(\omega - \omega_0\right).
 \end{equation*}
 \end{itemize}
-\begin{lstlisting}[caption={[An example of an InversionTypes block.] A
+\begin{code}[caption={[An example of an InversionTypes block.] A
 simple example of a InversionTypes block.  Angles ($\delta_n$ and
 $\omega_0$) angles are given in degrees, while energy parameters ($v,
 K_n$) are given in kcal / mol.   The Harmonic Inversion type has a
@@ -2004,7 +2014,7 @@ CA      CA      CA      CT      AmberImproper   1.100000
 //ImproperCosine
 //Atom1 Atom2   Atom3   Atom4   ImproperCosine  Kn  n  delta_n  [Kn n delta_n]
 end InversionTypes
-\end{lstlisting}
+\end{code}
 
 \section{\label{section::ffLongRange}Long Range Interactions}
 
@@ -2047,7 +2057,7 @@ V_{\text{NB}}(r) = 4 \epsilon_{ij} \left(
 \end{equation*}
 \end{itemize}
 
-\begin{lstlisting}[caption={[An example of a NonBondedInteractions block.] A
+\begin{code}[caption={[An example of a NonBondedInteractions block.] A
 simple example of a NonBondedInteractions block. Distances ($\sigma,
 r_0$) are given in \AA, while energies ($\epsilon, D0$) are in
 kcal/mol.  The Morse potentials have an additional parameter $\beta_0$
@@ -2075,7 +2085,7 @@ Au      H_SPCE  RepulsiveMorse  -1.00  0.00850  0.769
 Au      ON      RepulsivePower   3.47005  0.186208   11
 Au      NO      RepulsivePower   3.53955  0.168629   11
 end NonBondedInteractions
-\end{lstlisting}
+\end{code}
 
 \section{\label{section:electrostatics}Electrostatics}
 
