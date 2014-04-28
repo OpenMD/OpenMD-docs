@@ -1604,6 +1604,15 @@ and {\tt Morse} bonds,
 V_{\text{bond}}(b) = D_{ij} \left[ 1 - e^{-\beta_{ij} (b - b_{ij}^0)} \right]^2
 \end{equation}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=2.5in]{bond.pdf}
+\caption[Bond coordinates]{The coordinate describing a
+a bond between atoms $i$ and $j$ is $|r_{ij}|$, the length of the
+$\vec{r}_{ij}$ vector. } 
+\label{fig:bond}
+\end{figure}
+
 OpenMD can also simulate some less common types of bond potentials,
 including {\tt Fixed} bonds (which are constrained to be at a
 specified bond length),
@@ -1675,12 +1684,23 @@ describe the local geometry.
 The bending potential energy functions used in most force fields are
 often simple functions of the angle between two bonds,
 \begin{equation}
-\theta_{ijk} = \cos^{-1} \left(\frac{\vec{r}_{ij} \cdot
-    \vec{r}_{jk}}{\left| \vec{r}_{ij} \right| \left| \vec{r}_{ij}
+\theta_{ijk} = \cos^{-1} \left(\frac{\vec{r}_{ji} \cdot
+    \vec{r}_{jk}}{\left| \vec{r}_{ji} \right| \left| \vec{r}_{jk}
     \right|} \right)
 \end{equation} 
 Here atom $j$ is the central atom that is bonded to two partners $i$
 and $k$.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=3.5in]{bend.pdf}
+\caption[Bend angle coordinates]{The coordinate describing a bend
+  between atoms $i$, $j$, and $k$ is the angle $\theta_{ijk} =
+  \cos^{-1} \left(\hat{r}_{ji} \cdot \hat{r}_{jk}\right)$ where $\hat{r}_{ji}$ is
+  the unit vector between atoms $j$ and $i$. }
+\label{fig:bend}
+\end{figure}
+
 
 All BendTypes must specify three AtomType names ($i$, $j$ and $k$)
 that describe when that bend potential should be applied, as well as
@@ -1803,7 +1823,24 @@ where the angle $\phi_{ijkl}$ is defined
 \label{eq:torsPhi}
 \end{equation}
 Here, $\hat{\mathbf{r}}_{\alpha\beta}$ are the set of unit bond
-vectors between atoms $i$, $j$, $k$, and $l$. 
+vectors between atoms $i$, $j$, $k$, and $l$.  Note that some force
+fields define the zero of the $\phi_{ijkl}$ angle when atoms $i$ and
+$l$ are in the {\em trans} configuration, while most define the zero
+angle for when $i$ and $l$ are in the fully eclipsed orientation.  The
+behavior of the torsion parser can be altered with the {\tt
+  TorsionAngleConvention} keyword in the Options block.  The default
+behavior is {\tt "180\_is\_trans"} while the opposite behavior can be
+invoked by setting this keyword to {\tt "0\_is\_trans"}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=4.5in]{torsion.pdf}
+\caption[Torsion or dihedral angle coordinates]{The coordinate
+  describing a torsion between atoms $i$, $j$, $k$, and $l$ is the
+  dihedral angle $\phi_{ijkl}$ which measures the relative rotation of
+  the two terminal atoms around the axis defined by the middle bond. }
+\label{fig:torsion}
+\end{figure}
 
 For computational efficiency, OpenMD recasts torsion potential in the
 method of {\sc charmm},\cite{Brooks83} in which the angle series is
@@ -2042,15 +2079,15 @@ end NonBondedInteractions
 
 \section{\label{section:electrostatics}Electrostatics}
 
-To aid in performing simulations in more traditional force fields, we
-have added routines to carry out electrostatic interactions using a
-number of different electrostatic summation methods.  These methods
-are extended from the damped and cutoff-neutralized Coulombic sum
-originally proposed by Wolf, {\it et al.}\cite{Wolf99} One of these,
-the damped shifted force method, shows a remarkable ability to
-reproduce the energetic and dynamic characteristics exhibited by
-simulations employing lattice summation techniques.  The basic idea is
-to construct well-behaved real-space summation methods using two tricks:
+Because nearly all force fields involve electrostatic interactions in
+one form or another, OpenMD implements a number of different
+electrostatic summation methods.  These methods are extended from the
+damped and cutoff-neutralized Coulombic sum originally proposed by
+Wolf, {\it et al.}\cite{Wolf99} One of these, the damped shifted force
+method, shows a remarkable ability to reproduce the energetic and
+dynamic characteristics exhibited by simulations employing lattice
+summation techniques.  The basic idea is to construct well-behaved
+real-space summation methods using two tricks:
 \begin{enumerate}
 \item shifting through the use of image charges, and 
 \item damping the electrostatic interaction.
@@ -2217,17 +2254,17 @@ this reason, the default electrostatic summation method utilized by
 
 \section{\label{section:cutoffGroups}Switching Functions}
 
-If done poorly, calculating the the long-range interactions for $N$
-atoms would involve $N(N-1)/2$ evaluations of atomic distances.  To
-reduce the number of distance evaluations between pairs of atoms, {\sc
-  OpenMD} allows the use of switched cutoffs with Verlet neighbor
-lists.\cite{Allen87} Neutral groups which contain charges will exhibit
-pathological forces unless the cutoff is applied to the neutral groups
-evenly instead of to the individual atoms.\cite{leach01:mm} {\sc
-  OpenMD} allows users to specify cutoff groups which may contain an
-arbitrary number of atoms in the molecule.  Atoms in a cutoff group
-are treated as a single unit for the evaluation of the switching
-function:
+Calculating the the long-range interactions for $N$ atoms involves
+$N(N-1)/2$ evaluations of atomic distances if it is done in a brute
+force manner.  To reduce the number of distance evaluations between
+pairs of atoms, {\sc OpenMD} allows the use of hard or switched
+cutoffs with Verlet neighbor lists.\cite{Allen87} Neutral groups which
+contain charges can exhibit pathological forces unless the cutoff is
+applied to the neutral groups evenly instead of to the individual
+atoms.\cite{leach01:mm} {\sc OpenMD} allows users to specify cutoff
+groups which may contain an arbitrary number of atoms in the molecule.
+Atoms in a cutoff group are treated as a single unit for the
+evaluation of the switching function:
 \begin{equation}
 V_{\mathrm{long-range}} = \sum_{a} \sum_{b>a} s(r_{ab}) \sum_{i \in a} \sum_{j \in b} V_{ij}(r_{ij}),
 \end{equation}
@@ -2253,14 +2290,29 @@ S(r) =
 Here, $r_{\text{sw}}$ is the {\tt switchingRadius}, or the distance
 beyond which interactions are reduced, and $r_{\text{cut}}$ is the
 {\tt cutoffRadius}, or the distance at which interactions are
-truncated.
+truncated.  
 
 Users of {\sc OpenMD} do not need to specify the {\tt cutoffRadius} or
-{\tt switchingRadius}.  In simulations containing only Lennard-Jones
-atoms, the cutoff radius has a default value of $2.5\sigma_{ii}$,
-where $\sigma_{ii}$ is the largest Lennard-Jones length parameter
-present in the simulation.  In simulations containing charged or
-dipolar atoms, the default cutoff radius is $15 \mbox{\AA}$.  
+{\tt switchingRadius}.   
+If the {\tt cutoffRadius} was not explicitly set, OpenMD will attempt
+to guess an appropriate choice.  If the system contains electrostatic
+atoms, the default cutoff radius is 12 \AA.  In systems without
+electrostatic (charge or multipolar) atoms, the atom types present in the simulation will be
+polled for suggested cutoff values (e.g. $2.5 max(\left\{ \sigma
+  \right\})$ for Lennard-Jones atoms.   The largest suggested value
+that was found will be used.
+
+By default, OpenMD uses shifted force potentials to force the
+potential energy and forces to smoothly approach zero at the cutoff
+radius.  If the user would like to use another cutoff method
+they may do so by setting the {\tt cutoffMethod} parameter to:
+\begin{itemize}
+\item {\tt HARD}
+\item {\tt SWITCHED}
+\item {\tt SHIFTED\_FORCE} (default):
+\item {\tt TAYLOR\_SHIFTED}
+\item {\tt SHIFTED\_POTENTIAL}
+\end{itemize}
 
 The {\tt switchingRadius} is set to a default value of 95\% of the
 {\tt cutoffRadius}.  In the special case of a simulation containing
@@ -2268,33 +2320,6 @@ The {\tt switchingRadius} is set to a default value of 95\% of the
 same value as the cutoff radius, and {\sc OpenMD} will use a shifted
 potential to remove discontinuities in the potential at the cutoff.
 Both radii may be specified in the meta-data file.
-
-
-\section{\label{section:WATER}The {\sc water} Force Field}
-
-In addition to the {\sc duff} force field's solvent description, a
-separate {\sc water} force field has been included for simulating most
-of the common rigid-body water models. This force field includes the
-simple and point-dipolar models (SSD, SSD1, SSD/E, SSD/RF, and DPD
-water), as well as the common charge-based models (SPC, SPC/E, TIP3P,
-TIP4P, and
-TIP5P).\cite{liu96:new_model,Ichiye03,fennell04,Marrink01,Berendsen81,Berendsen87,Jorgensen83,Mahoney00}
-In order to handle these models, charge-charge interactions were
-included in the force-loop:
-\begin{equation}
-V_{\text{charge}}(r_{ij}) = \sum_{ij}\frac{q_iq_je^2}{r_{ij}}, 
-\end{equation}
-where $q$ represents the charge on particle $i$ or $j$, and $e$ is the
-charge of an electron in Coulombs. The charge-charge interaction
-support is rudimentary in the current version of {\sc OpenMD}.  As with
-the other pair interactions, charges can be simulated with a pure
-cutoff or a reaction field.  The various methods for performing the
-Ewald summation have not yet been included.  The {\sc water} force
-field can be easily expanded through modification of the {\sc water}
-force field file ({\tt WATER.frc}). By adding atom types and inserting
-the appropriate parameters, it is possible to extend the force field
-to handle rigid molecules other than water.
-
 
 
 \section{\label{section:pbc}Periodic Boundary Conditions} 
