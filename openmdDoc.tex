@@ -63,29 +63,34 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD-2.2}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-2.3}: Molecular Dynamics in the Open}
 
-\author{Joseph Michalka, James Marr, Kelsey Stocker, Madan Lamichhane,
-  Patrick Louden, \\
-  Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Shenyu
-  Kuang, Xiuquan Sun, \\
-  Chunlei Li, Kyle Daily, Yang Zheng, Matthew A. Meineke, and \\
-  J. Daniel Gezelter \\
+\author{Madan Lamichhane, Patrick Louden, Joseph Michalka, Suzanne
+  Niedhart, \\
+  Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Matthew
+  A. Meineke, \\ Shenyu Kuang, 
+  Kelsey Stocker, James Marr, \\ Xiuquan Sun,
+  Chunlei Li,  Kyle Daily, Yang Zheng, \\ and \\
+  J. Daniel Gezelter \\ \\
   Department of Chemistry and Biochemistry\\
   University of Notre Dame\\
   Notre Dame, Indiana 46556}
 
 \maketitle
 
-\section*{Preface}
-{\sc OpenMD} is an open source molecular dynamics engine which is capable of
-efficiently simulating liquids, proteins, nanoparticles, interfaces,
-and other complex systems using atom types with orientational degrees
-of freedom (e.g. ``sticky'' atoms, point dipoles, and coarse-grained
-assemblies). Proteins, zeolites, lipids, transition metals (bulk, flat
-interfaces, and nanoparticles) have all been simulated using force
-fields included with the code. {\sc OpenMD} works on parallel computers
-using the Message Passing Interface (MPI), and comes with a number of
+\section*{Preface} 
+
+{\sc OpenMD} is an open source molecular dynamics engine which is
+capable of efficiently simulating liquids, proteins, nanoparticles,
+interfaces, and other complex systems using atom types with
+orientational degrees of freedom (e.g. ``sticky'' atoms, point
+multipoles, and coarse-grained assemblies). It is a test-bed for new
+molecular simulation methodology, but is also efficient and easy to
+use.  Liquids, proteins, zeolites, lipids, inorganic nanomaterials,
+transition metals (bulk, flat interfaces, and nanoparticles) and a
+wide array of other systems have all been simulated using this
+code. {\sc OpenMD} works on parallel computers using the Message
+Passing Interface (MPI), and comes with a number of trajectory
 analysis and utility programs that are easy to use and modify. An
 OpenMD simulation is specified using a very simple meta-data language
 that is easy to learn.
@@ -107,7 +112,7 @@ dynamics simulations on parallel computers.  Some have source code
 which is freely available to the entire scientific community.  Few,
 however, are capable of efficiently integrating the equations of
 motion for atom types with orientational degrees of freedom
-(e.g. point dipoles, and ``sticky'' atoms).  And only one of the
+(e.g. point multipoles, and ``sticky'' atoms).  And only one of the
 programs referenced can handle transition metal force fields like the
 Embedded Atom Method ({\sc eam}).  The direction our research program
 has taken us now involves the use of atoms with orientational degrees
@@ -118,10 +123,10 @@ community.
 
 This document communicates the algorithmic details of our program,
 {\sc OpenMD}.  We have structured this document to first discuss the
-underlying concepts in this simulation package (Sec.
+underlying concepts in this simulation package (Chapter
 \ref{section:IOfiles}).  The empirical energy functions implemented
-are discussed in Sec.~\ref{section:empiricalEnergy}.
-Sec.~\ref{section:mechanics} describes the various Molecular Dynamics
+are discussed in Chapter~\ref{chapter:forceFields}.
+Section~\ref{section:mechanics} describes the various Molecular Dynamics
 algorithms {\sc OpenMD} implements in the integration of Hamilton's
 equations of motion.  Program design considerations for parallel
 computing are presented in Sec.~\ref{section:parallelization}.
@@ -130,11 +135,12 @@ Concluding remarks are presented in Sec.~\ref{section:conclusion}.
 \chapter{\label{section:IOfiles}Concepts \& Files}
 
 A simulation in {\sc OpenMD} is built using a few fundamental
-conceptual building blocks most of which are chemically intuitive.
+conceptual building blocks, most of which are chemically intuitive.
 The basic unit of a simulation is an {\tt atom}.  The parameters
 describing an {\tt atom} have been generalized to make it as flexible
 as possible; this means that in addition to translational degrees of
-freedom, {\tt Atoms} may also have {\it orientational} degrees of freedom.
+freedom, {\tt atoms} may also have {\it orientational} degrees of
+freedom.
 
 The fundamental (static) properties of {\tt atoms} are defined by the
 {\tt forceField} chosen for the simulation.  The atomic properties
@@ -234,7 +240,7 @@ block and {\it at least one} {\tt <Snapshot>} block.  Each
 
 \section{OpenMD Files and $<$MetaData$>$ blocks}
 
-{\sc OpenMD} uses a HTML-like syntax to separate {\tt $<$MetaData$>$} and
+{\sc OpenMD} uses HTML-like delimiters to separate {\tt $<$MetaData$>$} and
 {\tt $<$Snapshot$>$} blocks.  A C-based syntax is used to parse the {\tt
 $<$MetaData$>$} blocks at run time.  These blocks allow the user to
 completely describe the system they wish to simulate, as well as
@@ -242,8 +248,8 @@ tailor {\sc OpenMD}'s behavior during the simulation.  {\sc OpenMD}
 files are typically denoted with the extension {\tt .md} (which can
 stand for Meta-Data or Molecular Dynamics or Molecule Definition
 depending on the user's mood). An overview of an {\sc OpenMD} file is
-shown in Scheme~\ref{sch:mdFormat} and example file is shown in
-Scheme~\ref{sch:mdExample}.
+shown in Example~\ref{sch:mdFormat} and example file is shown in
+Example~\ref{sch:mdExample}.
 
 \begin{code}[caption={[An example of a complete OpenMD
 file] An example showing a complete OpenMD file.},
@@ -286,17 +292,16 @@ statusTime = 50;  // statistics file frequency
 </OpenMD>
 \end{code}
 
-Within the {\tt $<$MetaData$>$} block it is necessary to provide a
+In the {\tt $<$MetaData$>$} block, it is necessary to provide a
 complete description of the molecule before it is actually placed in
-the simulation. {\sc OpenMD}'s meta-data syntax was originally
-developed with this goal in mind, and allows for the use of {\it
-include files} to specify all atoms in a molecular prototype, as well
-as any bonds, bends, or torsions.  Include files allow the user to
-describe a molecular prototype once, then simply include it into each
-simulation containing that molecule. Returning to the example in
-Scheme~\ref{sch:mdExample}, the include file's contents would be
-Scheme~\ref{sch:mdIncludeExample}, and the new {\sc OpenMD} file would
-become Scheme~\ref{sch:mdExPrime}.
+the simulation. {\sc OpenMD}'s meta-data syntax allows for the use of
+{\it include files} to specify all atoms in a molecular prototype, as
+well as any bonds, bends, torsions, or other structural groupings of
+atoms.  Include files allow the user to describe a molecular prototype
+once, then simply include it into each simulation containing that
+molecule. Returning to the example in Scheme~\ref{sch:mdExample}, the
+include file's contents would be Scheme~\ref{sch:mdIncludeExample},
+and the new {\sc OpenMD} file would become Scheme~\ref{sch:mdExPrime}.
 
 \begin{code}[caption={An example molecule definition in an
 include file.},label={sch:mdIncludeExample}]
@@ -347,29 +352,29 @@ statusTime = 50;
 \section{\label{section:atomsMolecules}Atoms, Molecules, and other
 ways of grouping atoms}
 
-As mentioned above, the fundamental unit for an {\sc OpenMD} simulation
-is the {\tt atom}.  Atoms can be collected into secondary structures
-such as {\tt rigidBodies}, {\tt cutoffGroups}, or {\tt molecules}. The
-{\tt molecule} is a way for {\sc OpenMD} to keep track of the atoms in
-a simulation in logical manner. Molecular units store the identities
-of all the atoms and rigid bodies associated with themselves, and they
-are responsible for the evaluation of their own internal interactions
-(\emph{i.e.}~bonds, bends, and torsions). Scheme
-\ref{sch:mdIncludeExample} shows how one creates a molecule in an
-included meta-data file. The positions of the atoms given in the
-declaration are relative to the origin of the molecule, and the origin
-is used when creating a system containing the molecule.
+As mentioned above, the fundamental unit for an {\sc OpenMD}
+simulation is the {\tt atom}.  Atoms can be collected into secondary
+structures such as {\tt rigidBodies}, {\tt cutoffGroups}, or {\tt
+  molecules}. The {\tt molecule} is a way for {\sc OpenMD} to keep
+track of the atoms in a simulation in logical manner. Molecular units
+store the identities of all the atoms and rigid bodies associated with
+themselves, and they are responsible for the evaluation of their own
+internal interactions (\emph{i.e.}~bonds, bends, torsions, and
+inversions). Scheme \ref{sch:mdIncludeExample} shows how one creates a
+molecule in an included meta-data file. The positions of the atoms
+given in the declaration are relative to the origin of the molecule,
+and the origin is used when creating a system containing the molecule.
 
 One of the features that sets {\sc OpenMD} apart from most of the
 current molecular simulation packages is the ability to handle rigid
 body dynamics. Rigid bodies are non-spherical particles or collections
-of particles (e.g. $\mbox{C}_{60}$) that have a constant internal
+of particles (e.g. a phenyl ring) that have a constant internal
 potential and move collectively.\cite{Goldstein01} They are not
 included in most simulation packages because of the algorithmic
 complexity involved in propagating orientational degrees of freedom.
 Integrators which propagate orientational motion with an acceptable
-level of energy conservation for molecular dynamics are relatively
-new inventions.  
+level of energy conservation for molecular dynamics are relatively new
+inventions.
 
 Moving a rigid body involves determination of both the force and
 torque applied by the surroundings, which directly affect the
@@ -477,8 +482,10 @@ which minimization method to use, and more details on the choices of
 minimizer parameters can be found in
 Sec.~\ref{section:minimizer}. The {\tt forceField} statement is
 important for the selection of which forces will be used in the course
-of the simulation. {\sc OpenMD} supports several force fields, as
-outlined in Sec.~\ref{section:empiricalEnergy}. The force fields are
+of the simulation. {\sc OpenMD} supports several force fields, and
+allows the user to create their own using a range of pre-defined
+empirical energy functions.  The format of force field files is
+outlined Chapter~\ref{chapter:forceFields}. The force fields are
 interchangeable between simulations, with the only requirement being
 that all atoms needed by the simulation are defined within the
 selected force field. 
@@ -557,11 +564,6 @@ field. \\
 box must be before we can use cheaper box calculations \\
 {\tt cutoffRadius} & $\mbox{\AA}$ & Manually sets the cutoff radius &
 the default value is set by the {\tt cutoffPolicy} \\ 
-{\tt cutoffPolicy} & string & one of mix, max, or
-traditional &  the traditional cutoff policy is to set the cutoff
-radius for all atoms in the system to the same value (governed by the
-largest atom).  mix and max are pair-dependent cutoff
-methods. \\
 {\tt skinThickness} & \AA & thickness of the skin for the Verlet
 neighbor lists & defaults to 1 \AA \\
 {\tt switchingRadius} & $\mbox{\AA}$  & Manually sets the inner radius
@@ -601,7 +603,7 @@ out the pressure tensor & can be useful for calculations of the bulk
 modulus \\
 {\tt electrostaticSummationMethod} & & & \\
  & string & shifted\_force,
-shifted\_potential, shifted\_force, or reaction\_field &
+shifted\_potential, hard, switched, taylor\_shifted, or reaction\_field &
 default is shifted\_force. \\
 {\tt electrostaticScreeningMethod} & & & \\
  & string & undamped or damped & default is damped \\
@@ -616,12 +618,12 @@ distribution set to {\tt targetTemp} & default is false. \\
 default is never \\
 {\tt targetTemp} & K & sets the target temperature & no default value \\
 {\tt tauThermostat} & fs & time constant for Nos\'{e}-Hoover
-thermostat & times from 1000-10,000 fs are reasonable \\
+thermostat & times from 100-10,000 fs are reasonable \\
 {\tt targetPressure} & atm & sets the target pressure & no default value\\
 {\tt surfaceTension} &  & sets the target surface tension in the x-y
 plane & no default value \\
 {\tt tauBarostat} & fs & time constant for the
-Nos\'{e}-Hoover-Andersen barostat & times from 10,000 to 100,000 fs
+Nos\'{e}-Hoover-Andersen barostat & times from 1000 to 100,000 fs
 are reasonable \\
 {\tt seed } & integer & Sets the seed value for the random number generator. & The seed needs to be at least 9 digits long. The default is to take the seed from the CPU clock. \\
 \label{table:genParams}
@@ -1219,7 +1221,7 @@ the Euler angles are specified in the $zxz$ convention and are entered
 in units of degrees.  Dipole moments are entered in units of Debye,
 and Quadrupole moments in units of Debye \AA.
 
-\subsection{\label{section:ffGB}The FluctuatingChargeAtomTypes  block}
+%\subsection{\label{section:ffGB}The FluctuatingChargeAtomTypes  block}
 %\subsubsection{\label{section:ffPol}The PolarizableAtomTypes block}
 
 \subsection{\label{section:ffGB}The GayBerneAtomTypes block}
@@ -2062,7 +2064,7 @@ simple example of a NonBondedInteractions block. Distances ($\sigma,
 r_0$) are given in \AA, while energies ($\epsilon, D0$) are in
 kcal/mol.  The Morse potentials have an additional parameter $\beta_0$
 which is in units of \AA$^{-1}$.},
-label={sch:InversionTypes}]
+label={sch:NonBondedInteractionTypes}]
 begin NonBondedInteractions
 
 //Lennard-Jones
@@ -2330,7 +2332,6 @@ The {\tt switchingRadius} is set to a default value of 95\% of the
 same value as the cutoff radius, and {\sc OpenMD} will use a shifted
 potential to remove discontinuities in the potential at the cutoff.
 Both radii may be specified in the meta-data file.
-
 
 \section{\label{section:pbc}Periodic Boundary Conditions} 
 
@@ -2711,6 +2712,10 @@ NPTf & isobaric-isothermal & {\tt ensemble = NPTf;} \\
   & (with changes to box shape) & \\
 NPTxyz & approximate isobaric-isothermal & {\tt ensemble = NPTxyz;} \\
  &  (with separate barostats on each box dimension) & \\
+N$\gamma$T & constant lateral surface tension & {\tt ensemble = NgammaT;} \\
+ &  (must specify a surfaceTension) & \\
+NP$\gamma$T & constant normal pressure and lateral surface tension & {\tt ensemble = NPrT;} \\
+ &  (must specify a targetPressure and surfaceTension) & \\
 LD & Langevin Dynamics & {\tt ensemble = LD;} \\
  &  (approximates the effects of an implicit solvent) & \\
  LangevinHull & Non-periodic Langevin Dynamics  & {\tt ensemble = LangevinHull;} \\
@@ -2751,6 +2756,8 @@ variables.
 default value} \\  
 $T_{\mathrm{target}}$ & {\tt targetTemperature = 300;} &  K & none \\
 $P_{\mathrm{target}}$ & {\tt targetPressure = 1;} & atm & none \\
+$\gamma$ & {\tt surfaceTension = 0.015;} & Newtons / meter & none \\
+$\eta$ & {\tt viscosity = 0.0089;} & Poise & none \\
 $\tau_T$ & {\tt tauThermostat = 1e3;} & fs & none \\
 $\tau_B$ & {\tt tauBarostat = 5e3;} & fs  & none \\
          & {\tt resetTime = 200;} & fs & none \\
@@ -3751,10 +3758,283 @@ Harmonic Forces are used by default
 \label{table:zconParams}
 \end{longtable}
 
-% \chapter{\label{section:restraints}Restraints}
-% Restraints are external potentials that are added to a system to
-% keep particular molecules or collections of particles close to some
-% reference structure.  A restraint can be a collective
+\chapter{\label{chapter:restraints}Restraints}
+Restraints are external potential energy functions that are added to a
+system to keep particular molecules or collections of particles close
+to a reference structure.  A \textbf{Molecular} restraint is a
+collective force applied to all atoms in a molecule, while an
+\textbf{Object} restraint is a simple harmonic spring connecting the
+position of a StuntDouble (or its orientation) close to a fixed
+reference geometry.
+
+Restraints require the specification of a reference geometry in the
+{\tt Restraint\_file} parameter.  These files are standard OpenMD {\tt
+  md} or {\tt eor} files which must have the same component
+specification and StuntDouble indices as the simulation itself.
+
+Restraint potentials in OpenMD are harmonic,
+\begin{equation}
+V_\mathrm{trans} = \frac{k_\mathrm{trans}}{2} \left( \mathbf{i} - \mathbf{r}
+\right)^2
+\end{equation}
+where $k_\mathrm{trans}$ is a spring constant for translational
+motion, $\mathbf{i}$ is the instantaneous position of the object, and
+$\mathbf{r}$ is the position of the same object in the reference
+structure.  Alternatively, one might restrain the orientations of an object,
+\begin{equation}
+V_\mathrm{swing} = \frac{k_\mathrm{swing}}{2} \left( \theta - \theta_0 \right)^2
+\end{equation}
+where $k_\mathrm{swing}$ is the force constant for swing motion of the
+long axis of a molecule, $\theta$ is the instantaneous swing angle
+relative to the reference structure, and $\theta_0$ is an optional
+angle that the user can specify that is also measured relative to the
+orientation of the reference structure.
+
+\begin{code}[caption={[Specifying restraints for all objects matching a
+    selection] Sample keywords defining object restraints (here the
+    object is the first rigid body associated with SPCE molecules},label={sch:restObj}] 
+restraint{
+  restraintType = "object";
+  objectSelection = "select SPCE_RB_0";
+  displacementSpringConstant = 4.3;
+  twistSpringConstant = 750;
+  swingXSpringConstant = 700;
+  swingYSpringConstant = 700;
+  print = "false";
+}
+
+useRestraints = "true";
+Restraint_file = "idealStructure.in";
+\end{code}
+
+When the restraint is added to an entire molecule, the forces and
+torques must be applied atom-by-atom. Translational restraints are
+simple to apply, but torques for angular restraints require some
+care. 
+
+Defining the rotation angles for an instantaneous geometry of a
+molecule relative to a reference structure is a difficult problem
+because there are multiple combinations of three-angle rotations can
+lead to the same structure. To tackle this problem, OpenMD combines
+two methods, singular value decomposition (SVD) and twist-swing
+decomposition.
+
+The core of the difficulty is in identifying the rotation matrix
+($\mathsf{A}$) that relates the instantaneous geometry to the
+reference structure.  Because molecules generally are not rigid, the
+internal dynamics makes this computationally demanding. Fortunately a
+method that is widely used for protein alignment provides a reasonable
+characterization of this rotation matrix.
+
+The molecule is represented as a $N \times 3$ matrix of coordinates.
+The difference between the instantaneous and reference conformations
+is encoded in the transformation between two of these matrices.  The
+transformation consists of a ``best fit'' translation vector and
+rotation matrix such that after translation and rotation, the two
+configurations will have the highest degree of overlap with each
+other.  I.e., the translation vector and rotation matrix minimize the
+root mean-square distance (RMSD) between the two structures,
+\begin{equation}
+  \mathrm{RMSD} = \sqrt{\frac{1}{N} \sum_n \left(i_n - r_n\right)^2 },
+\end{equation}
+where $\left\{i_n\right\}$ and $\left\{r_n\right\}$ are the sets of
+coordinates for the instantaneous and reference structures, and $N$ is
+the total number of atoms in the molecule.  A singular value
+decomposition (SVD) is carried out in order to minimize the RMSD.
+This operation provides the best-fitting translation vector $\vec{v}$
+and rotation matrix $\mathsf{A}$ that align the instantaneous and
+reference structures.
+
+Twist-swing decomposition, a technique that has been widely used in
+computer animation of articulated figures, is then employed to
+calculate the relative rotational angles between the instantaneous and
+reference structures.  This decomposition regards the motion as a
+``twist'' about one axis followed by a ``swing'' about another axis,
+where the second axis is perpendicular to the
+first.\cite{Kallmann:2008fk,Shoemake:1994uq} This model of rotation
+provides a convenient way to define a unique relative rotational
+angle.  A simple example helps clarify: Suppose a cylinder moves from
+original position $\mathbf{O}$ to end position $\mathbf{E}$ (Figure
+\ref{fig:twistSwing}).  Although there are many paths that can
+accomplish this movement, the simplest path is to rotate the reference
+configuration by $\theta$ (i.e. the swing angle) in the plane
+$\mathbf{O} \times \mathbf{E}$ (the cross product of the two
+orientation vectors).  Then the reference structure is rotated by
+$\phi$ (the twist angle) around the central axis.
+
+\begin{figure}
+\includegraphics[width=3.5in]{twistSwing}
+\caption[The twist-swing decomposition used in orientational
+restraints] {The twist-swing decomposition defines relative rotational
+  angles using the simplest path to rotate the reference
+  configuration.  The reference is rotated by a ``swing'' angle
+  $\theta$ in the plane of $\mathbf{O} \times \mathbf{E}$, then
+  rotated by a ``twist'' angle $\phi$ around the swing axis.}
+\label{fig:twistSwing}
+\end{figure}
+
+This illustrates the basic idea of the twist-swing decomposition,
+which is a general operation that can be performed on the best-fitting
+relative rotation matrix ($\mathsf{A}$) between the instantaneous and
+reference structures.  For objects that are not cylindrically
+symmetric, there are two swing angles (one in X and one in Y) in
+addition to the twist angle.
+
+\begin{code}[caption={[Specifying Restraints for a Molecule] Sample
+    keywords defining a molecular restraint and the associated force constants},label={sch:restMol}] 
+restraint{
+  restraintType = "Molecular";
+  molIndex = 0;
+  twistSpringConstant = 0.25;
+  swingXSpringConstant = 0.02;
+  restrainedSwingXAngle = -90.0;
+  swingYSpringConstant = 0.02;
+  print = "true";
+}
+
+useRestraints = "true";
+Restraint_file = "prism_ref.inc";
+\end{code}
+
+To specify a molecular restraint, it is necessary to give an exact
+index of this molecule in the {\tt molIndex} parameter.  In the
+example in schem \ref{sch:restMol}, the restrained SwingX angle is -90
+degrees offset from the reference structure, so the molecule will be
+restrained in a different orientation from the reference geometry.
+
+\begin{longtable}[c]{ABCD}
+\caption{Meta-data Keywords: Restraint Parameters}
+\\
+{\bf keyword} & {\bf units} & {\bf use} & {\bf remarks}  \\ \hline
+\endhead
+\hline
+\endfoot
+{\tt restraintType} & string & What kind of restraint is this? &
+choose either ``Object'' or ``Molecular'' \\
+{\tt molIndex} & integer & Which molecule to restrain & \\
+{\tt objectSelection} & string & Selection script for Object
+restraints & \\
+{\tt displacementSpringConstant} & kcal/mol/\AA$^2$  & $k_\mathrm{trans}$ & \\
+{\tt twistSpringConstant} & kcal/mol/radian$^2$ & $k_\mathrm{twist}$ & \\
+{\tt swingXSpringConstant} & kcal/mol/radian$^2$ & $k_\mathrm{swingX}$ & \\
+{\tt swingYSpringConstant} & kcal/mol/radian$^2$ & $k_\mathrm{swingY}$ & \\
+{\tt restrainedTwistAngle} & degrees & $\omega_0$ (optional) &
+defaults to 0\\
+{\tt restrainedSwingXAngle} & degrees & $\theta_0^x$ (optional) & defaults to 0 \\
+{\tt restrainedSwingYAngle} & degrees & $\theta_0^y$ (optional) & defaults to 0\\
+{\tt print} & logical & whether or not to print restraint value and energy  &
+defaults to true
+\label{table:restraintParams}
+\end{longtable}
+
+The various parameters for a {\tt restraint} are shown in table
+\ref{table:restraintParams}. Because restraints have a large number of
+parameters, these must be enclosed in a {\it separate} {\tt
+  restraint\{...\}} block.
+
+\chapter{\label{chapter:perturbations}Perturbations}
+OpenMD allows the user to specify two external perturbations that
+interact with the electrostatic properties of the atoms.
+
+\section{\label{sec:UniformField}Uniform Fields} 
+To apply a uniform
+(vector) electric field to the system, the user adds the {\tt
+  uniformField} parameter to the MetaData section of the .md file.
+
+\begin{code}[caption={Specifying a uniform electric field.},label={sch:uniformField}]
+   uniformField = (a, b, c);  
+\end{code}
+
+The values of $a$, $b$, and $c$ are in units of V~/~\AA.  The
+electrostatic potential corresponding to this uniform field is
+\begin{equation}
+\phi(\mathbf{r})  = - a x - b y - c z
+\end{equation}
+which grows unbounded and is not periodic.  For these reasons, care
+should be taken in using a uniform field with point charges.
+The field itself is 
+\begin{equation}
+\mathbf{E} = \left( \begin{array}{c} a \\ b \\ c \end{array} \right).
+\end{equation}
+The uniform field applies a force on charged atoms, $ \mathbf{F} = C
+\mathbf{E}$.  For dipolar atoms, the uniform field applies both a
+potential, $ U = - \mathbf{D} \cdot \mathbf{E}$ and a torque, $
+\mathbf{\tau} = \mathbf{D} \times \mathbf{E}$ that depends on the
+instantaneous dipole ($\mathbf{D}$) of that atom.
+
+\section{\label{sec:UniformGradient}Uniform Field Gradients} 
+To apply a uniform electric field gradient to the system, the user
+adds three parameters to the MetaData section
+
+\begin{code}[caption={Specifying a uniform electric field gradient.},label={sch:uniformFieldGradient}]
+    uniformGradientStrength = g;
+    uniformGradientDirection1 = (a1, a2, a3)
+    uniformGradientDirection2 = (b1, b2, b3);
+\end{code}
+
+The two direction vectors, $\mathbf{a}$ and $\mathbf{b}$ are unit
+vectors, and the value of $g$ is in units of
+V~/~\AA\textsuperscript{2}. The electrostatic potential corresponding
+to this uniform gradient is
+\begin{align}
+\phi(\mathbf{r})  = - \frac{g}{2} \Big[&
+    \left(a_1 b_1 - \frac{\cos\psi}{3}\right) x^2
+    + (a_1 b_2 + a_2 b_1) x y + (a_1 b_3 + a_3 b_1) x z \\
+    & + (a_2 b_1 + a_1 b_2) y x 
+    + \left(a_2 b_2 - \frac{\cos\psi}{3}\right) y^2
+    + (a_2 b_3 + a_3 b_2) y z \\
+    & \left. + (a_3 b_1 + a_1 b_3) z x 
+    + (a_3 b_2 + a_2 b_3) z y
+    + \left(a_3 b_3 - \frac{\cos\psi}{3}\right) z^2 \right]. \\
+\end{align}
+where $\cos \psi = \mathbf{a} \cdot \mathbf{b}$.  Note that this
+potential grows unbounded and is not periodic.  For these reasons,
+care should be taken in using a Uniform Gradient with point
+charges. The corresponding field for this potential is:
+\begin{equation}
+\mathbf{E} = \frac{g}{2} \left( \begin{array}{c} 
+    2\left(a_1 b_1 - \frac{\cos\psi}{3}\right) x +  (a_1 b_2 + a_2 b_1) y 
+    + (a_1 b_3 + a_3 b_1) z  \\
+    (a_2 b_1 + a_1 b_2)  x + 2 \left(a_2 b_2 - \frac{\cos\psi}{3}\right) y 
+    + (a_2 b_3 + a_3 b_2) z \\
+    (a_3 b_1 + a_1 b_3) x +  (a_3 b_2 + a_2 b_3) y 
+    + 2 \left(a_3 b_3 - \frac{\cos\psi}{3}\right) z \end{array}
+\right).
+\end{equation}
+The field also grows unbounded and is not periodic.  For these reasons,
+care should be taken in using a Uniform Gradient with point dipoles.
+
+The corresponding field gradient,
+\begin{equation}
+\nabla \mathbf{E} = \frac{g}{2} \left( \begin{array}{ccc}  
+    2\left(a_1 b_1 - \frac{\cos\psi}{3}\right)  &  
+    (a_1 b_2 + a_2 b_1) & (a_1 b_3 + a_3 b_1) \\
+    (a_2 b_1 + a_1 b_2)  & 2 \left(a_2 b_2 - \frac{\cos\psi}{3}\right) & 
+    (a_2 b_3 + a_3 b_2) \\
+    (a_3 b_1 + a_1 b_3) & (a_3 b_2 + a_2 b_3) & 
+    2 \left(a_3 b_3 - \frac{\cos\psi}{3}\right) \end{array} \right)
+\end{equation}
+is uniform everywhere. The uniform field gradient applies a force on
+charged atoms, $\mathbf{F} = C~\mathbf{E}(\mathbf{r})$.  For dipolar
+atoms, the gradient applies a potential, $U = -\mathbf{D} \cdot
+\mathbf{E}(\mathbf{r})$, force, $\mathbf{F} = \mathbf{D} \cdot
+\nabla \mathbf{E}$, and torque, $ \mathbf{\tau} = \mathbf{D} \times
+\mathbf{E}(\mathbf{r})$.  For quadrupolar atoms, the uniform field
+gradient exerts a potential, $U = - \mathsf{Q}:\nabla \mathbf{E}$, and
+a torque $ \mathbf{F} = 2 \mathsf{Q} \times \nabla \mathbf{E}$.
+
+Here, the $:$ indicates a tensor contraction (double dot product) of
+two matrices, and the $\times$ for the quadrupole indicates a vector
+(cross) product of two matrices, defined as
+\begin{equation}
+\left[\mathsf{A} \times \mathsf{B}\right]_\alpha = \sum_\beta
+\left[\mathsf{A}_{\alpha+1,\beta} \mathsf{B}_{\alpha+2,\beta}
+  -\mathsf{A}_{\alpha+2,\beta} \mathsf{B}_{\alpha+1,\beta} 
+\right]
+\label{eq:matrixCross}
+\end{equation}
+where $\alpha+1$ and $\alpha+2$ are regarded as cyclic
+permuations of the matrix indices.
 
 \chapter{\label{section:thermInt}Thermodynamic Integration}
 
@@ -3790,9 +4070,9 @@ V_\mathrm{EC} = \sum_{i} \left[ \frac{K_\mathrm{v}}{2} (r_i - r_i^\circ)^2 +
 \end{equation}
 where $K_\mathrm{v}$, $K_\mathrm{\theta}$, and $K_\mathrm{\omega}$ are
 the spring constants restraining translational motion and deflection
-of and rotation around the principle axis of the molecule
-respectively.  The values of $\theta$ range from $0$ to $\pi$, while
-$\omega$ ranges from $-\pi$ to $\pi$.
+of (swing) and rotation around (twist) the principle axis of the
+molecule respectively.  The values of $\theta$ range from $0$ to
+$\pi$, while $\omega$ ranges from $-\pi$ to $\pi$.
 
 The partition function for a molecular crystal restrained in this
 fashion can be evaluated analytically, and the Helmholtz Free Energy
@@ -3828,28 +4108,42 @@ of force constants must also be specified; one for displacments of the
 molecular centers of mass, and two for displacements from the ideal
 orientations of the molecules.  
 
+\begin{code}[caption={[Specifying Restraints for Thermodynamic
+    Integration to an Einstein Crystal]Sample keywords defining restraints
+    and their force constants for use in Thermodynamic
+    Integration to an Einstein Crystal},label={sch:tiSolid}] 
+useThermodynamicIntegration = "true";
+thermodynamicIntegrationLambda = 0.0;
+thermodynamicIntegrationK = 1.0;
+
+restraint{
+ restraintType = "object";
+ objectSelection = "select SSD_E";
+ displacementSpringConstant = 4.3;
+ twistSpringConstant = 750;
+ swingXSpringConstant = 700;
+ swingYSpringConstant = 700;
+ print = "false";
+}
+
+useRestraints = "true";
+Restraint_file = "idealCrystal.in";
+\end{code}
+
 To construct a thermodynamic integration path, the user would run a
-sequence of $N$ simulations, each with a different value of lambda
-between $0$ and $1$.  When {\tt useSolidThermInt} is set to {\tt true}
-in the meta-data file, two additional energy columns are reported in
-the {\tt .stat} file for the simulation.  The first, {\tt vRaw}, is
-the unperturbed energy for the configuration, and the second, {\tt
-vHarm}, is the energy of the harmonic (Einstein) system in an
-identical configuration.   The total potential energy of the
-configuration is a linear combination of {\tt vRaw} and {\tt vHarm}
-weighted by the value of $\lambda$.
+sequence of $N$ simulations, each with a different value of $\lambda$
+between $0$ and $1$.  When {\tt useThermodynamicIntegration} is set to
+{\tt true} in the meta-data file and restraints are present, two
+additional energy columns are reported in the {\tt .stat} file for the
+simulation.  The first, {\tt vRaw}, is the unperturbed energy for the
+configuration, and the second, {\tt vHarm}, is the energy of the
+harmonic (Einstein) system in an identical configuration. The total
+potential energy of the configuration is a linear combination of {\tt
+  vRaw} and {\tt vHarm} weighted by the value of $\lambda$.
 
 From a running average of the difference between {\tt vRaw} and {\tt
 vHarm}, the user can obtain the integrand in Eq. (\ref{eq:thermInt})
 for fixed value of $\lambda$.  
-
-There are two additional files with the suffixes {\tt .zang0} and {\tt
-.zang} generated by {\sc OpenMD} during the first run of a solid
-thermodynamic integration.  These files contain the initial ({\tt
-.zang0}) and  final ({\tt .zang}) values of the angular displacement
-coordinates for each of the molecules.  These are particularly useful
-when chaining a number of simulations (with successive values of
-$\lambda$) together.  
 
 For {\it liquid} thermodynamic integrations, the reference system is
 the ideal gas (with a potential exactly equal to 0), so the {\tt
@@ -3858,6 +4152,14 @@ column contains the potential of the {\it unperturbed} system (and not
 the $\lambda$-weighted potential.  This allows the user to use the 
 potential energy directly as the $\Delta V$ in the integrand of
 Eq. (\ref{eq:thermInt}). 
+
+\begin{code}[caption={[Specifying Restraints for Thermodynamic
+    Integration to an Ideal Gas]Sample keywords for use in Thermodynamic
+    Integration to an Ideal Gas},label={sch:tiLiquid}] 
+useThermodynamicIntegration = "true";
+thermodynamicIntegrationLambda = 1.0;
+thermodynamicIntegrationK = 1.0;
+\end{code}
 
 Meta-data parameters concerning thermodynamic integrations are given in
 Table~\ref{table:thermIntParams}
@@ -3869,10 +4171,7 @@ Table~\ref{table:thermIntParams}
 \endhead
 \hline
 \endfoot
-{\tt useSolidThermInt} & logical & perform thermodynamic integration
-to an Einstein crystal? & default is ``false'' \\
-{\tt useLiquidThermInt} & logical & perform thermodynamic integration
-to an ideal gas? & default is ``false'' \\
+{\tt useThermodynamicIntegration} & logical & perform thermodynamic integration? & default is ``false'' \\
 {\tt thermodynamicIntegrationLambda} & & & \\
  & double & transformation
 parameter & Sets how far along the thermodynamic integration path the
@@ -3880,17 +4179,6 @@ simulation will be. \\
 {\tt thermodynamicIntegrationK} & & & \\
  & double & & power of $\lambda$
 governing shape of integration pathway \\
-{\tt thermIntDistSpringConst} & & & \\
- & $\mbox{kcal~mol}^{-1} \mbox{\AA}^{-2}$
-& & spring constant for translations in Einstein crystal \\
-{\tt thermIntThetaSpringConst} & & & \\
- & $\mbox{kcal~mol}^{-1}
-\mbox{rad}^{-2}$ & & spring constant for deflection away from z-axis
-in Einstein crystal \\
-{\tt thermIntOmegaSpringConst} & & &  \\
- & $\mbox{kcal~mol}^{-1}
-\mbox{rad}^{-2}$ & & spring constant for rotation around z-axis in
-Einstein crystal 
 \label{table:thermIntParams}
 \end{longtable}
 
@@ -3920,7 +4208,7 @@ simulation times to obtain converged results for transport properties.
 
 \begin{figure}
 \includegraphics[width=\linewidth]{rnemdDemo}
-\caption{The (VSS) RNEMD approach imposes unphysical transfer of both
+\caption[Illustration of energy exchange in the VSS RNEMD method]{The (VSS) RNEMD approach imposes unphysical transfer of both
   linear momentum and kinetic energy between a ``hot'' slab and a
   ``cold'' slab in the simulation box.  The system responds to this
   imposed flux by generating both momentum and temperature gradients.
@@ -4129,10 +4417,12 @@ nearly quadratic.  When the initial structure is far from the minimum,
 the steepest descent method can be superior to the conjugate gradient
 method. Hence, the steepest descent method is often used for the first
 10-100 steps of minimization. Another useful feature of minimization
-methods in {\sc OpenMD} is that a modified {\sc shake} algorithm can be
-applied during the minimization to constraint the bond lengths if this
-is required by the force field. Meta-data parameters concerning the
-minimizer are given in Table~\ref{table:minimizeParams}
+methods in {\sc OpenMD} is that a modified {\sc shake} algorithm can
+be applied during the minimization to constraint the bond lengths if
+this is required by the force field. Meta-data parameters concerning
+the minimizer are given in Table~\ref{table:minimizeParams} Because
+the minimizer methods have a large number of parameters, these must be
+enclosed in a {\it separate} {\tt minimizer\{...\}} block.
 
 \begin{longtable}[c]{ABCD}
 \caption{Meta-data Keywords: Energy Minimizer Parameters}
@@ -4170,9 +4460,11 @@ simulation.  These programs are:
 
 \begin{description}
 \item[{\bf Dump2XYZ}] Converts an {\sc OpenMD} dump file into a file
-suitable for viewing in a molecular dynamics viewer like Jmol  
+suitable for viewing in a molecular dynamics viewer like Jmol or VMD
 \item[{\bf StaticProps}] Computes static properties like the pair
 distribution function, $g(r)$.
+\item[{\bf SequentialProps}] Computes a time history of static
+  properties from a dump file.
 \item[{\bf DynamicProps}] Computes time correlation functions like the
 velocity autocorrelation function, $\langle v(t) \cdot v(0)\rangle$,
 or the mean square displacement $\langle |r(t) - r(0)|^{2} \rangle$.
@@ -4222,13 +4514,20 @@ integrators and minimizers.
 DirectionalAtom}s which behaves as a single unit.
 \end{itemize} 
 
-Every Molecule, Atom and DirectionalAtom in {\sc OpenMD} have their own names
-which are specified in the {\tt .md} file. In contrast, RigidBodies are
-denoted by their membership and index inside a particular molecule:
-[MoleculeName]\_RB\_[index] (the contents inside the brackets
-depend on the specifics of the simulation). The names of rigid bodies are
+Every Molecule, Atom and DirectionalAtom in {\sc OpenMD} have their
+own names which are specified in the {\tt .md} file. In contrast,
+other groupings of atoms are denoted by their membership and index
+inside a particular molecule.  For example, RigidBodies are denoted
+[MoleculeName]\_RB\_[index] (the contents inside the brackets depend
+on the specifics of the simulation). The names of rigid bodies are
 generated automatically. For example, the name of the first rigid body
-in a DMPC molecule is DMPC\_RB\_0.
+in a DMPC molecule is DMPC\_RB\_0.  Similarly, bonds can be denoted
+as: [MoleculeName]\_Bond\_[index], bends as
+[MoleculeName]\_Bend\_[index], torsions as
+[MoleculeName]\_Torsion\_[index], and inversions as
+[MoleculeName]\_Inversion\_[index].  These selection names will select
+all of the atoms involved in that group, as well as the grouping
+itself.  
 
 \section{\label{section:syntax}Syntax of the Select Command}
 
@@ -4339,7 +4638,7 @@ name, followed by a comparision operator and then a number.
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline
-{\bf property} & mass, charge \\
+{\bf property} & mass, charge, x, y, z, r, wrappedx, wrappedy, wrappedz \\
 {\bf comparison operator} & ``$>$'', ``$<$'', ``$=$'', ``$>=$'',
 ``$<=$'', ``$!=$'' \\
 \hline
@@ -4603,25 +4902,29 @@ The options available for DynamicProps are as follows:
 
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
-{\sc OpenMD} version 4 comes with a few utility programs to aid in
-setting up initial configuration and meta-data files.  Usually, a user
-is interested in either importing a structure from some other format
+{\sc OpenMD} comes with a few utility programs to aid in setting up
+initial configuration and meta-data files.  Usually, a user is
+interested in either importing a structure from some other format
 (usually XYZ or PDB), or in building an initial configuration in some
-perfect crystalline lattice.  The programs bundled with {\sc OpenMD}
-which import coordinate files are {\tt atom2md}, {\tt xyz2md}, and
-{\tt pdb2md}. The programs which generate perfect crystals are called
-{\tt SimpleBuilder} and {\tt RandomBuilder}
+perfect crystalline lattice or nanoparticle geometry. The program
+bundled with {\sc OpenMD} that imports coordinate files is {\tt
+  atom2md}, which is built if the initial CMake configuration can find
+the openbabel libraries. The programs which generate perfect crystals
+are called {\tt SimpleBuilder} and {\tt RandomBuilder}.  There are
+programs to construct nanoparticles of various sizes and geometries
+also.  These are {\tt nanoparticleBuilder}, {\tt icosahedralBuilder},
+and {\tt nanorodBuilder}.
 
-\section{\label{section:atom2md}atom2md, xyz2md, and pdb2md}
+\section{\label{section:atom2md}atom2md}
 
-{\tt atom2md}, {\tt xyz2md}, and {\tt pdb2md} attempt to construct
-{\tt .md} files from a single file containing only atomic coordinate
-information.  To do this task, they make reasonable guesses about
-bonding from the distance between atoms in the coordinate, and attempt
-to identify other terms in the potential energy from the topology of
-the graph of discovered bonds.  This procedure is not perfect, and the
-user should check the discovered bonding topology that is contained in
-the {\tt $<$MetaData$>$} block in the file that is generated.
+{\tt atom2md} attempts to construct {\tt .md} files from a single file
+containing only atomic coordinate information.  To do this task, they
+make reasonable guesses about bonding from the distance between atoms
+in the coordinate, and attempt to identify other terms in the
+potential energy from the topology of the graph of discovered bonds.
+This procedure is not perfect, and the user should check the
+discovered bonding topology that is contained in the {\tt
+  $<$MetaData$>$} block in the file that is generated.
 
 Typically, the user would run:
 
@@ -4660,11 +4963,6 @@ The options available for atom2md are as follows:
 \multicolumn{2}{|l|}{More specific info and options are available
 using -H$<$format-type$>$, e.g. -Hpdb} 
 \end{longtable}
-
-The specific programs {\tt xyz2md} and {\tt pdb2md} are identical
-to {\tt atom2md}, but they use a specific input format and do not
-expect the the input specifier on the command line. 
-
 
 \section{\label{section:SimpleBuilder}SimpleBuilder}
 
@@ -4765,9 +5063,6 @@ hydrodynamic calculations will not be performed (default=off)\\
 \end{longtable}
 
 
-
-
-
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
 
 Although processor power is continually improving, it is still
@@ -4840,16 +5135,15 @@ their own research problems.  By making the code available, we hope to
 encourage other researchers to contribute their own code and make it a
 more powerful package for everyone in the molecular dynamics community
 to use.  All source code for {\sc OpenMD} is available for download at
-{\tt http://openmd.net}.
+{\tt http://openmd.org}.
 
 \chapter{Acknowledgments}
 
 Development of {\sc OpenMD} was funded by a New Faculty Award from the
 Camille and Henry Dreyfus Foundation and by the National Science
-Foundation under grant CHE-0134881. Computation time was provided by
-the Notre Dame Bunch-of-Boxes (B.o.B) computer cluster under NSF grant
-DMR-0079647.
-
+Foundation under grants CHE-0134881, CHE-0848243, and
+CHE-1362211. Computation time was provided by the Notre Dame
+Bunch-of-Boxes (B.o.B) computer cluster under NSF grant DMR-0079647.
 
 \bibliographystyle{aip}
 \bibliography{openmdDoc}
