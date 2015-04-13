@@ -63,7 +63,7 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD-2.3}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-2.4}: Molecular Dynamics in the Open}
 
 \author{Madan Lamichhane, Patrick Louden, Joseph Michalka, Suzanne
   Niedhart, \\
@@ -240,15 +240,14 @@ block and {\it at least one} {\tt <Snapshot>} block.  Each
 
 \section{OpenMD Files and $<$MetaData$>$ blocks}
 
-{\sc OpenMD} uses HTML-like delimiters to separate {\tt $<$MetaData$>$} and
-{\tt $<$Snapshot$>$} blocks.  A C-based syntax is used to parse the {\tt
-$<$MetaData$>$} blocks at run time.  These blocks allow the user to
-completely describe the system they wish to simulate, as well as
-tailor {\sc OpenMD}'s behavior during the simulation.  {\sc OpenMD}
-files are typically denoted with the extension {\tt .md} (which can
-stand for Meta-Data or Molecular Dynamics or Molecule Definition
-depending on the user's mood). An overview of an {\sc OpenMD} file is
-shown in Example~\ref{sch:mdFormat} and example file is shown in
+{\sc OpenMD} uses HTML-like delimiters to separate {\tt
+  $<$MetaData$>$} and {\tt $<$Snapshot$>$} blocks.  A C-based syntax
+is used to parse the {\tt $<$MetaData$>$} blocks at run time.  These
+blocks allow the user to completely describe the system they wish to
+simulate, as well as tailor {\sc OpenMD}'s behavior during the
+simulation.  {\sc OpenMD} files are typically denoted with the
+extension {\tt .omd}. An overview of an {\sc OpenMD} file is shown in
+Example~\ref{sch:mdFormat} and example file is shown in
 Example~\ref{sch:mdExample}.
 
 \begin{code}[caption={[An example of a complete OpenMD
@@ -318,7 +317,7 @@ molecule{
 example.},label={sch:mdExPrime}]
 <OpenMD>
   <MetaData>
-#include "argon.md"
+#include "argon.inc"
 
 component{
   type = "Ar";
@@ -680,7 +679,7 @@ lastly, body fixed angular momentum for that integrable object.},label={sch:dump
 \end{code}
 
 There are three {\sc OpenMD} files that are written using the combined
-format.  They are: the initial startup file (\texttt{.md}), the
+format.  They are: the initial startup file (\texttt{.omd}), the
 simulation trajectory file (\texttt{.dump}), and the final coordinates
 or ``end-of-run'' for the simulation (\texttt{.eor}). The initial
 startup file is necessary for {\sc OpenMD} to start the simulation with
@@ -3939,7 +3938,7 @@ interact with the electrostatic properties of the atoms.
 \section{\label{sec:UniformField}Uniform Fields} 
 To apply a uniform
 (vector) electric field to the system, the user adds the {\tt
-  uniformField} parameter to the MetaData section of the .md file.
+  uniformField} parameter to the MetaData section of the .omd file.
 
 \begin{code}[caption={Specifying a uniform electric field.},label={sch:uniformField}]
    uniformField = (a, b, c);  
@@ -4270,11 +4269,12 @@ surfaces in contact with liquid environments.
 
 \section{\label{section:usingRNEMD}Using OpenMD to perform a RNEMD simulation}
 \subsection{\label{section:rnemdParams} What the user needs to specify}
-To carry out a RNEMD simulation,
-a user must specify a number of parameters in the MetaData (.md) file.
-Because the RNEMD methods have a large number of parameters, these
-must be enclosed in a {\it separate} {\tt RNEMD\{...\}} block.  The most important
-parameters to specify are the {\tt useRNEMD}, {\tt fluxType} and flux
+
+To carry out a RNEMD simulation, a user must specify a number of
+parameters in the OpenMD (.omd) file.  Because the RNEMD methods have
+a large number of parameters, these must be enclosed in a {\it
+  separate} {\tt RNEMD\{...\}} block.  The most important parameters
+to specify are the {\tt useRNEMD}, {\tt fluxType} and flux
 parameters. Most other parameters (summarized in table
 \ref{table:rnemd}) have reasonable default values.  {\tt fluxType}
 sets up the kind of exchange that will be carried out between the two
@@ -4286,7 +4286,7 @@ kinetic energy exchange, as well as {\tt momentumFlux} or {\tt
 
 \subsection{\label{section:rnemdResults} Processing the results} 
 OpenMD will generate a {\tt .rnemd}
-file with the same prefix as the original {\tt .md} file.  This file
+file with the same prefix as the original {\tt .omd} file.  This file
 contains a running average of properties of interest computed within a
 set of bins that divide the simulation cell along the $z$-axis.  The
 first column of the {\tt .rnemd} file is the $z$ coordinate of the
@@ -4357,7 +4357,7 @@ of the following: {\tt KE, Px, Py, Pz, Pvector, KE+Px, KE+Py, KE+Pvector} \\
 {\tt slabAcenter} & $\mbox{\AA}$ & center of the end slab & default is 0 \\
 {\tt slabBcenter} & $\mbox{\AA}$ & center of the middle slab & default is $\mathsf{H}_{zz} / 2$ \\
 {\tt outputFileName} & string & file name for output histograms & default is the same prefix as the
-.md file, but with the {\tt .rnemd} extension \\
+{\tt .omd} file, but with the {\tt .rnemd} extension \\
 {\tt outputBins} & int & number of $z$-bins in the output histogram &
 default is 20 \\
 {\tt outputFields} & string & columns to print in the {\tt .rnemd}
@@ -4515,7 +4515,7 @@ DirectionalAtom}s which behaves as a single unit.
 \end{itemize} 
 
 Every Molecule, Atom and DirectionalAtom in {\sc OpenMD} have their
-own names which are specified in the {\tt .md} file. In contrast,
+own names which are specified in the {\tt .omd} file. In contrast,
 other groupings of atoms are denoted by their membership and index
 inside a particular molecule.  For example, RigidBodies are denoted
 [MoleculeName]\_RB\_[index] (the contents inside the brackets depend
@@ -4917,7 +4917,7 @@ and {\tt nanorodBuilder}.
 
 \section{\label{section:atom2md}atom2md}
 
-{\tt atom2md} attempts to construct {\tt .md} files from a single file
+{\tt atom2md} attempts to construct {\tt .omd} files from a single file
 containing only atomic coordinate information.  To do this task, they
 make reasonable guesses about bonding from the distance between atoms
 in the coordinate, and attempt to identify other terms in the
