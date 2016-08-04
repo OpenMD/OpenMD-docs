@@ -65,10 +65,10 @@
 
 \title{{\sc OpenMD-2.4}: Molecular Dynamics in the Open}
 
-\author{Madan Lamichhane, Patrick Louden, Joseph Michalka, Suzanne
+\author{Hemanta Bhattarai, Patrick Louden, Suzanne
   Niedhart, \\
   Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Matthew
-  A. Meineke, \\ Shenyu Kuang, 
+  A. Meineke, \\ Shenyu Kuang, Madan Lamichhane, Joseph Michalka, 
   Kelsey Stocker, James Marr, \\ Xiuquan Sun,
   Chunlei Li,  Kyle Daily, Yang Zheng, \\ and \\
   J. Daniel Gezelter \\ \\
@@ -470,24 +470,24 @@ for the system of interest.
 
 The required set of parameters that must be present in all simulations
 is given in Table~\ref{table:reqParams}.  Since the user can use {\sc
-OpenMD} to perform energy minimizations as well as molecular dynamics
-simulations, one of the {\tt minimizer} or {\tt ensemble} keywords
-must be present.  The {\tt ensemble} keyword is responsible for
-selecting the integration method used for the calculation of the
-equations of motion. An in depth discussion of the various methods
-available in {\sc OpenMD} can be found in
-Sec.~\ref{section:mechanics}.  The {\tt minimizer} keyword selects
-which minimization method to use, and more details on the choices of
-minimizer parameters can be found in
-Sec.~\ref{section:minimizer}. The {\tt forceField} statement is
-important for the selection of which forces will be used in the course
-of the simulation. {\sc OpenMD} supports several force fields, and
-allows the user to create their own using a range of pre-defined
-empirical energy functions.  The format of force field files is
-outlined Chapter~\ref{chapter:forceFields}. The force fields are
+  OpenMD} to perform energy minimizations as well as molecular
+dynamics simulations, either a {\tt minimizer} block or the {\tt
+  ensemble} keyword must be present.  The {\tt ensemble} keyword is
+responsible for selecting the integration method used for the
+calculation of the equations of motion. An in depth discussion of the
+various methods available in {\sc OpenMD} can be found in
+Sec.~\ref{section:mechanics}.  The {\tt minimizer} block selects which
+minimization method to use, and more details on the choices of
+minimizer parameters can be found in Sec.~\ref{section:minimizer}. The
+{\tt forceField} statement is important for the selection of which
+forces will be used in the course of the simulation. {\sc OpenMD}
+supports several force fields, and allows the user to create their own
+using a range of pre-defined empirical energy functions.  The format
+of force field files is outlined
+Chapter~\ref{chapter:forceFields}. The force fields are
 interchangeable between simulations, with the only requirement being
 that all atoms needed by the simulation are defined within the
-selected force field. 
+selected force field.
 
 For molecular dynamics simulations, the time step between force
 evaluations is set with the {\tt dt} parameter, and {\tt runTime} will
@@ -528,8 +528,7 @@ OpenMD appends a {\tt .frc} to the end of this to look for a force
 field file.\\
 {\tt component} & & Defines the molecular components of the system &
 Every {\tt $<$MetaData$>$} block must have a component statement. \\
-{\tt minimizer} & string & Chooses a minimizer & Possible minimizers
-are SD and CG. Either {\tt ensemble} or {\tt minimizer} must be specified. \\
+{\tt minimizer} & block & Sets parameters for the minimizer & Either {\tt ensemble} or {\tt minimizer} must be specified. \\
 {\tt ensemble} & string & Sets the ensemble. & Possible ensembles are
 NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, LD and LangevinHull.  Either {\tt ensemble}
 or {\tt minimizer} must be specified. \\
@@ -594,9 +593,11 @@ temperature, pressure, volume, conserved\_quantity, hullvolume, gyrvolume,
 translational\_kinetic, rotational\_kinetic,  long\_range\_potential,
 short\_range\_potential, vanderwaals\_potential,
 electrostatic\_potential, metallic\_potential,
-hydrogen\_bonding\_potential, bond\_potential, bend\_potential,
+hydrogen\_bonding\_potential, reciprocal\_potential,
+     surface\_potential, bond\_potential, bend\_potential,
 dihedral\_potential, inversion\_potential, raw\_potential, restraint\_potential,
-pressure\_tensor, system\_dipole, heatflux, electronic\_temperature}} \\
+pressure\_tensor, system\_dipole, system\_quadrupole, heatflux,
+     electronic\_temperature, com, com\_velocity, angular\_momentum, potential\_selection }} \\
 {\tt printPressureTensor} & logical & sets whether {\sc OpenMD} will print
 out the pressure tensor & can be useful for calculations of the bulk
 modulus \\
@@ -1304,24 +1305,24 @@ solvation shell. Thus, the interaction between two SSD water molecules
 \begin{equation}
 V_{ij} = 
 	V_{ij}^{LJ} (r_{ij})\ + V_{ij}^{dp}
-	(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)\ +
+	(\mathbf{r}_{ij},\mathbf{\Omega}_i,\mathbf{\Omega}_j)\ +
 	V_{ij}^{sp}
-	(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j),
+	(\mathbf{r}_{ij},\mathbf{\Omega}_i,\mathbf{\Omega}_j),
 \label{eq:ssdPot}
 \end{equation}
 where the $\mathbf{r}_{ij}$ is the position vector between molecules
 \emph{i} and \emph{j} with magnitude equal to the distance $r_{ij}$, and
-$\boldsymbol{\Omega}_i$ and $\boldsymbol{\Omega}_j$ represent the
+$\mathbf{\Omega}_i$ and $\mathbf{\Omega}_j$ represent the
 orientations of the respective molecules. The Lennard-Jones and dipole
 parts of the potential are given by equations \ref{eq:lennardJonesPot}
 and \ref{eq:dipolePot} respectively. The sticky part is described by
 the following,
 \begin{equation}
-u_{ij}^{sp}(\mathbf{r}_{ij},\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)=
+u_{ij}^{sp}(\mathbf{r}_{ij},\mathbf{\Omega}_i,\mathbf{\Omega}_j)=
 	\frac{\nu_0}{2}[s(r_{ij})w(\mathbf{r}_{ij},
-	\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j) +
+	\mathbf{\Omega}_i,\mathbf{\Omega}_j) +
 	s^\prime(r_{ij})w^\prime(\mathbf{r}_{ij},
-	\boldsymbol{\Omega}_i,\boldsymbol{\Omega}_j)]\ ,
+	\mathbf{\Omega}_i,\mathbf{\Omega}_j)]\ ,
 \label{eq:stickyPot}
 \end{equation}
 where $\nu_0$ is a strength parameter for the sticky potential, and
@@ -1330,14 +1331,14 @@ sticky interaction beyond the first solvation shell. The $w$ function
 can be thought of as an attractive potential with tetrahedral
 geometry:
 \begin{equation}
-w({\bf r}_{ij},{\bf \Omega}_i,{\bf \Omega}_j)=
+w(\mathbf{r}_{ij},\mathbf{\Omega}_i,\mathbf{\Omega}_j)=
 	\sin\theta_{ij}\sin2\theta_{ij}\cos2\phi_{ij},
 \label{eq:stickyW}
 \end{equation}
 while the $w^\prime$ function counters the normal aligned and
 anti-aligned structures favored by point dipoles:
 \begin{equation}
-w^\prime({\bf r}_{ij},{\bf \Omega}_i,{\bf \Omega}_j)=
+w^\prime(\mathbf{r}_{ij},\mathbf{\Omega}_i,\mathbf{\Omega}_j)=
 	(\cos\theta_{ij}-0.6)^2(\cos\theta_{ij}+0.8)^2-w^0,
 \label{eq:stickyWprime}
 \end{equation}
@@ -1411,14 +1412,14 @@ describes the interaction of the positively charged metal core ions
 with one another.  These potentials have the form:
 \begin{equation}
 V  =  \sum_{i} F_{i}\left[\rho_{i}\right] + \sum_{i} \sum_{j \neq i}
-\phi_{ij}({\bf r}_{ij})
+\phi_{ij}(\mathbf{r}_{ij})
 \end{equation}
 where $F_{i} $ is an embedding functional that approximates the energy
 required to embed a positively-charged core ion $i$ into a linear
 superposition of spherically averaged atomic electron densities given
 by $\rho_{i}$,
 \begin{equation}
-\rho_{i}   =  \sum_{j \neq i} f_{j}({\bf r}_{ij}),
+\rho_{i}   =  \sum_{j \neq i} f_{j}(\mathbf{r}_{ij}),
 \end{equation}
 Since the density at site $i$ ($\rho_i$) must be computed before the
 embedding functional can be evaluated, {\sc eam} and the related
@@ -2028,7 +2029,7 @@ can be inferred from the AtomTypes,
   block}
 
 The user might want like to specify explicit or special interactions
-that override the default non-bodned interactions that are inferred
+that override the default non-bonded interactions that are inferred
 from the AtomTypes.  To do this, OpenMD implements a
 NonBondedInteractions block to allow the user to specify the following
 (pair-wise) non-bonded interactions:
@@ -2055,6 +2056,13 @@ V_{\text{NB}}(r) = 4 \epsilon_{ij} \left(
 \begin{equation*}
   V_{\text{NB}}(r) = \epsilon_{ij}
   \left(\frac{\sigma_{ij}}{r} \right)^{n_{ij}}.
+\end{equation*}
+\item {\tt Mie}:
+\begin{equation*}
+  V_{\text{NB}}(r) =  \left(\frac{n}{n-m}\right)
+  \left(\frac{n}{m}\right)^{m/(n-m)} \epsilon_{ij} \left[
+  \left(\frac{\sigma_{ij}}{r} \right)^{n} -
+  \left(\frac{\sigma_{ij}}{r} \right)^{m} \right].
 \end{equation*}
 \end{itemize}
 
@@ -2085,6 +2093,10 @@ Au      H_SPCE  RepulsiveMorse  -1.00  0.00850  0.769
 //Atom1 Atom2   RepulsivePower   sigma    epsilon    n
 Au      ON      RepulsivePower   3.47005  0.186208   11
 Au      NO      RepulsivePower   3.53955  0.168629   11
+
+//Mie potential
+//Atom1 Atom2   Mie              sigma   epsilon  n  m
+Ar      Au      Mie              3.41    0.234   12  3
 end NonBondedInteractions
 \end{code}
 
@@ -2433,45 +2445,45 @@ substantial benefits in energy conservation.
 The basic equations of motion being integrated are derived from the
 Hamiltonian for conservative systems containing rigid bodies,
 \begin{equation}
-H = \sum_{i} \left( \frac{1}{2} m_i {\bf v}_i^T \cdot {\bf v}_i +
-\frac{1}{2} {\bf j}_i^T \cdot \overleftrightarrow{\mathsf{I}}_i^{-1} \cdot
-{\bf j}_i \right) +
-V\left(\left\{{\bf r}\right\}, \left\{\mathsf{A}\right\}\right),
+H = \sum_{i} \left( \frac{1}{2} m_i \mathbf{v}_i^T \cdot \mathbf{v}_i +
+\frac{1}{2} \mathbf{j}_i^T \cdot \overleftrightarrow{\mathsf{I}}_i^{-1} \cdot
+\mathbf{j}_i \right) +
+V\left(\left\{\mathbf{r}\right\}, \left\{\mathsf{A}\right\}\right),
 \end{equation}
-where ${\bf r}_i$ and ${\bf v}_i$ are the cartesian position vector
-and velocity of the center of mass of particle $i$, and ${\bf j}_i$,
+where $\mathbf{r}_i$ and $\mathbf{v}_i$ are the cartesian position vector
+and velocity of the center of mass of particle $i$, and $\mathbf{j}_i$,
 $\overleftrightarrow{\mathsf{I}}_i$ are the body-fixed angular
 momentum and moment of inertia tensor respectively, and the
 superscript $T$ denotes the transpose of the vector.  $\mathsf{A}_i$
 is the $3 \times 3$ rotation matrix describing the instantaneous
 orientation of the particle.  $V$ is the potential energy function
-which may depend on both the positions $\left\{{\bf r}\right\}$ and
+which may depend on both the positions $\left\{\mathbf{r}\right\}$ and
 orientations $\left\{\mathsf{A}\right\}$ of all particles.  The
 equations of motion for the particle centers of mass are derived from
 Hamilton's equations and are quite simple,
 \begin{eqnarray}
-\dot{{\bf r}} & = & {\bf v}, \\
-\dot{{\bf v}} & = & \frac{{\bf f}}{m},
+\dot{\mathbf{r}} & = & \mathbf{v}, \\
+\dot{\mathbf{v}} & = & \frac{\mathbf{f}}{m},
 \end{eqnarray}
-where ${\bf f}$ is the instantaneous force on the center of mass
+where $\mathbf{f}$ is the instantaneous force on the center of mass
 of the particle,
 \begin{equation}
-{\bf f} = - \frac{\partial}{\partial
-{\bf r}} V(\left\{{\bf r}(t)\right\}, \left\{\mathsf{A}(t)\right\}).
+\mathbf{f} = - \frac{\partial}{\partial
+\mathbf{r}} V(\left\{\mathbf{r}(t)\right\}, \left\{\mathsf{A}(t)\right\}).
 \end{equation}
 
 The equations of motion for the orientational degrees of freedom are
 \begin{eqnarray}
 \dot{\mathsf{A}} & = & \mathsf{A} \cdot
-\mbox{ skew}\left(\overleftrightarrow{\mathsf{I}}^{-1} \cdot {\bf j}\right),\\
-\dot{{\bf j}} & = & {\bf j} \times \left( \overleftrightarrow{\mathsf{I}}^{-1}
-\cdot {\bf j} \right) - \mbox{ rot}\left(\mathsf{A}^{T} \cdot \frac{\partial
+\mbox{ skew}\left(\overleftrightarrow{\mathsf{I}}^{-1} \cdot \mathbf{j}\right),\\
+\dot{\mathbf{j}} & = & \mathbf{j} \times \left( \overleftrightarrow{\mathsf{I}}^{-1}
+\cdot \mathbf{j} \right) - \mbox{ rot}\left(\mathsf{A}^{T} \cdot \frac{\partial
 V}{\partial \mathsf{A}} \right).
 \end{eqnarray}
 In these equations of motion, the $\mbox{skew}$ matrix of a vector
-${\bf v} = \left( v_1, v_2, v_3 \right)$ is defined:
+$\mathbf{v} = \left( v_1, v_2, v_3 \right)$ is defined:
 \begin{equation}
-\mbox{skew}\left( {\bf v} \right) := \left( 
+\mbox{skew}\left( \mathbf{v} \right) := \left( 
 \begin{array}{ccc}
 0 & v_3 & - v_2 \\
 -v_3 & 0 & v_1 \\
@@ -2490,7 +2502,7 @@ $\mbox{skew}$ function above:
 \end{equation}
 Written this way, the $\mbox{rot}$ operation creates a set of
 conjugate angle coordinates to the body-fixed angular momenta
-represented by ${\bf j}$.  This equation of motion for angular momenta
+represented by $\mathbf{j}$.  This equation of motion for angular momenta
 is equivalent to the more familiar body-fixed forms,
 \begin{eqnarray}
 \dot{j_{x}} & = & \tau^b_x(t)  -
@@ -2500,20 +2512,20 @@ is equivalent to the more familiar body-fixed forms,
 \dot{j_{z}} & = & \tau^b_z(t) -
 \left(\overleftrightarrow{\mathsf{I}}_{xx}^{-1} - \overleftrightarrow{\mathsf{I}}_{yy}^{-1} \right) j_x j_y, 
 \end{eqnarray}
-which utilize the body-fixed torques, ${\bf \tau}^b$. Torques are
+which utilize the body-fixed torques, $\mathbf{\tau}^b$. Torques are
 most easily derived in the space-fixed frame, 
 \begin{equation}
-{\bf \tau}^b(t) = \mathsf{A}(t) \cdot {\bf \tau}^s(t),
+\mathbf{\tau}^b(t) = \mathsf{A}(t) \cdot \mathbf{\tau}^s(t),
 \end{equation}
 where the torques are either derived from the forces on the
 constituent atoms of the rigid body, or for directional atoms,
 directly from derivatives of the potential energy,
 \begin{equation}
-{\bf \tau}^s(t) = - \hat{\bf u}(t) \times \left( \frac{\partial}
-{\partial \hat{\bf u}} V\left(\left\{ {\bf r}(t) \right\}, \left\{
+\mathbf{\tau}^s(t) = - \hat{\mathbf{u}}(t) \times \left( \frac{\partial}
+{\partial \hat{\mathbf{u}}} V\left(\left\{ \mathbf{r}(t) \right\}, \left\{
 \mathsf{A}(t) \right\}\right) \right).
 \end{equation}
-Here $\hat{\bf u}$ is a unit vector pointing along the principal axis
+Here $\hat{\mathbf{u}}$ is a unit vector pointing along the principal axis
 of the particle in the space-fixed frame.
 
 The {\sc dlm} method uses a Trotter factorization of the orientational
@@ -2532,35 +2544,35 @@ velocity-Verlet style 2-part algorithm, where $h= \delta t$:
 
 {\tt moveA:}
 \begin{align*}
-{\bf v}\left(t + h / 2\right)  &\leftarrow  {\bf v}(t) 
-	+ \frac{h}{2} \left( {\bf f}(t) / m \right), \\
+\mathbf{v}\left(t + h / 2\right)  &\leftarrow  \mathbf{v}(t) 
+	+ \frac{h}{2} \left( \mathbf{f}(t) / m \right), \\
 %
-{\bf r}(t + h) &\leftarrow {\bf r}(t) 
-	+ h  {\bf v}\left(t + h / 2 \right), \\
+\mathbf{r}(t + h) &\leftarrow \mathbf{r}(t) 
+	+ h  \mathbf{v}\left(t + h / 2 \right), \\
 %
-{\bf j}\left(t + h / 2 \right)  &\leftarrow {\bf j}(t) 
-	+ \frac{h}{2} {\bf \tau}^b(t), \\
+\mathbf{j}\left(t + h / 2 \right)  &\leftarrow \mathbf{j}(t) 
+	+ \frac{h}{2} \mathbf{\tau}^b(t), \\
 %
-\mathsf{A}(t + h) &\leftarrow \mathrm{rotate}\left( h {\bf j}
+\mathsf{A}(t + h) &\leftarrow \mathrm{rotate}\left( h \mathbf{j}
 	(t + h / 2) \cdot \overleftrightarrow{\mathsf{I}}^{-1} \right).
 \end{align*}
 
 In this context, the $\mathrm{rotate}$ function is the reversible product
 of the three body-fixed rotations,
 \begin{equation}
-\mathrm{rotate}({\bf a}) = \mathsf{G}_x(a_x / 2) \cdot
+\mathrm{rotate}(\mathbf{a}) = \mathsf{G}_x(a_x / 2) \cdot
 \mathsf{G}_y(a_y / 2) \cdot \mathsf{G}_z(a_z) \cdot \mathsf{G}_y(a_y /
 2) \cdot \mathsf{G}_x(a_x /2),
 \end{equation}
 where each rotational propagator, $\mathsf{G}_\alpha(\theta)$, rotates
 both the rotation matrix ($\mathsf{A}$) and the body-fixed angular
-momentum (${\bf j}$) by an angle $\theta$ around body-fixed axis
+momentum ($\mathbf{j}$) by an angle $\theta$ around body-fixed axis
 $\alpha$,
 \begin{equation}
 \mathsf{G}_\alpha( \theta ) = \left\{
 \begin{array}{lcl}
 \mathsf{A}(t) & \leftarrow & \mathsf{A}(0) \cdot \mathsf{R}_\alpha(\theta)^T, \\
-{\bf j}(t) & \leftarrow & \mathsf{R}_\alpha(\theta) \cdot {\bf j}(0).
+\mathbf{j}(t) & \leftarrow & \mathsf{R}_\alpha(\theta) \cdot \mathbf{j}(0).
 \end{array}
 \right.
 \end{equation}
@@ -2586,28 +2598,28 @@ torques are calculated at the new positions and orientations
 
 {\tt doForces:}
 \begin{align*}
-{\bf f}(t + h) &\leftarrow  
-	- \left(\frac{\partial V}{\partial {\bf r}}\right)_{{\bf r}(t + h)}, \\
+\mathbf{f}(t + h) &\leftarrow  
+	- \left(\frac{\partial V}{\partial \mathbf{r}}\right)_{\mathbf{r}(t + h)}, \\
 %
-{\bf \tau}^{s}(t + h) &\leftarrow {\bf u}(t + h)
-	\times \frac{\partial V}{\partial {\bf u}}, \\
+\mathbf{\tau}^{s}(t + h) &\leftarrow \mathbf{u}(t + h)
+	\times \frac{\partial V}{\partial \mathbf{u}}, \\
 %
-{\bf \tau}^{b}(t + h) &\leftarrow \mathsf{A}(t + h)
-	\cdot {\bf \tau}^s(t + h).
+\mathbf{\tau}^{b}(t + h) &\leftarrow \mathsf{A}(t + h)
+	\cdot \mathbf{\tau}^s(t + h).
 \end{align*}
 
-{\sc OpenMD} automatically updates ${\bf u}$ when the rotation matrix
+{\sc OpenMD} automatically updates $\mathbf{u}$ when the rotation matrix
 $\mathsf{A}$ is calculated in {\tt moveA}.  Once the forces and
 torques have been obtained at the new time step, the velocities can be
 advanced to the same time value.
 
 {\tt moveB:}
 \begin{align*}
-{\bf v}\left(t + h \right)  &\leftarrow  {\bf v}\left(t + h / 2 \right) 
-	+ \frac{h}{2} \left( {\bf f}(t + h) / m \right), \\
+\mathbf{v}\left(t + h \right)  &\leftarrow  \mathbf{v}\left(t + h / 2 \right) 
+	+ \frac{h}{2} \left( \mathbf{f}(t + h) / m \right), \\
 %
-{\bf j}\left(t + h \right)  &\leftarrow {\bf j}\left(t + h / 2 \right) 
-	+ \frac{h}{2} {\bf \tau}^b(t + h) .
+\mathbf{j}\left(t + h \right)  &\leftarrow \mathbf{j}\left(t + h / 2 \right) 
+	+ \frac{h}{2} \mathbf{\tau}^b(t + h) .
 \end{align*}
 
 The matrix rotations used in the {\sc dlm} method end up being more
@@ -2687,8 +2699,8 @@ and that is the time step for integrating the equations of motion.
 
 \begin{center}
 \begin{tabular}{llll}
-{\bf variable} & {\bf Meta-data keyword} & {\bf units} & {\bf
-default value} \\  
+\textbf{variable} & \textbf{Meta-data keyword} & \textbf{units} &
+                                                                  \textbf{default value} \\
 $h$ & {\tt dt = 2.0;} & fs & none 
 \end{tabular}
 \end{center}
@@ -4425,30 +4437,35 @@ the minimizer methods have a large number of parameters, these must be
 enclosed in a {\it separate} {\tt minimizer\{...\}} block.
 
 \begin{longtable}[c]{ABCD}
-\caption{Meta-data Keywords: Energy Minimizer Parameters}
-\\
+\caption{Meta-data Keywords: Parameters for minimization runs}\\
+\multicolumn{4}{c}{The following keywords must be enclosed inside a {\tt minimizer\{...\}} block.}
+\\ \hline
 {\bf keyword} & {\bf units} & {\bf use} & {\bf remarks}  \\ \hline
 \endhead
 \hline
-\endfoot
-{\tt minimizer} & string &  selects the minimization method to be used
-& either {\tt CG} (conjugate gradient) or {\tt SD} (steepest
-descent) \\ 
-{\tt minimizerMaxIter} & steps & Sets the maximum number of iterations
-for the energy minimization & The default value is 200\\
-{\tt minimizerWriteFreq} & steps & Sets the frequency with which the {\tt .dump} and {\tt .stat} files are writtern during energy minimization & \\
-{\tt minimizerStepSize} & $\mbox{\AA}$ &  Sets the step size for the
-line search & The default value is 0.01\\
-{\tt minimizerFTol} & $\mbox{kcal mol}^{-1}$  & Sets the energy tolerance
-for stopping the minimziation. & The default value is $10^{-8}$\\
-{\tt minimizerGTol} & $\mbox{kcal mol}^{-1}\mbox{\AA}^{-1}$ & Sets the
-gradient tolerance for stopping the minimization. & The default value
-is  $10^{-8}$\\ 
-{\tt minimizerLSTol} &  $\mbox{kcal mol}^{-1}$ & Sets line search
-tolerance for terminating each step of the minimization. & The default 
-value is $10^{-8}$\\ 
-{\tt minimizerLSMaxIter} & steps &  Sets the maximum number of
-iterations for each line search & The default value is 50\\
+  \endfoot
+  {\tt useMinimizer} & logical &  turns on or off the minimization routines
+                                        & default is {\tt false} \\ 
+  {\tt method} & string &  selects the minimization method to be used
+                                        & either {\tt CG} (conjugate gradient), {\tt SD} (steepest
+                                          descent, the default method), or {\tt BFGS} (Broyden-Fletcher-Goldfarb-Shanno) \\ 
+  {\tt maxIterations} & steps & Sets the maximum number of iterations
+                                for the energy minimization & The default value is 1000\\
+  {\tt maxStationaryStateIteration} & steps & sets the maximimum number
+                                              of steps to take that
+                                              don't result in a change
+                                              of configuration  & The
+                                                                  default
+                                                                  value
+                                                                  is 100 \\
+  {\tt rootEpsilon} & $\mbox{kcal mol}^{-1}$  & Sets the tolerance
+                                                for stopping the minimziation. & The default value is $10^{-5}$\\
+  {\tt functionEpsilon} & $\mbox{kcal mol}^{-1}$ &Sets the energy tolerance
+                                                for stopping the minimziation. & The default value
+                                                                           is  $10^{-5}$\\ 
+  {\tt gradientNormEpsilon} & $\mbox{kcal mol}^{-1}\mbox{\AA}^{-1}$  &Sets the gradient tolerance
+                                                for stopping the minimziation. & The default 
+                                                                                                                   value is $10^{-5}$\\ 
 \label{table:minimizeParams}
 \end{longtable}
 
@@ -4779,10 +4796,31 @@ The options available for {\tt StaticProps} are as follows:
   -V& {\tt -{}-version}                 &  Print version and exit \\
   -i& {\tt -{}-input=filename}          &  input dump file \\
   -o& {\tt -{}-output=filename}         &  output file name \\
-  -n& {\tt -{}-step=INT}                &  process every n frame  (default=`1') \\
+  -n& {\tt -{}-step=INT}                &  process every n frame
+                                          (default=`1') \\
+  -b& {\tt -{}-nbins=INT}               &  number of bins (general
+                                          purpose)  (default=`100') \\
+  -x& {\tt -{}-nbins\_x=INT}            & number of bins in x axis  (default=`100')\\
+  -y& {\tt -{}-nbins\_y=INT}            & number of bins in y axis  (default=`100')\\
+    & {\tt -{}-nbins\_z=INT}            & number of bins in z axis  (default=`100')\\
   -r& {\tt -{}-nrbins=INT}              &  number of bins for distance  (default=`100') \\
-  -a& {\tt -{}-nanglebins=INT}          &  number of bins for cos(angle)  (default= `50') \\
+  -a& {\tt -{}-nanglebins=INT}          &  number of bins for
+                                          cos(angle)  (default= `50')  \\
+  -c& {\tt -{}-rcut=DOUBLE}            & cutoff radius (rcut)\\
+    & {\tt -{}-OOcut=DOUBLE}           & Oxygen-Oxygen cutoff radius (angstroms)
+                                  (default=`3.5')\\
+    & {\tt -{}-thetacut=DOUBLE}        & HOO cutoff angle (degrees)  (default=`30')\\
+    & {\tt -{}-OHcut=DOUBLE}        & Oxygen-Hydrogen cutoff radius (angstroms)
+                                  (default=`2.45')\\
+    & {\tt -{}-dz=DOUBLE}              & slab width (dz)\\
+
   -l& {\tt -{}-length=DOUBLE}           &  maximum length (Defaults to 1/2 smallest length of first frame) \\
+    & {\tt -{}-zlength=DOUBLE}           &  maximum length (Defaults
+                                           to 1/2 smallest length of
+                                           first frame) \\
+  -z& {\tt -{}-zoffset=DOUBLE}         & Where to set the zero for the
+                                         {\tt slab\_density}
+                                  calculation  (default=`0') \\
     & {\tt -{}-sele1=selection script}   & select the first StuntDouble set \\
     & {\tt -{}-sele2=selection script}   & select the second StuntDouble set \\
     & {\tt -{}-sele3=selection script}   & select the third StuntDouble set \\
@@ -4793,11 +4831,16 @@ The options available for {\tt StaticProps} are as follows:
                                   reference point\\
     & {\tt -{}-seleoffset=INT}        & global index offset for a second object (used 
                                   to define a vector between sites in molecule)\\
+    & {\tt -{}-seleoffset2=INT}        & global index offset for a third object (used 
+                                  to define a vector between sites in molecule)\\
 
     & {\tt -{}-molname=STRING}           & molecule name \\
     & {\tt -{}-begin=INT}                & begin internal index \\
     & {\tt -{}-end=INT}                  & end internal index \\
     & {\tt -{}-radius=DOUBLE}            & nanoparticle radius\\
+  -v& {\tt -{}-voxelSize=DOUBLE}      & voxel size (angstroms) \\
+    &  {\tt -{}-gaussWidth=DOUBLE}    &   Gaussian width (angstroms)\\
+
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
@@ -4830,12 +4873,123 @@ The options available for {\tt StaticProps} are as follows:
     &  {\tt -{}-hullvol}                 & hull volume of nanoparticle\\
     &  {\tt -{}-rodlength}               & length of nanorod\\
   -Q&  {\tt -{}-tet\_param}              & tetrahedrality order parameter ($Q$)\\
-    &  {\tt -{}-tet\_param\_z}           & spatially-resolved tetrahedrality order 
-                                   parameter $Q(z)$\\
+    &  {\tt -{}-tet\_param\_z}           & spatially-resolved
+                                           tetrahedrality order
+                                           parameter $Q(z)$ \\
+    &  {\tt -{}-tet\_param\_xyz}         & volume-resolved tetrahedrality order parameter
+                                  $Q(x,y,z)$.  (voxelSize, rcut, and gaussWidth
+                                  must be specified)\\
     &  {\tt -{}-rnemdz}                  & slab-resolved RNEMD statistics (temperature, 
                                   density, velocity)\\
     &  {\tt -{}-rnemdr}                  & shell-resolved RNEMD statistics (temperature, 
-                                  density, angular velocity)
+                                  density, angular velocity) \\
+    &  {\tt -{}-rnemdrt}                 & shell and angle-resolved RNEMD statistics
+                                  (temperature, density, angular velocity) \\
+    &  {\tt -{}-nitrile}                 & electrostatic potential to frequency map based
+                                  on the Cho nitrile fits \\
+  -m& {\tt -{}-multipole}               & average multipole moments contained within
+                                  cutoff spheres as a function of radius \\
+    &  {\tt -{}-gcn}                     & Generalized Coordination Number \\
+    &  {\tt -{}-hbond}                   & Hydrogen Bonding statistics using geometric
+                                  criteria ({\tt rcut} and {\tt thetacut} must be
+                                  specified) \\
+    &  {\tt -{}-potDiff}                 & potential energy difference when charge on
+                                  selection is set to zero \\
+    &  {\tt -{}-tet\_hb}                  & hydrogen bond statistics binned by
+                                  tetrahedrality of donor and acceptor
+                                  molecules \\
+  -k& {\tt -{}-kirkwood}                & distance-dependent Kirkwood factor \\
+    &  {\tt -{}-kirkwoodQ}              &  distance-dependent Kirkwood factor for
+                                  quadrupoles
+\end{longtable}
+
+\subsection{\label{section:SequentialProps}SequentialProps}
+
+Occasionally, it may be useful to compute a time history of static
+properties as a simulation progresses.  The utility {\tt
+  SequentialProps} computes these time histories from configurations
+stored in a dump file.  Currently, only a few static properties are
+available in SequentialProps, but these include contact angles, and
+centers of mass.  
+
+For contact angles of droplets on surfaces, two methods are available:
+In the first method, the droplet is assumed to form a spherical cap,
+and the contact angle is estimated from the $z$-axis location of the
+droplet's center of mass ($z_\mathrm{cm}$).  This procedure was first
+described by Hautman and Klein.\cite{Hautman91} For each stored
+configuration, the contact angle, $\theta$, is found by inverting the
+expression for the location of the droplet center of mass,
+\begin{equation}\label{contact_1}
+\langle z_\mathrm{cm}\rangle = 2^{-4/3}R_{0}\bigg(\frac{1-cos\theta}{2+cos\theta}\bigg)^{1/3}\frac{3+cos\theta}{2+cos\theta} ,
+\end{equation}
+where $R_{0}$ is the radius of the free droplet before it contacts the
+surface. 
+
+A second method for obtaining the contact angle was described by
+Ruijter, Blake, and Coninck~\cite{Ruijter99}.  This method uses a
+cylindrical averaging of the droplet's density profile.  A threshold
+density is used to estimate the location of the edge of the droplet.
+The $r$ and $z$-dependence of the droplet's edge is then fit to a
+circle, and the contact angle is computed from the intersection of the
+fit circle with the $z$-axis location of the solid surface.  For each
+stored configuration, the density profile in a set of annular shells
+is computed.  The height of the solid surface ($z_\mathrm{suface}$)
+along with the best fitting origin ($z_\mathrm{droplet}$) and radius
+($r_\mathrm{droplet}$) of the droplet can then be used to compute the
+contact angle,
+\begin{equation}
+\theta =  90 + \frac{180}{\pi} \sin^{-1}\left(\frac{z_\mathrm{droplet} -
+  z_\mathrm{surface}}{r_\mathrm{droplet}} \right).
+\end{equation}
+
+In studying surfaces, Calle-Vallejo {\it et al.}  observed that
+including the first and second nearest neighbor counts allowed for a
+more complete description of an atom's local environment and its
+catalytic activity.\cite{Calle-Vallejo:2015qq} They introduced the
+\textit{generalized coordination number} (GCN), to describe this
+quantity,
+\begin{equation}
+  \overline{CN}(i) = \sum_{j=1}^{n_i}\frac{cn(j)}{cn_{\textrm{max}}}
+  \label{eq:gcn}
+\end{equation}
+The GCN is an extension of nearest-neighbor analysis where the GCN of
+atom $i$, $\overline{CN}(i)$, is calculated from the average of the
+coordination numbers, $cn(j)$, of atom $i$'s nearest neighbors ($j$).
+
+The options available for SequentialProps are as follows:
+\begin{longtable}[c]{|EFG|}
+\caption{SequentialProps Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}                   & Print help and exit \\
+  -V& {\tt -{}-version}                & Print version and exit \\
+  -i& {\tt -{}-input=filename}         & input dump file (mandatory) \\
+  -o& {\tt -{}-output=filename}        & output file name \\
+    & {\tt -{}-sele1=selection script} & select first stuntdouble set \\
+    & {\tt -{}-sele2=selection script} & select second stuntdouble set (if sele2 is not
+                                  set, use script from sele1) \\
+  -b& {\tt -{}-nbins=INT}              & number of bins (general purpose)
+                                  (default=`100') \\
+    & {\tt -{}-nbins\_z=INT}            & number of bins in z axis  (default=`100') \\
+  -x& {\tt -{}-centroidX=DOUBLE}       & Location of droplet centroid in x \\
+  -y& {\tt -{}-centroidY=DOUBLE}       & Location of droplet centroid in y \\
+  -z& {\tt -{}-referenceZ=DOUBLE}      & Reference z-height of solid surface \\
+  -r& {\tt -{}-dropletR=DOUBLE}        & Droplet radius in angstroms \\
+    & {\tt -{}-threshDens=DOUBLE}      & Threshold Density in g/cm$^3$ \\
+    & {\tt -{}-bufferLength=DOUBLE}    & Buffer length in angstroms \\
+    & {\tt -{}-rcut=DOUBLE}            & cutoff radius (rcut) \\
+\hline
+\multicolumn{3}{|l|}{One option from the following group of options is required:} \\
+\hline
+  -c& {\tt -{}-com}                   &  selection center of mass \\
+    & {\tt -{}-ca1}                   &  contact angle of selection (using center of
+                                  mass)\\
+    & {\tt -{}-ca2}                   &  contact angle of selection (using density
+                                  profile)\\
+    & {\tt -{}-gcn}                   &  Generalized Coordinate Number\\
 \end{longtable}
 
 \subsection{\label{section:DynamicProps}DynamicProps}
@@ -4881,12 +5035,24 @@ The options available for DynamicProps are as follows:
   -m& {\tt -{}-memory=memory specification}
                                 &Available memory  
                                   (default=`2G`)\\
+  -c& {\tt -{}-rcut=DOUBLE}            & cutoff radius (angstroms)\\
+    & {\tt -{}-OOcut=DOUBLE}           & Oxygen-Oxygen cutoff radius (angstroms)
+                                  (default=`3.5')\\
+    & {\tt -{}-thetacut=DOUBLE}        & HOO cutoff angle (degrees)  (default=`30')\\
+    & {\tt -{}-OHcut=DOUBLE}           & Oxygen-Hydrogen cutoff radius (angstroms)
+                                  (default=`2.45')\\
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
   -s& {\tt -{}-selecorr}               & selection correlation function \\
-  -r& {\tt -{}-rcorr}                  & compute mean squared displacement \\
-  -v& {\tt -{}-vcorr}                  & velocity autocorrelation function \\
+  -r& {\tt -{}-rcorr}                  & compute mean squared
+                                         displacement \\
+    & {\tt -{}-rcorrZ}                 & mean squared displacement binned by Z\\
+  -v& {\tt -{}-vcorr}                  & velocity autocorrelation
+                                         function \\
+    & {\tt -{}-vcorrZ}                 & velocity correlation function along z-axis\\
+    & {\tt -{}-vcorrR}                 & velocity correlation function projected
+                                  radially\\
   -d& {\tt -{}-dcorr}                  & dipole correlation function \\
   -l& {\tt -{}-lcorr}                  & Lengendre correlation function \\
     & {\tt -{}-lcorrZ}                 & Lengendre correlation function binned by $z$ \\
@@ -4897,7 +5063,11 @@ The options available for DynamicProps are as follows:
     & {\tt -{}-drcorr}                 & Directional mean squared displacement for particles with unit vectors\\
     & {\tt -{}-helfandEcorr}           & Helfand moment for thermal conductvity\\
   -p& {\tt -{}-momentum}               & Helfand momentum for viscosity\\
-    & {\tt -{}-stresscorr}             & Stress tensor correlation function
+    & {\tt -{}-stresscorr}             & Stress tensor correlation
+                                         function\\
+  -b& {\tt -{}-bondcorr}               & Bond extension correlation function\\
+  -f& {\tt -{}-freqfluccorr}           & Frequency Fluctuation correlation function\\
+  -j& {\tt -{}-jumptime}               & Hydrogen bond jump time correlation function
 \end{longtable}
 
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
@@ -4964,18 +5134,18 @@ The options available for atom2md are as follows:
 using -H$<$format-type$>$, e.g. -Hpdb} 
 \end{longtable}
 
-\section{\label{section:SimpleBuilder}SimpleBuilder}
+\section{\label{section:SimpleBuilder}simpleBuilder}
 
-{\tt SimpleBuilder} creates simple lattice structures.  It requires an
+{\tt simpleBuilder} creates simple lattice structures.  It requires an
 initial, but skeletal {\sc OpenMD} file to specify the components that are to
 be placed on the lattice.  The total number of placed molecules will
 be shown at the top of the configuration file that is generated, and
 that number may not match the original meta-data file, so a new
 meta-data file is also generated which matches the lattice structure.
 
-The options available for SimpleBuilder are as follows:
+The options available for simpleBuilder are as follows:
 \begin{longtable}[c]{|EFG|}
-\caption{SimpleBuilder Command-line Options}
+\caption{simpleBuilder Command-line Options}
 \\ \hline
 {\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
 \endhead
