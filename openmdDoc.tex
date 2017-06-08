@@ -5232,6 +5232,44 @@ The options available for Hydro are as follows:
 hydrodynamic calculations will not be performed (default=off)\\
 \end{longtable}
 
+\section{\label{section:omd-solvator}omd-solvator}
+{\tt omd-solvator} merges two specified ({\tt .omd}) files, with
+the requirement that the two simulation cells have the
+same box geometry (specified on the Hmat line). This script treats 
+one of the files as the ``solute'' and the other file as the ``solvent'',
+and merges the files by carving out space for the solute by deleting any 
+solvent molecules that overlap with the solute in the specified
+cut-off distance ({\tt rcut}). When using {\tt omd-solvator}, the 
+number of atoms (more accurately, the number of {\tt stuntDoubles} comprising
+the molecule) in the solute and solvent molecules must be specified.
+For example, {\tt rigidBodies} such as SPC/E water molecules are treated
+to have 1 atom, and united-atom hexane would be specified to have 6 atoms. 
+
+The script requires an
+{\tt output-file} to be specified, which will need to be edited before it
+can be ran using {\tt OpenMD}. Mainly, information about the molecule
+definitions (usually contained in ({\tt .inc}) files, as well as
+declaration of {\tt forceField} files. Be careful here, make sure that you
+only include one {\tt forceField} file in the newly generated 
+{\tt output-file}, and that the included {\tt forceField} contains
+information about both the molecules in the newly merged systems.
+
+The options available for omd-solvator follows:
+\begin{longtable}[c]{|EFG|}
+\caption{omd-solvator Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -u& {\tt -{}-solute}             & use specified OpenMD (.omd) file as the solute \\
+  -v& {\tt -{}-solvent}            & use specified OpenMD (.omd) file as the solvent \\
+  -r& {\tt -{}-rcut}               & specify the cutoff radius for deleting solvent \\
+  -o& {\tt -{}-output-file}        & use specified output (.omd) file \\
+  -n& {\tt -{}-nSoluteAtoms}       & number of atoms in solute molecule, default is 1 atom \\
+  -p& {\tt -{}-nSolventAtoms}      & number of atoms in solvent molecule, default is 1 atom \\
+\end{longtable} 
 
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
 
