@@ -5070,6 +5070,48 @@ The options available for DynamicProps are as follows:
   -j& {\tt -{}-jumptime}               & Hydrogen bond jump time correlation function
 \end{longtable}
 
+
+\section{\label{section:utilities}Utilities to aide in analysis}
+
+\subsection{\label{section:omdShrink}omdShrink}
+{\tt omdShrink} is a utility script which takes {\tt OpenMD} {\tt .dump}
+files as input and generates an output {\tt .dump} file with fewer frames
+than in the original {\tt .dump} file. The user passes {\tt omdShrink}
+and integer {\tt -s} and the input {\tt .dump} file is split every {\tt -s} 
+frames.
+
+\begin{longtable}[c]{|EFG|}
+\caption{omdShrink Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -m& {\tt -{}-meta-data}          & use specified OpenMD (.dump) file \\
+  -o& {\tt -{}-output-file}        & specified output file name \\
+  -s& {\tt -{}-split-frame}        & split the (.dump) file every s frames \\
+\end{longtable}
+
+\subsection{\label{section:omdSplit}omdSplit}
+{\tt omdSplit} is a utility script which takes {\tt OpenMD} {\tt .dump}
+files and splits them into {\tt -s} separate files.
+
+\begin{longtable}[c]{|EFG|}
+\caption{omdSplit Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -m& {\tt -{}-meta-data}          & use specified OpenMD (.dump) file \\
+  -s& {\tt -{}-split-frame}        & split every s frames \\
+\end{longtable}
+
+
+
+
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
 {\sc OpenMD} comes with a few utility programs to aid in setting up
@@ -5199,6 +5241,50 @@ The options available for icosahedralBuilder are as follows:
    & {\tt -{}-stone}  & Create a Curling-stone Decahedral cluster
 \end{longtable}
 
+\section{\label{section:slabBuilder}slabBuilder}
+{\tt slabBuilder} is a python script which generates {\tt .omd}
+and {\tt .xyz} files of cubic material (SC, FCC, or BCC) with a particular cut 
+(hlk) facing the z-axis of the box with {\tt --vacuum=true}, and 
+bulk crystals with {\tt --vacuum=false}. In both cases, the generated crystal will 
+be commensurate in all three dimensions. {\tt slabBuilder} requires the user to 
+specify the {\tt latticeConstant} in Angstroms for the desired material, and also
+the number of repeated units of the minimum cell by three
+separate integers using the {\tt --repeats} option. 
+
+Be advised, while you are required to pass
+the script the {\tt elementType} at execution, there is no guarantee that the
+output {\tt .omd} file will have the correct {\tt forceField} selected. However, most metal
+forcefields included in {\tt OpenMD} are covered in the default {\tt MnM.frc} file. 
+
+Another option of the script, {\tt --chargedPlates} will generate metal plates at
+a defined {\tt --offSet} distance from the surface. These plates are composed
+of a default 20x20 {\tt kPoints} in the xy-plane. 
+
+\begin{longtable}[c]{|EFG|}
+\caption{slabBuilder Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -l& {\tt -{}-lattice}            & one of sc, fcc, or bcc \\
+  -c& {\tt -{}-latticeConstant}    & lattice spacing in angstroms \\
+  -o& {\tt -{}-omd-file}           & (.omd) output file name \\
+  -x& {\tt -{}-xyz-file}           & (.xyz) output file name \\
+  -f& {\tt -{}-hkl}                & desired facet to be exposed to the z axis
+  (specify with three separate integers) \\
+  -r& {\tt -{}-repeats}            & how many lattice repeats in each of the 3 
+  perpindicular directions (specify with three separate integers) \\
+  -e& {\tt -{}-elementType}        & the element composing the lattice (only single
+  element lattices are supported) \\
+  -v& {\tt -{}-vacuum}             & should the output (.omd) file have vacuum in the z-dimension? (true / false) \\
+  -q& {\tt -{}-chargedPlates}      & should the output (.omd) file include metal plates in the vacuum space? (true / false) \\
+  -k& {\tt -{}-kPoints}            & number of points to be used in the charged plates (default=400) \\
+  -s& {\tt -{}-offSet}             & the distance the charges plates will be placed from the surface \\
+\end{longtable}
+
+
 
 \section{\label{section:Hydro}Hydro}
 {\tt Hydro} generates resistance tensor ({\tt .diff}) files which are
@@ -5231,6 +5317,38 @@ The options available for Hydro are as follows:
   -b&  {\tt -{}-beads}            & generate the beads only,
 hydrodynamic calculations will not be performed (default=off)\\
 \end{longtable}
+
+
+\section{\label{section:waterBoxer}waterBoxer}
+{\tt waterBoxer} builds cubic {\tt .omd} files of water, in either an FCC
+or SC lattice. The boxes of water
+can be generated with user defined {\tt -d} densities, as well as being 
+constructed with user defined {\tt -x}, {\tt -y}, and {\tt -z} 
+box dimensions. At runtime, the user must indicate the number of molecules
+to build the water lattice from. If the number of molecules specified is 
+insufficient to construct the lattice with the desired density, the user will
+be prompted to run the script again with a larger value for {\tt -n} molecules.
+
+The options available for waterBoxer follows:
+\begin{longtable}[c]{|EFG|}
+\caption{waterBoxer Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-a}               & Print help and exit\\
+  -m& {\tt -{}-a}               & print out a water.inc file (file with all water models) \\
+  -r& {\tt -{}-a}               & randomize the orientations of the water molecules \\
+  -v& {\tt -{}-a}               & verbose output (water model defined in .omd file) \\
+  -d& {\tt -{}-a}               & density in g/cm^3 (default 1) \\
+  -l& {\tt -{}-a}               & 0 - FCC lattice, 1 - SC lattice  \\
+  -n& {\tt -{}-a}               & number of water molecules to attempt to build lattice with \\
+  -o& {\tt -{}-a}               & output file name \\
+  -w& {\tt -{}-a}               & name of the water stuntDouble \\
+\end{longtable}
+
+
 
 \section{\label{section:omd-solvator}omd-solvator}
 {\tt omd-solvator} merges two specified ({\tt .omd}) files, with
@@ -5270,6 +5388,36 @@ The options available for omd-solvator follows:
   -n& {\tt -{}-nSoluteAtoms}       & number of atoms in solute molecule, default is 1 atom \\
   -p& {\tt -{}-nSolventAtoms}      & number of atoms in solvent molecule, default is 1 atom \\
 \end{longtable} 
+
+
+\section{\label{section:omd2omd}omd2omd}
+{\tt omd2omd} is a utility script which helps in replicating and translating already built 
+{\tt OpenMD} {\tt .omd}, {\tt .dump}, and {\tt .eor} files. Using the {\tt -x}, {\tt -y}, 
+and {\tt -z} options, the user 
+is able to indicate an integer number of replicas they would like the system to be repeated.
+In a similar way, the {\tt -t}, {\tt -u}, and {\tt -v} options allow the user to translate
+the x, y, and z coordinates of the systems by any amount. The script also automatically wraps all 
+{\tt stuntDoubles} back to the periodic box.
+
+\begin{longtable}[c]{|EFG|}
+\caption{omd2omd Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -i& {\tt -{}-input}              & use specified OpenMD (.omd, .dump, .eor) file \\
+  -o& {\tt -{}-output}             & specified output file name \\
+  -x& {\tt -{}-repeatX}            & make the system repeat in the x dimension \\
+  -y& {\tt -{}-repeatY}            & make the system repeat in the y dimension \\
+  -z& {\tt -{}-repeatZ}            & make the system repeat in the z dimension \\
+  -t& {\tt -{}-translateX}         & translate all x coordinates by some amount \\
+  -u& {\tt -{}-translateY}         & translate all y coordinates by some amount \\
+  -v& {\tt -{}-translateZ}         & translate all z coordinates by some amount \\
+\end{longtable}
+
+
 
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
 
