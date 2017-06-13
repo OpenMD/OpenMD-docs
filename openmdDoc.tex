@@ -4342,6 +4342,43 @@ Users interested in {\it friction coefficients} at heterogeneous
 interfaces may also find reference \citealp{2012MolPh.110..691K}
 useful.
 
+\subsubsection{\label{section:slipLength}slipLegth}
+{\tt slipLength} is a built in analysis script which can compute
+the slip-length of a solid-liquid interface under shear. The script assumes
+the solid is placed in the middle of the box, with equal amounts of
+liquid on either side. {\tt slipLength}
+reads in the generated {\tt .rnemd} file described above, and returns to
+the command line the computed slip-length in Angstroms. There are a few
+parameters required to find a good fit of the velocity profile, these are
+described in the following table. Also, in order to avoid effects of the
+RNEMD exchange bins, the script allows the user to specify the number
+of bins to be removed {\tt --toDelete} from the beginning and end of
+the simulation box.
+
+\begin{longtable}[c]{|EFG|}
+\caption{slipLength Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -i& {\tt -{}-input}              & use specified OpenMD (.rnemd) file \\
+  -o& {\tt -{}-output}             & specified output file name \\
+  -z1& {\tt -{}-lowerGibbsZ}       & the location of the lower Gibbs dividing surface \\
+  -z2& {\tt -{}-upperGibbsZ}       & the location of the upper Gibbs dividing surface \\
+  -l& {\tt -{}-lowerZVal}          & the initial estimate of the lower interface location (default z1) \\
+  -u& {\tt -{}-upperZVal}          & the initial estimate of the upper interface location (default z2) \\
+  -w& {\tt -{}-intWidth}           & the width of the interface in Angstroms \\
+  -Vs& {\tt -{}-solidVel}          & the initial estimate of the velocity of the solid \\
+  -Vl& {\tt -{}-liquidVel}         & the initial estimate of the velocity of the liquid \\
+  -m& {\tt -{}-liquidSlope}        & the initial estimate of the slope of the velocity profile in the liquid \\
+  -d& {\tt -{}-toDelete}           & the number of data points to be deleted from the beginning and end of the
+  velocity profile (default=0) \\
+\end{longtable}
+
+
+
 \newpage
 
 \begin{longtable}[c]{JKLM}
