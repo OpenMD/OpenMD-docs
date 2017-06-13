@@ -5455,6 +5455,33 @@ the x, y, and z coordinates of the systems by any amount. The script also automa
 \end{longtable}
 
 
+\section{\label{section:affineScale}affineScale}
+{\tt affineScale} is a utility script which takes and {\tt OpenMD} {\tt .omd} or {\tt .eor}
+file and scales both the periodic box and the coordinates of all {\tt stuntDoubles} in 
+the system by the same amount. You can either specify a new volume scaling for isotropic
+coordinate scaling ({\tt -v}), or specify one (or more) of the coordinates for
+non-isotropic scaling ({\tt -x}, {\tt -y}, and/or {\tt -z}). This script is useful
+when constructing and equilibrating solid lattices, particularly once the solid has 
+been equilibrated to some appreciable temperature, and ringing is apparent in the
+volume component of the {\tt .stat} file.
+
+\begin{longtable}[c]{|EFG|}
+\caption{affineScale Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -m& {\tt -{}-meta-data}          & use specified OpenMD (.omd, .eor) file \\
+  -o& {\tt -{}-output-file}        & specified output file name \\
+  -x& {\tt -{}-newX}               & scale the system to a new x dimension \\
+  -y& {\tt -{}-newY}               & scale the system to a new y dimension \\
+  -z& {\tt -{}-newZ}               & scale the system to a new z dimension \\
+  -v& {\tt -{}-newV}               & scale the system to a new volume \\
+\end{longtable}
+
+
 
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
 
