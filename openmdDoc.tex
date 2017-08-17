@@ -2735,6 +2735,38 @@ LD & Langevin Dynamics & {\tt ensemble = LD;} \\
 \end{tabular}
 \end{center}
 
+
+\begin{longtable}[c|c|c|c]{BAAA}
+  \caption{Integrators Implemented in OpenMD with their Floating,
+  Target, and Conserved Thermodynamic Quantities} \\
+  {\bf Integrator} & {\bf Floating Variables} &
+                                                {\bf Target Variables}
+& {\bf Conserved Quantity}  \\ 
+  \hline
+\endhead
+\hline
+\endfoot
+
+  NPA & E, T, H$_\mathrm{z,z}$ & P$_\mathrm{\hat{n}}$ & N,
+                                                        A$_\mathrm{xy}$
+  \\
+  NPAT & E, H$_\mathrm{z,z}$ & P$_\mathrm{\hat{n}}$, T & N,
+                                                         A$_\mathrm{xy}$
+  \\
+  NPTf & E, $\overset\leftrightarrow{\mathrm{H}}$ & P, T& N, G \\
+  NPTsz & E, H$_\mathrm{z,z}$, A$_\mathrm{xy}$ & P, T & N \\
+  NPTxyz & E, $\overset\leftrightarrow{\mathrm{H}}$ & P, T & N \\
+  NPrT & E, $\overset\leftrightarrow{\mathrm{H}}$ &
+                                                    P$_\mathrm{\hat{n}}$,
+                                                    $\gamma$, T & N \\
+  NgamaT & E, H$_\mathrm{x,x}$, H$_\mathrm{y,y}$ & P, T, $\gamma$ & N,
+                                                                    H$_\mathrm{z,z}$\\
+  NVT & E, P & T & N, V \\
+  NVE & P, T & - & N, $\overset\leftrightarrow{\mathrm{H}}$, E \\
+  LD & E & T & N, V \\
+  LHull & E, V & P, T & N \\
+\end{longtable}
+
 The relatively well-known Nos\'e-Hoover thermostat\cite{Hoover85} is
 implemented in {\sc OpenMD}'s NVT integrator.  This method couples an
 extra degree of freedom (the thermostat) to the kinetic energy of the
@@ -4871,12 +4903,17 @@ The options available for {\tt StaticProps} are as follows:
     & {\tt -{}-seleoffset2=INT}        & global index offset for a third object (used 
                                   to define a vector between sites in molecule)\\
 
-    & {\tt -{}-molname=STRING}           & molecule name \\
-    & {\tt -{}-begin=INT}                & begin internal index \\
-    & {\tt -{}-end=INT}                  & end internal index \\
-    & {\tt -{}-radius=DOUBLE}            & nanoparticle radius\\
+             & {\tt -{}-molname=STRING}           & molecule name \\
+             & {\tt -{}-begin=INT}                & begin internal index \\
+             & {\tt -{}-end=INT}                  & end internal index \\
+             & {\tt -{}-radius=DOUBLE}            & nanoparticle radius\\
   -v& {\tt -{}-voxelSize=DOUBLE}      & voxel size (angstroms) \\
-    &  {\tt -{}-gaussWidth=DOUBLE}    &   Gaussian width (angstroms)\\
+             &  {\tt -{}-gaussWidth=DOUBLE}    &   Gaussian width (angstroms)\\
+             & {\tt -{}-privilegedAxis={x,y,z}} & Which axis should
+                                                  statistics be
+                                                  accumulated along,
+                                                  default=z \\
+                                         
 
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
@@ -5428,10 +5465,14 @@ The options available for omd-solvator follows:
 
 
 \section{\label{section:omd2omd}omd2omd}
-{\tt omd2omd} is a utility script which helps in replicating and translating already built 
+{\tt omd2omd} is a utility script which helps in replicating,
+rotating, and translating already built 
 {\tt OpenMD} {\tt .omd}, {\tt .dump}, and {\tt .eor} files. Using the {\tt -x}, {\tt -y}, 
 and {\tt -z} options, the user 
-is able to indicate an integer number of replicas they would like the system to be repeated.
+is able to indicate an integer number of replicas they would like the
+system to be repeated. Likewise, using the {\tt -p}, {\tt -q}, and
+{\tt -r} options, the system is rotated along the traditional Euler
+angles, $\psi$, $\theta$, and $\phi$.
 In a similar way, the {\tt -t}, {\tt -u}, and {\tt -v} options allow the user to translate
 the x, y, and z coordinates of the systems by any amount. The script also automatically wraps all 
 {\tt stuntDoubles} back to the periodic box.
@@ -5448,7 +5489,14 @@ the x, y, and z coordinates of the systems by any amount. The script also automa
   -o& {\tt -{}-output}             & specified output file name \\
   -x& {\tt -{}-repeatX}            & make the system repeat in the x dimension \\
   -y& {\tt -{}-repeatY}            & make the system repeat in the y dimension \\
-  -z& {\tt -{}-repeatZ}            & make the system repeat in the z dimension \\
+  -z& {\tt -{}-repeatZ}            & make the system repeat in the z
+                                     dimension \\
+  -p&{\tt -{}-rotatePhi}          & rotate all coordinates Euler angle
+                                    Phi \\
+  -q&{\tt -{}-rotateTheta}      & rotate all coordinates Euler angle
+                                  Theta \\
+  -r&{\tt -{}-rotatePsi}           & rotate all coordinates Euler
+                                     angle Psi \\
   -t& {\tt -{}-translateX}         & translate all x coordinates by some amount \\
   -u& {\tt -{}-translateY}         & translate all y coordinates by some amount \\
   -v& {\tt -{}-translateZ}         & translate all z coordinates by some amount \\
