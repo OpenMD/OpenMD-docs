@@ -4424,6 +4424,8 @@ the simulation box.
 {\tt useRNEMD} & logical & perform RNEMD? & default is ``false'' \\
 {\tt objectSelection} & string & see section \ref{section:syntax}
 for selection syntax & default is ``select all'' \\
+{\tt outputSelection} & string & see section  \ref{section:syntax}
+for selection syntax & default is ``select all'' \\
 {\tt method} & string & exchange method & one of the following:
 {\tt Swap, NIVS,} or {\tt VSS}  (default is {\tt VSS}) \\
 {\tt fluxType} & string & what is being exchanged between slabs? & one
@@ -4843,7 +4845,7 @@ the reference frame for the calculation.
 The vectors (and angles) associated with these angular pair
 distribution functions are most easily seen in the figure below:
 
-\begin{figure}
+\begin{figure} [H]
 \centering
 \includegraphics[width=3in]{definition.pdf}
 \caption[Definitions of the angles between directional objects]{ \\ Any
@@ -4950,6 +4952,8 @@ The options available for {\tt StaticProps} are as follows:
     &  {\tt -{}-tet\_param\_z}           & spatially-resolved
                                            tetrahedrality order
                                            parameter $Q(z)$ \\
+  & {\tt -{}-tet\_param\_dens} & spatially-resolved tetrahedrality
+                                 order parameter Qk(z) \\
     &  {\tt -{}-tet\_param\_xyz}         & volume-resolved tetrahedrality order parameter
                                   $Q(x,y,z)$.  (voxelSize, rcut, and gaussWidth
                                   must be specified)\\
@@ -5185,6 +5189,54 @@ files and splits them into {\tt -s} separate files.
 
 
 
+\subsection{\label{section:hbtetAnalyzer}hbtetAnalyzer}
+{\tt hbtetAnalyzer} is a utility script which analyzes hydrogen-bond
+by tetrahedrality matrices computed via the {\tt StaticProps} module
+{\tt --tet\_hb}. This script computes integrals of user defined
+regions in the {\tt .hbq} file, and reports the individual sums for
+each of the symmetric regions of the matrix as well as the number of
+hydrogen-bonds per square Angstrom between the two specified {\tt -qS}
+and {\tt -qL}.
+
+\begin{longtable}[c]{|EFG|}
+\caption{hbtetAnalyzer Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -i& {\tt -{}-hbq-file}          & use specified OpenMD (.hbq) file \\
+  -o& {\tt -{}-hbqPAS-file}    & use specified output (.hbqPSA) file
+  \\
+  -qS&{\tt -{}-q(liquid)} & the tetrahedral order parameter value at
+                            the solid surface \\
+  -qL&{\tt -{}-q(solid)} & the tetrahedral order parameter value at
+                           the liquid surface \\
+  -x&{\tt -{}-boxl(x)} & the x-dimension of the simulation box
+                         (Angstroms) \\
+  -y&{\tt -{}-boxl(y)} & the y-dimension of the simulation box
+                         (Angstroms) \\
+  -z&{\tt -{}-boxl(z)} & the z-dimension of the simulation box
+                         (Angstroms) \\
+  -t&{\tt -{}-nSnapshots} & the number of snapshots used to accumulate
+                            the (.hbq) file \\
+\end{longtable}
+
+\section{stat2- utility scripts}
+{\tt OpenMD} contains a set of utility scripts which take ({\tt
+  .stat}) files as inputs and compute properties about the
+system. 
+
+\subsection{\label{section:stat2dielectric}stat2dielectric}
+
+\subsection{\label{section:stat2tension}stat2tension}
+
+\subsection{\label{section:stat2thcond}stat2thcond}
+
+\subsection{\label{section:stat2visco}stat2visco}
+
+
 
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
@@ -5304,7 +5356,11 @@ The options available for icosahedralBuilder are as follows:
   column (Decahedron only)\\
   -t& {\tt -{}-twinAtoms=INT}          & Number of atoms along twin
   boundary (Decahedron only) \\
-  -p& {\tt -{}-truncatedPlanes=INT}   & Number of truncated planes (Curling-stone Decahedron only)\\
+  -p& {\tt -{}-truncatedPlanes=INT}   & Number of truncated planes
+                                        (Curling-stone Decahedron
+                                        only)\\
+  -u&{\tt -{}-unitCells=INT} & Number of unit cell (Cuboctrahedron and
+                               Truncated Cube only) \\
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
@@ -5312,7 +5368,10 @@ The options available for icosahedralBuilder are as follows:
    & {\tt -{}-deca}   & Create a regualar Decahedral cluster\\
    & {\tt -{}-ino}    & Create an Ino Decahedral cluster\\
    & {\tt -{}-marks}  & Create a Marks Decahedral cluster\\
-   & {\tt -{}-stone}  & Create a Curling-stone Decahedral cluster
+   & {\tt -{}-stone}  & Create a Curling-stone Decahedral cluster\\
+  &{\tt-{}-cuboctahedron} & Create a regular Cuboctahedron (requires
+                            lattice) \\
+   &{\tt -{}-truncatedCube} & Create a Truncated Cube (requires lattice)
 \end{longtable}
 
 \section{\label{section:slabBuilder}slabBuilder}
