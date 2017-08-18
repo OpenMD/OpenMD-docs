@@ -4966,8 +4966,12 @@ The options available for {\tt StaticProps} are as follows:
     &  {\tt -{}-nitrile}                 & electrostatic potential to frequency map based
                                   on the Cho nitrile fits \\
   -m& {\tt -{}-multipole}               & average multipole moments contained within
-                                  cutoff spheres as a function of radius \\
-    &  {\tt -{}-gcn}                     & Generalized Coordination Number \\
+                                  cutoff spheres as a function of
+                                          radius \\
+  & {\tt -{}-cn} & Coordination Number Distribution \\
+  & {\tt -{}-scn} & Secondary Coordination Number Distribution \\
+    &  {\tt -{}-gcn}                     & Generalized Coordination
+                                           Number \\
     &  {\tt -{}-hbond}                   & Hydrogen Bonding statistics using geometric
                                   criteria ({\tt rcut} and {\tt thetacut} must be
                                   specified) \\
@@ -5229,14 +5233,160 @@ and {\tt -qL}.
 system. 
 
 \subsection{\label{section:stat2dielectric}stat2dielectric}
+The {\tt stat2dielectric} utility script computes the static
+dielectric constant of the system from a corresponding ({\tt .stat})
+file where the ({\tt .omd}) file has had the {\tt SYSTEM\_DIPOLE} added
+to the {\tt statFileFormat} line. A brief description of the
+calculations performed by the script is given below, and further
+information is available from the help prompt ({\tt -h}) from
+{\tt stat2dielectric}. 
+
+This script assumes the fluctuation formula appropriate for conducting
+boundaries:
+\begin{equation}
+\epsilon_\mathrm{A} = 1 + \frac{<M^{2}> -
+  <M>^{2}}{3k_{B}<T><V>\epsilon_{0}}
+\end{equation}
+where $\epsilon_\mathrm{A}$ is the dielectric constant of the system,
+$M$ is the total dipole moment of the simulation box,$<V>$ is the
+average volume of the box, $<T>$ is the average temperature of the
+box, $\epsilon_{0}$ is the permittivity of a vacuum, and $k_{B}$ is
+Boltzmann's constant. 
+
+This script will also optionally apply a correction factor as follow:
+\begin{equation}
+\epsilon = \frac{((Q + 2) (\epsilon_{A} - 1) + 3)}{((Q - 2) (\epsilon_{A} - 1) + 3)}
+\end{equation}
+where $Q$ depends on the method used to compute the electrostatic
+interaction.
+
+\begin{longtable}[c]{|EFG|}
+\caption{stat2dielectric Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -f& {\tt -{}-stat-file}          & use specified OpenMD (.stat) file \\
+  -o& {\tt -{}-output-file}        & use specified output
+                                     (.dielectric) file\\
+  -q&{\tt -{}-Q-value}  & use the specified Q value to correct the
+                          dielectric \\
+\end{longtable}
 
 \subsection{\label{section:stat2tension}stat2tension}
+The {\tt stat2tension} utility script computes the surface tension of
+the system from a corresponding ({\tt .stat}) file where the ({\tt
+  .omd}) file has had the {\tt PRESSURE\_TENSOR} added to the {\tt
+  statFileFormat} line. A brief description of the calculations
+performed by the script is given below, and further information is
+available from the help prompt ({\tt -h}) from {\tt stat2tension}.
 
-\subsection{\label{section:stat2thcond}stat2thcond}
+This script assumes that the interface is normal to the $z$-axis,
+i.e., $P_{n} = P_{zz}$, and that the tangential contributions are
+averaged over the remaining axes, 
+\begin{equation}
+P_{t}(z) = ( P_{xx} + P_{yy}) / 2
+\end{equation}
+The surface tension is defined using the normal and tangential
+components of the pressure,
+\begin{equation}
+\gamma = \int_{-\infty}^{\infty} (P_{n} - P_{t}(z)) dz.
+\end{equation} 
+
+The tangential pressure is different from the normal pressure only in
+the vicinity of the interfaces, so the net surface tension for the
+system can be simplified:
+\begin{equation}
+\gamma = L_{z} (P_{n} - <P_{t}>)
+\end{equation}
+where $<P_{t}>$ is the statistical average of the tangential pressure.
+
+In practice, many surface tension simulations comprise two regions,
+with one material in each region.  Periodic boundary conditions then
+require two interfaces, so
+\begin{equation}
+  \gamma = L_{z} (P_{n} - <P_{t}>)
+\end{equation}
+
+\begin{longtable}[c]{|EFG|}
+\caption{stat2tension Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -s& {\tt -{}-stat-file}          & use specified OpenMD (.stat) file \\
+  -o& {\tt -{}-output-file}        & use specified output
+                                     (.tension) file\\
+  -z&{\tt -{}-box-length}  & dimension of the system box in the normal
+  (z) direction \\
+\end{longtable}
+
+%\subsection{\label{section:stat2thcond}stat2thcond}
+% Code currently broken.
 
 \subsection{\label{section:stat2visco}stat2visco}
+The {\tt stat2visco} utility script computes the various correlation
+functions of the pressure and pressure tensor of the system from a
+corresponding ({\tt .stat}) file where the ({\tt .omd}) file has had
+the {\tt PRESSURE\_TENSOR} added to the {\tt statFileFormat}
+line. These can be used to compute shear and bulk viscosities. A brief
+description of the calculations performed by the script is given
+below, and further information is available from the help prompt ({\tt
+  -h}) from {\tt stat2visco}.
+
+\begin{longtable}[c]{|EFG|}
+\caption{stat2visco Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -f& {\tt -{}-stat-file}          & use specified OpenMD (.stat) file \\
+  -o& {\tt -{}-output-file}        & use specified output
+                                     (.pcorr) file\\
+  -g&{\tt -{}-green-kubo}  & use Green-Kubo formulae (noisy!) \\
+  -e&{\tt -{}-Einstein}& use Einstein relation (best) \\
+  -s&{\tt -{}-shear}& compute the shear viscosity (the off-diagonal
+                      pressure tensor values must be present in the
+                      .stat file) \\
+\end{longtable}
+
+The Green-Kubo formulae option will compute: 
+\begin{equation}
+V*<(P(t)-<P>)*(P(0)-<P>)>/kT ,
+\end{equation}
+which may be integrated to give a slowly-converging value for the viscosity.
+
+The Einstein relation option will compute: 
+\begin{equation}
+V*<(\int_0^t (P(t')-<P>)dt')^2>/2kT,
+\end{equation}
+which will grow approximately linearly in time.  The long-time slope of this
+function will be the viscosity.
 
 
+\section{recenter}
+{\tt recenter} is a utility script which moves all integrable objects
+in an {\tt OpenMD} file so that the center of mass is at the
+origin. 
+
+\begin{longtable}[c]{|EFG|}
+\caption{recenter Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -v& {\tt -{}-version}          & print version and exit \\
+  -o& {\tt -{}-output-file}        & use specified output file name
+                                     (mandatory) \\
+\end{longtable}
 
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
@@ -5246,16 +5396,16 @@ interested in either importing a structure from some other format
 (usually XYZ or PDB), or in building an initial configuration in some
 perfect crystalline lattice or nanoparticle geometry. The program
 bundled with {\sc OpenMD} that imports coordinate files is {\tt
-  atom2md}, which is built if the initial CMake configuration can find
+  atom2omd}, which is built if the initial CMake configuration can find
 the openbabel libraries. The programs which generate perfect crystals
 are called {\tt SimpleBuilder} and {\tt RandomBuilder}.  There are
 programs to construct nanoparticles of various sizes and geometries
 also.  These are {\tt nanoparticleBuilder}, {\tt icosahedralBuilder},
 and {\tt nanorodBuilder}.
 
-\section{\label{section:atom2md}atom2md}
+\section{\label{section:atom2omd}atom2omd}
 
-{\tt atom2md} attempts to construct {\tt .omd} files from a single file
+{\tt atom2omd} attempts to construct {\tt .omd} files from a single file
 containing only atomic coordinate information.  To do this task, they
 make reasonable guesses about bonding from the distance between atoms
 in the coordinate, and attempt to identify other terms in the
@@ -5266,15 +5416,15 @@ discovered bonding topology that is contained in the {\tt
 
 Typically, the user would run:
 
-{\tt atom2md $<$input spec$>$ [Options]}
+{\tt atom2omd $<$input spec$>$ [Options]}
 
 Here {\tt $<$input spec$>$} can be used to specify the type of file being
 used for configuration input. I.e. using {\tt -ipdb} specifies that the
 input file contains coordinate information in the PDB format.
 
-The options available for atom2md are as follows:
+The options available for atom2omd are as follows:
 \begin{longtable}[c]{|HI|}
-\caption{atom2md Command-line Options}
+\caption{atom2omd Command-line Options}
 \\ \hline
 {\bf option} &  {\bf behavior} \\ \hline
 \endhead
@@ -5588,6 +5738,84 @@ volume component of the {\tt .stat} file.
   -v& {\tt -{}-newV}               & scale the system to a new volume \\
 \end{longtable}
 
+
+\chapter{\label{section:SampleConfigurations} Sample
+  Configurations}
+Included along with {\tt OpenMD} is a vast directory of sample {\tt
+  .omd} files. In what follows are brief descriptions of some of the
+prepared sample configurations, to help guide further system
+construction and determing correct syntax form for analysis
+modules. The corresponding directories can be found within
+OpenMD/samples/
+
+\subsection{Alkane}
+This directoy contains a sample {\tt .omd} file of bulk butane. Also
+in this directory is the {\tt alkanes.inc} file with molecule stamps
+for a large number of alkane molecules.
+
+\subsection{Argon}
+Several sample argon configurations are available within this
+directory.
+
+\subsection{Builders}
+While this directory does not contain any sample {\tt .omd} files
+explicitly, it contains the precursors to generate one component,
+bimetallic, and three component samples. The {\tt runMe.in} file
+included in this directory contains 15 example scripts to generate
+corresponding metalic nanoparticles.
+
+\subsection{Graphene}
+Simulating graphene can be tricky, since the sheet often spans the
+boundaries of the simulation box, molecule definitions in the {\tt
+  .inc} files must be carefully constructed. In this directory is a
+sample graphene {\tt .omd} file, and corresponding {\tt .frc} and {\tt
+  .inc} files. Also, a {\tt README.md} file contains extensive
+explanations on how to construct smaller or larger sheets of
+graphene. 
+
+\subsection{LangevinHull}
+The {\tt LangevinHull} is used for carrying out isobari-isothermal
+(NPT) simulations in non-periodic environments. In this directory,
+sample {\tt .omd} files include SPC/E water clusters, gold
+nanospheres, and a solvated gold nanosphere in liquid water. The {\tt
+  ReadMe.txt} contains more information about the keywords necessary
+to include in your {\tt .omd} files.
+
+\subsection{Lipid}
+This directory contains an example of a 5x5 array of long lipid
+molecules. The corresponding {\tt lipid.inc} file defining the lipids
+is also present, and smaller or larger lipids can easily be
+constructed following the presented formalism. 
+
+\subsection{Metals}
+This directory contains a vast array of metal {\tt.omd} samples, gold,
+silver, copper, nickle, paladium, and platinum planar surfaces as well
+as gold and bimetallic nanospheres and nanorods. While many of these
+systems are easily constructed using other {\tt OpenMD} builder
+utility scripts, we have created several sample systems as examples.
+
+\subsection{RNEMD}
+The sample files in this directory consist of a bulk Argon fluid under
+a momentum flux (producing a velocity gradient response), and a
+gold/water interface with a kinetic energy flux (producing a thermal
+gradient response). There are also several files of a solvated gold
+surface with thiolate ligands decorating the surface, as well as a
+PackMol script required to generate the ligand packing.
+
+\subsection{Water}
+{\tt OpenMD} supports a large number of water models, all of which can
+be found in the {\tt Water.frc} file within the {\tt forceFields}
+directory. In the {\tt samples} directory, sample configurations of
+various water models are present. These include the SPC, SPC/E, TIP3P,
+TIP4P, SSD, SSDE, SSDQ, among many others. Also included in this
+directory are sample configurations of an exposed basal, prism,
+pyramidal, and secondary prism facets of a proton ordered
+ice-I$_\mathrm{h}$ crystal.
+
+\subsection{Zeolite}
+A sample zeolite configuration is also given in the {\tt OpenMD}
+distribution. CLAYFF is incorporated into {\tt OpenMD}, so following a
+similar construction many permutations of zeolites can be constructed.
 
 
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
