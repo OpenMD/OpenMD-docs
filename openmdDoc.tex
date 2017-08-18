@@ -63,9 +63,9 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD-2.4}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-2.5}: Molecular Dynamics in the Open}
 
-\author{Hemanta Bhattarai, Patrick Louden, Suzanne
+\author{Patrick Louden, Hemanta Bhattarai, Suzanne
   Neidhart, \\
   Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Matthew
   A. Meineke, \\ Shenyu Kuang, Madan Lamichhane, Joseph Michalka, 
@@ -902,25 +902,25 @@ for many force field options.  Most of these options do not need to be
 specified if the default values are working.},
 label={sch:optionsBlock}] 
 begin Options
- Name                      = "alkane"       // any string
- vdWtype                   = "Lennard-Jones" 
- DistanceMixingRule        = "arithmetic"   // can also be "geometric" or "cubic"
- DistanceType              = "sigma"        // can also be "Rmin"
- EnergyMixingRule          = "geometric"    // can also be "arithmetic" or "hhg"
- EnergyUnitScaling         = 1.0
- MetallicEnergyUnitScaling = 1.0
- DistanceUnitScaling       = 1.0
- AngleUnitScaling          = 1.0
- TorsionAngleConvention    = "180_is_trans" // can also be "0_is_trans"
- vdW-12-scale              = 0.0
- vdW-13-scale              = 0.0
- vdW-14-scale              = 0.0
- electrostatic-12-scale    = 0.0
- electrostatic-13-scale    = 0.0
- electrostatic-14-scale    = 0.0
- GayBerneMu                = 2.0
- GayBerneNu                = 1.0
- EAMMixingMethod           = "Johnson"      // can also be "Daw"
+ Name                      "alkane"       // any string
+ vdWtype                   "Lennard-Jones" 
+ DistanceMixingRule        "arithmetic"   // can also be "geometric" or "cubic"
+ DistanceType              "sigma"        // can also be "Rmin"
+ EnergyMixingRule          "geometric"    // can also be "arithmetic" or "hhg"
+ EnergyUnitScaling         1.0
+ MetallicEnergyUnitScaling 1.0
+ DistanceUnitScaling       1.0
+ AngleUnitScaling          1.0
+ TorsionAngleConvention    "180_is_trans" // can also be "0_is_trans"
+ vdW-12-scale              0.0
+ vdW-13-scale              0.0
+ vdW-14-scale              0.0
+ electrostatic-12-scale    0.0
+ electrostatic-13-scale    0.0
+ electrostatic-14-scale    0.0
+ GayBerneMu                2.0
+ GayBerneNu                1.0
+ EAMMixingMethod           "Johnson"      // can also be "Daw"
 end Options
 \end{code}
 
@@ -1432,7 +1432,7 @@ repulsive interaction between atoms $i$ and $j$.
 \subsection{\label{section:ffEAM}The EAMAtomTypes block}
 The Embedded Atom Method ({\sc eam}) is one of the most widely-used
 potentials for transition
-metals.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02,Daw84,FBD86,johnson89,Lu97}
+metals.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02,Daw84,FBD86,johnson89,Lu97,Wadley:2001fk,Zhou:2001fj,Zhou:2004yq,Zhou:2005rt}
 It has been widely adopted in the materials science community and a
 good review of {\sc eam} and other formulations of metallic potentials
 was given by Voter.\cite{Voter:95}
@@ -1459,7 +1459,6 @@ Johnson~\cite{johnson89} to compute the heterogenous pair potential,
 No mixing rule is needed for the densities, since the density at site
 $i$ is simply the linear sum of density contributions of all the other
 atoms.
-
 The {\sc eam} force field illustrates an additional feature of {\sc
 OpenMD}.  Foiles, Baskes and Daw fit {\sc eam} potentials for Cu, Ag,
 Au, Ni, Pd, Pt and alloys of these metals.\cite{FBD86} These fits are
@@ -1474,26 +1473,59 @@ of the {\sc eam} force field, the user would add the {\tt
 forceFieldVariant = "VC";} line to the meta-data file.
 
 The potential files used by the {\sc eam} force field are in the
-standard {\tt funcfl} format, which is the format utilized by a number
-of other codes (e.g. ParaDyn~\cite{Paradyn}, {\sc dynamo 86}).  It
-should be noted that the energy units in these files are in eV, not
-$\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD} force field
-files.  
+standard {\tt funcfl} format, which is the format utilized by
+a number of other codes (e.g. ParaDyn~\cite{Paradyn}, {\sc dynamo
+  86}).  It should be noted that the energy units in these files are
+in eV, not $\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD}
+force field files.
 
 \begin{code}[caption={[An example of a EAMAtomTypes block.] A
 simple example of a EAMAtomTypes block. Here the only data provided is
-the name of a {\tt funcfl} file which contains the raw data for spline
+the name of a DYNAMO86 {\tt funcfl} file which contains the raw data for spline
 interpolations for the density, functional, and pair potential.},
 label={sch:EAMAtomTypes}]
 begin EAMAtomTypes
-Au      Au.u3.funcfl
-Ag      Ag.u3.funcfl
-Cu      Cu.u3.funcfl
-Ni      Ni.u3.funcfl
-Pd      Pd.u3.funcfl
-Pt      Pt.u3.funcfl
+Au      funcfl  Au.u3.funcfl
+Ag      funcfl  Ag.u3.funcfl
+Cu      funcfl  Cu.u3.funcfl
+Ni      funcfl  Ni.u3.funcfl
+Pd      funcfl  Pd.u3.funcfl
+Pt      funcfl  Pt.u3.funcfl
 end EAMAtomTypes
 \end{code}
+
+{\sc OpenMD} also implements parameterized versions of the density,
+embedding functional, and pair potentials that were developed by Zhou
+\textit{et
+  al.}\cite{Wadley:2001fk,Zhou:2001fj,Zhou:2004yq,Zhou:2005rt}
+specifically for use in alloys and intermetallic compounds.  This
+integrated EAM potential database has been reparameterized a number of
+times,\cite{Wadley:2001fk,Zhou:2001fj,Zhou:2004yq} and has also been
+re-fit for a charge transfer EAM including Oxygen
+atoms.\cite{Zhou:2005rt} In general, the keywords to specify a
+particular parameterization are \texttt{Zhou}
+\cite{Wadley:2001fk,Zhou:2001fj}, \texttt{Zhou2004}
+\cite{Zhou:2004yq}, \texttt{Zhou2005} and \texttt{Zhou2005Oxygen}
+\cite{Zhou:2005rt}. Databases of these parameterized functions are
+included in {\sc OpenMD} as the {\tt Zhou2001}, {\tt Zhou2004}, and
+{\tt Zhou2005} variants of the {\sc eam} force field.  To specify the
+Zhou2004 variant of the {\sc eam} force field, the user would add the
+{\tt forceFieldVariant = "Zhou2004";} line to the meta-data file.
+
+\begin{code}[caption={[An example of a EAMAtomTypes block using
+parameterized functions.] A
+more complicated example of a EAMAtomTypes block (each line is truncated).}, 
+label={sch:EAMAtomTypes2}]
+begin EAMAtomTypes
+Cu Zhou FCC 2.556162 1.554485 22.150141 7.669911 4.090619 0.327584 0.468735 ...
+Ag Zhou2004 FCC 2.891814 1.106232 14.6041   14.604144 9.13201  4.870405 0.277758 ...
+Al Zhou2005 FCC 2.86392 1.20378 17.51747 19.90041 6.61317 3.52702 0.31487 0.36555 ...
+O  Zhou2005Oxygen  3.64857 1.39478 5.44072 2.11725 0.34900 0.57438 0.08007 0.37457 ...
+end EAMAtomTypes
+\end{code}
+
+Readers interested in modifying these parameters should consult the
+\texttt{EAM.Zhou*.frc} files in the OpenMD forceFields directory.
 
 \subsection{\label{section:ffSC}The SuttonChenAtomTypes block}
 
@@ -2064,6 +2096,19 @@ V_{\text{NB}}(r) = 4 \epsilon_{ij} \left(
   \left(\frac{\sigma_{ij}}{r} \right)^{n} -
   \left(\frac{\sigma_{ij}}{r} \right)^{m} \right].
 \end{equation*}
+\item {\tt Buckingham Traditional}:
+\begin{equation*}
+  V_{\text{NB}}(r) =  A \exp( -B r) - \frac{C}{r^6}.
+\end{equation*}
+\item {\tt Buckingham Modified}:
+\begin{equation*}
+  V_{\text{NB}}(r) = A \exp( -B r) - \frac{C}{r^6} + 4 \epsilon \left( \left( \frac{\sigma}{r} \right)^30 - \left( \frac{\sigma}{r} \right)^6 \right).
+\end{equation*}
+\item {\tt EAMZhou} (pair potential only):
+\begin{equation*}
+  V_{\text{NB}}(r) = \frac{ A \exp\left[-\alpha (r/r_e -1)\right]}{1+(r/r_e - \kappa)^{20}} -  \frac{ B \exp\left[-\beta (r/r_e -1)\right]}{1+(r/r_e - \lambda)^{20}}
+\end{equation*}
+
 \end{itemize}
 
 \begin{code}[caption={[An example of a NonBondedInteractions block.] A
@@ -2097,6 +2142,18 @@ Au      NO      RepulsivePower   3.53955  0.168629   11
 //Mie potential
 //Atom1 Atom2   Mie              sigma   epsilon  n  m
 Ar      Au      Mie              3.41    0.234   12  3
+
+//Buckingham Traditional      A (kcal/mol)  B(A-1)   C(kcal/mol/A^6)
+Si O Buckingham Traditional   415176.39808  4.87318  3079.46096
+
+//Buckingham Modified    A (kcal/mol)  B(A-1)  C(kcal/mol/A^6) sigma    epsilon
+Si O Buckingham Modified 415179.721807 4.87318 3079.48551137   1.779239 0.02423780013
+
+//Types       re        alpha   beta    A (eV)  B (eV)  kappa   lambda
+Al Ni EAMZhou 2.71579   8.00443 4.75970 0.44254 0.68349 0.63279 0.81777
+// note that EAM force fields usually have the MetallicEnergyUnitScaling 
+// option set to 23.0605423 for energy units of A and B.
+
 end NonBondedInteractions
 \end{code}
 
@@ -2735,32 +2792,29 @@ LD & Langevin Dynamics & {\tt ensemble = LD;} \\
 \end{tabular}
 \end{center}
 
+These integrators allow the user to set target values for some
+thermodynamic variables, they conserve others exactly, and allow some
+conjugate property to float. For example, the {\tt NgammaT} integrator
+has target values for pressure ($P$), temperature ($T$) and lateral
+surface tension ($\gamma$).  It conserves particle number ($N$) and
+the $z$-box dimension ($H_{zz}$), while allowing the energy ($E$), and
+other box dimensions ($H_{xx}$, $H_{yy}$) to change.
 
-\begin{longtable}[c|c|c|c]{BAAA}
-  \caption{Integrators Implemented in OpenMD with their Floating,
-  Target, and Conserved Thermodynamic Quantities} \\
-  {\bf Integrator} & {\bf Floating Variables} &
-                                                {\bf Target Variables}
-& {\bf Conserved Quantity}  \\ 
+\begin{longtable}{BAAA}
+  \caption{Integrators implemented in OpenMD with their floating,
+  target, and conserved Thermodynamic Quantities.} \\
+  {\bf Integrator} & {\bf Floating Variables} & {\bf Target Variables} & {\bf Conserved Quantity}  \\ 
   \hline
 \endhead
 \hline
 \endfoot
-
-  NPA & E, T, H$_\mathrm{z,z}$ & P$_\mathrm{\hat{n}}$ & N,
-                                                        A$_\mathrm{xy}$
-  \\
-  NPAT & E, H$_\mathrm{z,z}$ & P$_\mathrm{\hat{n}}$, T & N,
-                                                         A$_\mathrm{xy}$
-  \\
+  NPA & E, T, H$_{zz}$ & P$_\mathrm{\hat{n}}$ & N, A$_{xy}$ \\
+  NPAT & E, H$_{zz}$ & P$_\mathrm{\hat{n}}$, T & N,  A$_{xy}$ \\
   NPTf & E, $\overset\leftrightarrow{\mathrm{H}}$ & P, T& N, G \\
-  NPTsz & E, H$_\mathrm{z,z}$, A$_\mathrm{xy}$ & P, T & N \\
+  NPTsz & E, H$_{zz}$, A$_{xy}$ & P, T & N \\
   NPTxyz & E, $\overset\leftrightarrow{\mathrm{H}}$ & P, T & N \\
-  NPrT & E, $\overset\leftrightarrow{\mathrm{H}}$ &
-                                                    P$_\mathrm{\hat{n}}$,
-                                                    $\gamma$, T & N \\
-  NgamaT & E, H$_\mathrm{x,x}$, H$_\mathrm{y,y}$ & P, T, $\gamma$ & N,
-                                                                    H$_\mathrm{z,z}$\\
+  NPrT & E, $\overset\leftrightarrow{\mathrm{H}}$ & P$_\mathrm{\hat{n}}$, $\gamma$, T & N \\
+  NgammaT & E, H$_{xx}$, H$_{yy}$ & P, T, $\gamma$ & N, $H_{zz}$\\
   NVT & E, P & T & N, V \\
   NVE & P, T & - & N, $\overset\leftrightarrow{\mathrm{H}}$, E \\
   LD & E & T & N, V \\
@@ -5405,16 +5459,16 @@ and {\tt nanorodBuilder}.
 
 \section{\label{section:atom2omd}atom2omd}
 
-{\tt atom2omd} attempts to construct {\tt .omd} files from a single file
-containing only atomic coordinate information.  To do this task, they
-make reasonable guesses about bonding from the distance between atoms
-in the coordinate, and attempt to identify other terms in the
-potential energy from the topology of the graph of discovered bonds.
-This procedure is not perfect, and the user should check the
-discovered bonding topology that is contained in the {\tt
-  $<$MetaData$>$} block in the file that is generated.
+{\tt atom2omd} attempts to construct {\tt .omd} files from files
+containing only atomic coordinate information. Reasonable guesses
+about bonding are made using the distance between atoms in the
+coordinate file.  Attempts are also made to identify other terms in
+the potential energy from the topology of the graph of discovered
+bonds.  This procedure is not perfect, and the user should check the
+discovered bonding topology in the {\tt $<$MetaData$>$} block in the
+file that is generated.
 
-Typically, the user would run:
+Typically, the user will run:
 
 {\tt atom2omd $<$input spec$>$ [Options]}
 
@@ -5443,7 +5497,6 @@ The options available for atom2omd are as follows:
 \multicolumn{2}{|l|}{The following file formats are recognized:}\\
 \hline
   ent & Protein Data Bank format \\
-  in & {\sc OpenMD} cartesian coordinates format \\
   pdb & Protein Data Bank format \\
   prep & Amber Prep format  \\
   xyz & XYZ cartesian coordinates format \\
@@ -5455,11 +5508,12 @@ using -H$<$format-type$>$, e.g. -Hpdb}
 \section{\label{section:SimpleBuilder}simpleBuilder}
 
 {\tt simpleBuilder} creates simple lattice structures.  It requires an
-initial, but skeletal {\sc OpenMD} file to specify the components that are to
-be placed on the lattice.  The total number of placed molecules will
-be shown at the top of the configuration file that is generated, and
-that number may not match the original meta-data file, so a new
-meta-data file is also generated which matches the lattice structure.
+initial, but skeletal {\sc OpenMD} file to specify the components that
+are to be placed on the lattice. The total
+number of placed molecules will be shown at the top of the
+configuration file that is generated.  That number may not match the
+original meta-data file, so a new meta-data file is also generated
+which matches the lattice structure.
 
 The options available for simpleBuilder are as follows:
 \begin{longtable}[c]{|EFG|}
@@ -5485,8 +5539,8 @@ that can be useful in simulating nanostructures.  Like the other
 builders, it requires an initial, but skeletal {\sc OpenMD} file to
 specify the component that is to be placed on the lattice.  The total
 number of placed molecules will be shown at the top of the
-configuration file that is generated, and that number may not match
-the original meta-data file, so a new meta-data file is also generated
+configuration file that is generated.  That number may not match the
+original meta-data file, so a new meta-data file is also generated
 which matches the lattice structure.
 
 The options available for icosahedralBuilder are as follows:
@@ -5524,24 +5578,25 @@ The options available for icosahedralBuilder are as follows:
    &{\tt -{}-truncatedCube} & Create a Truncated Cube (requires lattice)
 \end{longtable}
 
-\section{\label{section:slabBuilder}slabBuilder}
-{\tt slabBuilder} is a python script which generates {\tt .omd}
-and {\tt .xyz} files of cubic material (SC, FCC, or BCC) with a particular cut 
-(hlk) facing the z-axis of the box with {\tt --vacuum=true}, and 
-bulk crystals with {\tt --vacuum=false}. In both cases, the generated crystal will 
-be commensurate in all three dimensions. {\tt slabBuilder} requires the user to 
-specify the {\tt latticeConstant} in Angstroms for the desired material, and also
-the number of repeated units of the minimum cell by three
-separate integers using the {\tt --repeats} option. 
+\section{\label{section:slabBuilder}slabBuilder} 
+{\tt slabBuilder} generates {\tt .omd} and {\tt .xyz} files of cubic
+material (SC, FCC, or BCC) with a particular cut (hlk) facing the
+z-axis of the box with {\tt --vacuum=true}, and bulk crystals with
+{\tt --vacuum=false}. In both cases, the generated crystal will be
+commensurate in all three dimensions. {\tt slabBuilder} requires the
+user to specify the {\tt latticeConstant} in Angstroms for the desired
+material, and also the number of repeated units of the minimum cell by
+three separate integers using the {\tt --repeats} option.
 
-Be advised, while you are required to pass
-the script the {\tt elementType} at execution, there is no guarantee that the
-output {\tt .omd} file will have the correct {\tt forceField} selected. However, most metal
-forcefields included in {\tt OpenMD} are covered in the default {\tt MnM.frc} file. 
+Be advised that while you are required to pass the {\tt elementType}
+at execution, there is no guarantee that the output {\tt .omd} file
+will have the correct {\tt forceField} selected. However, many metals
+are covered in the default {\tt MnM.frc} file.
 
-Another option of the script, {\tt --chargedPlates} will generate metal plates at
-a defined {\tt --offSet} distance from the surface. These plates are composed
-of a default 20x20 {\tt kPoints} in the xy-plane. 
+Another option of the script, {\tt --chargedPlates} will generate
+metal plates at a defined {\tt --offSet} distance from the
+surface. These plates are composed of a default 20x20 {\tt kPoints} in
+the xy-plane.
 
 \begin{longtable}[c]{|EFG|}
 \caption{slabBuilder Command-line Options}
@@ -5573,14 +5628,14 @@ of a default 20x20 {\tt kPoints} in the xy-plane.
 {\tt Hydro} generates resistance tensor ({\tt .diff}) files which are
 required when using the Langevin integrator using complex rigid
 bodies.  {\tt Hydro} supports two approximate models: the {\tt
-BeadModel} and {\tt RoughShell}.  Additionally, {\tt Hydro} can
+  BeadModel} and {\tt RoughShell}.  Additionally, {\tt Hydro} can
 generate resistance tensor files using analytic solutions for simple
 shapes. To generate a {\tt }.diff file, a meta-data file is needed as
 the input file. Since the resistance tensor depends on these
 quantities, the {\tt viscosity} of the solvent and the temperature
 ({\tt targetTemp}) of the system must be defined in meta-data file. If
 the approximate model in use is the {\tt RoughShell} model the {\tt
-beadSize} (the diameter of the small beads used to approximate the
+  beadSize} (the diameter of the small beads used to approximate the
 surface of the body) must also be specified.
 
 The options available for Hydro are as follows:
@@ -5602,15 +5657,16 @@ hydrodynamic calculations will not be performed (default=off)\\
 \end{longtable}
 
 
-\section{\label{section:waterBoxer}waterBoxer}
-{\tt waterBoxer} builds cubic {\tt .omd} files of water, in either an FCC
-or SC lattice. The boxes of water
-can be generated with user defined {\tt -d} densities, as well as being 
-constructed with user defined {\tt -x}, {\tt -y}, and {\tt -z} 
-box dimensions. At runtime, the user must indicate the number of molecules
-to build the water lattice from. If the number of molecules specified is 
-insufficient to construct the lattice with the desired density, the user will
-be prompted to run the script again with a larger value for {\tt -n} molecules.
+\section{\label{section:waterBoxer}waterBoxer} 
+{\tt waterBoxer} builds cubic {\tt .omd} files of water, in either an
+FCC or SC lattice. The boxes of water can be generated with user
+defined {\tt -d} densities, as well as being constructed with user
+defined {\tt -x}, {\tt -y}, and {\tt -z} box dimensions. At runtime,
+the user must indicate the number of molecules to build the water
+lattice from. If the number of molecules specified is insufficient to
+construct the lattice with the desired density, the user will be
+prompted to run the script again with a larger value for {\tt -n}
+molecules.
 
 The options available for waterBoxer follows:
 \begin{longtable}[c]{|EG|}
@@ -5646,16 +5702,16 @@ the molecule) in the solute and solvent molecules must be specified.
 For example, {\tt rigidBodies} such as SPC/E water molecules are treated
 to have 1 atom, and united-atom hexane would be specified to have 6 atoms. 
 
-The script requires an
-{\tt output-file} to be specified, which will need to be edited before it
-can be ran using {\tt OpenMD}. Mainly, information about the molecule
-definitions (usually contained in ({\tt .inc}) files, as well as
-declaration of {\tt forceField} files. Be careful here, make sure that you
-only include one {\tt forceField} file in the newly generated 
-{\tt output-file}, and that the included {\tt forceField} contains
-information about both the molecules in the newly merged systems.
+The script requires an {\tt output-file} to be specified, which will
+require editing before it can be used with {\sc OpenMD}. Usually this
+consists of adding back information about the molecule definitions
+(usually contained in ({\tt .inc}) files, as well as the declaration
+of a {\tt forceField}. Be careful that only one {\tt forceField} file
+is included in the newly generated {\tt output-file}, and that the
+included {\tt forceField} contains information about all molecules in
+the merged systems.
 
-The options available for omd-solvator follows:
+The options available for {\tt omd-solvator} are:
 \begin{longtable}[c]{|EFG|}
 \caption{omd-solvator Command-line Options}
 \\ \hline
@@ -5673,18 +5729,18 @@ The options available for omd-solvator follows:
 \end{longtable} 
 
 
-\section{\label{section:omd2omd}omd2omd}
+\section{\label{section:omd2omd}omd2omd} 
 {\tt omd2omd} is a utility script which helps in replicating,
-rotating, and translating already built 
-{\tt OpenMD} {\tt .omd}, {\tt .dump}, and {\tt .eor} files. Using the {\tt -x}, {\tt -y}, 
-and {\tt -z} options, the user 
-is able to indicate an integer number of replicas they would like the
-system to be repeated. Likewise, using the {\tt -p}, {\tt -q}, and
-{\tt -r} options, the system is rotated along the traditional Euler
-angles, $\psi$, $\theta$, and $\phi$.
-In a similar way, the {\tt -t}, {\tt -u}, and {\tt -v} options allow the user to translate
-the x, y, and z coordinates of the systems by any amount. The script also automatically wraps all 
-{\tt stuntDoubles} back to the periodic box.
+rotating, and translating already built {\sc OpenMD} {\tt .omd}, {\tt
+  .dump}, and {\tt .eor} files. Using the {\tt -x}, {\tt -y}, and {\tt
+  -z} options, the user is able to indicate an integer number of
+replicas they would like the system to be repeated. Likewise, using
+the {\tt -p}, {\tt -q}, and {\tt -r} options, the system is rotated
+along the traditional Euler angles, $\psi$, $\theta$, and $\phi$.  In
+a similar way, the {\tt -t}, {\tt -u}, and {\tt -v} options allow the
+user to translate the x, y, and z coordinates of the systems by any
+amount. The script also automatically wraps all {\tt stuntDoubles}
+back to the periodic box.
 
 \begin{longtable}[c]{|EFG|}
 \caption{omd2omd Command-line Options}
@@ -5712,15 +5768,18 @@ the x, y, and z coordinates of the systems by any amount. The script also automa
 \end{longtable}
 
 
-\section{\label{section:affineScale}affineScale}
-{\tt affineScale} is a utility script which takes and {\tt OpenMD} {\tt .omd} or {\tt .eor}
-file and scales both the periodic box and the coordinates of all {\tt stuntDoubles} in 
-the system by the same amount. You can either specify a new volume scaling for isotropic
-coordinate scaling ({\tt -v}), or specify one (or more) of the coordinates for
-non-isotropic scaling ({\tt -x}, {\tt -y}, and/or {\tt -z}). This script is useful
-when constructing and equilibrating solid lattices, particularly once the solid has 
-been equilibrated to some appreciable temperature, and ringing is apparent in the
-volume component of the {\tt .stat} file.
+\section{\label{section:affineScale}affineScale} 
+
+{\tt affineScale} is a utility script which takes and {\sc OpenMD}
+{\tt .omd} or {\tt .eor} file and scales both the periodic box and the
+coordinates of all {\tt stuntDoubles} in the system by the same
+amount. You can either specify a new volume scaling for isotropic
+coordinate scaling ({\tt -v}), or specify one (or more) of the
+coordinates for non-isotropic scaling ({\tt -x}, {\tt -y}, and/or {\tt
+  -z}). This script is useful when constructing and equilibrating
+solid lattices, particularly once the solid has been equilibrated to
+some appreciable temperature, and ringing is apparent in the volume
+component of the {\tt .stat} file.
 
 \begin{longtable}[c]{|EFG|}
 \caption{affineScale Command-line Options}
@@ -5741,15 +5800,14 @@ volume component of the {\tt .stat} file.
 
 \chapter{\label{section:SampleConfigurations} Sample
   Configurations}
-Included along with {\tt OpenMD} is a vast directory of sample {\tt
-  .omd} files. In what follows are brief descriptions of some of the
-prepared sample configurations, to help guide further system
-construction and determing correct syntax form for analysis
-modules. The corresponding directories can be found within
-OpenMD/samples/
+Included with {\sc OpenMD} is a directory of sample {\tt .omd}
+files. We provide here brief descriptions of the sample configurations
+to help guide further system construction and aid in determining the
+correct syntax for analysis modules. The corresponding directories can
+be found in {\tt OpenMD/samples/}
 
 \subsection{Alkane}
-This directoy contains a sample {\tt .omd} file of bulk butane. Also
+This directory contains a sample {\tt .omd} file of bulk butane. Also
 in this directory is the {\tt alkanes.inc} file with molecule stamps
 for a large number of alkane molecules.
 
@@ -5762,24 +5820,23 @@ While this directory does not contain any sample {\tt .omd} files
 explicitly, it contains the precursors to generate one component,
 bimetallic, and three component samples. The {\tt runMe.in} file
 included in this directory contains 15 example scripts to generate
-corresponding metalic nanoparticles.
+corresponding metallic nanoparticles.
 
 \subsection{Graphene}
 Simulating graphene can be tricky, since the sheet often spans the
 boundaries of the simulation box, molecule definitions in the {\tt
   .inc} files must be carefully constructed. In this directory is a
 sample graphene {\tt .omd} file, and corresponding {\tt .frc} and {\tt
-  .inc} files. Also, a {\tt README.md} file contains extensive
-explanations on how to construct smaller or larger sheets of
-graphene. 
+  .inc} files. Also, a {\tt README.md} file contains explanations on
+how to construct smaller or larger sheets of graphene.
 
 \subsection{LangevinHull}
-The {\tt LangevinHull} is used for carrying out isobari-isothermal
+The {\tt LangevinHull} is used for carrying out isobaric-isothermal
 (NPT) simulations in non-periodic environments. In this directory,
 sample {\tt .omd} files include SPC/E water clusters, gold
 nanospheres, and a solvated gold nanosphere in liquid water. The {\tt
-  ReadMe.txt} contains more information about the keywords necessary
-to include in your {\tt .omd} files.
+  ReadMe.txt} contains more information about the keywords to include
+in your {\tt .omd} files to set up a Langevin Hull simulation.
 
 \subsection{Lipid}
 This directory contains an example of a 5x5 array of long lipid
@@ -5788,10 +5845,10 @@ is also present, and smaller or larger lipids can easily be
 constructed following the presented formalism. 
 
 \subsection{Metals}
-This directory contains a vast array of metal {\tt.omd} samples, gold,
-silver, copper, nickle, paladium, and platinum planar surfaces as well
-as gold and bimetallic nanospheres and nanorods. While many of these
-systems are easily constructed using other {\tt OpenMD} builder
+This directory contains an array of metal {\tt .omd} samples, gold,
+silver, copper, nickel, palladium, and platinum surfaces as well as
+gold and bimetallic nanospheres and nanorods. While many of these
+systems are easily constructed using other {\sc OpenMD} builder
 utility scripts, we have created several sample systems as examples.
 
 \subsection{RNEMD}
@@ -5803,7 +5860,7 @@ surface with thiolate ligands decorating the surface, as well as a
 PackMol script required to generate the ligand packing.
 
 \subsection{Water}
-{\tt OpenMD} supports a large number of water models, all of which can
+{\sc OpenMD} supports a large number of water models, all of which can
 be found in the {\tt Water.frc} file within the {\tt forceFields}
 directory. In the {\tt samples} directory, sample configurations of
 various water models are present. These include the SPC, SPC/E, TIP3P,
@@ -5813,9 +5870,10 @@ pyramidal, and secondary prism facets of a proton ordered
 ice-I$_\mathrm{h}$ crystal.
 
 \subsection{Zeolite}
-A sample zeolite configuration is also given in the {\tt OpenMD}
-distribution. CLAYFF is incorporated into {\tt OpenMD}, so following a
-similar construction many permutations of zeolites can be constructed.
+A sample zeolite configuration is also given in the {\sc OpenMD}
+distribution. The CLAYFF force field is included with {\sc OpenMD}, so
+following a similar construction many permutations of zeolites may be
+constructed.
 
 
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
@@ -5896,8 +5954,8 @@ to use.  All source code for {\sc OpenMD} is available for download at
 
 Development of {\sc OpenMD} was funded by a New Faculty Award from the
 Camille and Henry Dreyfus Foundation and by the National Science
-Foundation under grants CHE-0134881, CHE-0848243, and
-CHE-1362211. Computation time was provided by the Notre Dame
+Foundation under grants CHE-0134881, CHE-0848243, CHE-1362211, and
+CHE-1663773. Computation time was provided by the Notre Dame
 Bunch-of-Boxes (B.o.B) computer cluster under NSF grant DMR-0079647.
 
 \bibliographystyle{aip}
