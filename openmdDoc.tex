@@ -63,9 +63,9 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD-2.5}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-2.6}: Molecular Dynamics in the Open}
 
-\author{Patrick Louden, Hemanta Bhattarai, Suzanne
+\author{Hemanta Bhattarai, Patrick Louden, Suzanne
   Neidhart, \\
   Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Matthew
   A. Meineke, \\ Shenyu Kuang, Madan Lamichhane, Joseph Michalka, 
@@ -3036,19 +3036,19 @@ The NPTi integrator requires an instantaneous pressure. This quantity
 is calculated via the pressure tensor,
 \begin{equation}
 \overleftrightarrow{\mathsf{P}}(t) = \frac{1}{\mathcal{V}(t)} \left(
-\sum_{i=1}^{N} m_i {\bf v}_i(t) \otimes {\bf v}_i(t) \right) +
-\overleftrightarrow{\mathsf{W}}(t).
+\sum_{i=1}^{N} m_i {\bf v}_i(t) \otimes {\bf v}_i(t) +
+\overleftrightarrow{\mathsf{W}}(t) \right).
 \end{equation}
 The kinetic contribution to the pressure tensor utilizes the {\it
 outer} product of the velocities, denoted by the $\otimes$ symbol.  The
-stress tensor is calculated from another outer product of the
+virial tensor is calculated from another outer product of the
 inter-atomic separation vectors (${\bf r}_{ij} = {\bf r}_j - {\bf
 r}_i$) with the forces between the same two atoms,
 \begin{equation}
 \overleftrightarrow{\mathsf{W}}(t) = \sum_{i} \sum_{j>i} {\bf r}_{ij}(t)
 \otimes {\bf f}_{ij}(t).
 \end{equation}
-In systems containing cutoff groups, the stress tensor is computed
+In systems containing cutoff groups, the virial tensor is computed
 between the centers-of-mass of the cutoff groups:
 \begin{equation}
 \overleftrightarrow{\mathsf{W}}(t) = \sum_{a} \sum_{b} {\bf r}_{ab}(t)
