@@ -65,10 +65,11 @@
 
 \title{{\sc OpenMD-2.6}: Molecular Dynamics in the Open}
 
-\author{Hemanta Bhattarai, Patrick Louden, Suzanne
-  Neidhart, \\
+\author{Hemanta Bhattarai, Cody Drisko, Anderson D.S. Duraes,\\
   Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Matthew
-  A. Meineke, \\ Shenyu Kuang, Madan Lamichhane, Joseph Michalka, 
+  A. Meineke, \\
+   Patrick Louden,  Suzanne Neidhart,\\
+   Shenyu Kuang, Madan Lamichhane, Joseph Michalka, 
   Kelsey Stocker, James Marr, \\ Xiuquan Sun,
   Chunlei Li,  Kyle Daily, Yang Zheng, \\ and \\
   J. Daniel Gezelter \\ \\
@@ -82,7 +83,7 @@
 
 {\sc OpenMD} is an open source molecular dynamics engine which is
 capable of efficiently simulating liquids, proteins, nanoparticles,
-interfaces, and other complex systems using atom types with
+interfaces, metals, and other complex systems using atom types with
 orientational degrees of freedom (e.g. ``sticky'' atoms, point
 multipoles, and coarse-grained assemblies). It is a test-bed for new
 molecular simulation methodology, but is also efficient and easy to
@@ -2107,6 +2108,10 @@ V_{\text{NB}}(r) = 4 \epsilon_{ij} \left(
 \item {\tt EAMZhou} (pair potential only):
 \begin{equation*}
   V_{\text{NB}}(r) = \frac{ A \exp\left[-\alpha (r/r_e -1)\right]}{1+(r/r_e - \kappa)^{20}} -  \frac{ B \exp\left[-\beta (r/r_e -1)\right]}{1+(r/r_e - \lambda)^{20}}
+\end{equation*}
+\item {\tt InversePowerSeries}:
+\begin{equation*}
+  V_{\text{NB}}(r) = \sum_{n} \frac{ c_n }{ r_{ij}^n}.
 \end{equation*}
 
 \end{itemize}
@@ -4969,14 +4974,25 @@ The options available for {\tt StaticProps} are as follows:
                                                   statistics be
                                                   accumulated along,
                                                   default=z \\
-                                         
 
+      & {\tt -{}-privilegedAxis2={x,y,z}} & Which axis is special
+                                            for spatial analysis,
+                                            default=x \\
+      & {\tt -{}-momentum={P,J}}         &  Type of momentum
+                                          distribution (default=P,
+                                          Linear Momentum) \\                         & {\tt -{}-component={x,y,x}}    & Which component of momentum is
+                                        sampled for the momemtum 
+                                                                                                                        distribution, default=z \\
+                                      
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
-    & {\tt -{}-bo}          & bond order parameter ({\tt -{}-rcut} must be specified) \\
-    & {\tt -{}-bor}         & bond order parameter as a function of
-    radius  ({\tt -{}-rcut} must be specified) \\
+    & {\tt -{}-bo}          & bond order parameter ({\tt -{}-rcut}
+                              must be specified) \\
+    & {\tt -{}-ior}        & icosahedral bond order parameter as a function
+                                  of radius ({\tt -{}-rcut} must be specified)\\
+    & {\tt -{}-for}        & FCC bond order parameter as a function of
+                                  radius ({\tt -{}-rcut} must be specified)\\
     & {\tt -{}-bad}         & $N(\theta)$ bond angle density within ({\tt -{}-rcut} must be specified) \\
     & {\tt -{}-count}       & count of molecules matching selection
     criteria (and associated statistics) \\
@@ -4985,19 +5001,23 @@ The options available for {\tt StaticProps} are as follows:
     &  {\tt -{}-r\_theta}                &  $g(r, \cos(\theta))$ \\
     &  {\tt -{}-r\_omega}                &  $g(r, \cos(\omega))$ \\
     &  {\tt -{}-r\_z}                    &  $g(r, z)$ \\
-    &  {\tt -{}-theta\_omega}            &  $g(\cos(\theta), \cos(\omega))$ \\
+    &  {\tt -{}-theta\_omega}            &  $g(\cos(\theta),
+                                           \cos(\omega))$ \\
+    &  {\tt -{}-r\_theta\_omega}         &  $g(r, \cos(\theta), \cos(\omega))$ \\
     &  {\tt -{}-gxyz}                    &  $g(x, y, z)$ \\
     &  {\tt -{}-twodgofr}                & 2D $g(r)$ (Slab width {\tt -{}-dz} must be specified)\\
   -p&  {\tt -{}-p2}                      &  $P_2$ order parameter  ({\tt -{}-sele1} must be specified, {\tt -{}-sele2} is optional) \\
     &  {\tt -{}-rp2}                     &  Ripple order parameter ({\tt -{}-sele1} and {\tt -{}-sele2} must be specified) \\
     &  {\tt -{}-scd}                     &  $S_{CD}$ order parameter(either {\tt -{}-sele1}, {\tt -{}-sele2}, {\tt -{}-sele3} are specified or {\tt -{}-molname}, {\tt -{}-begin}, {\tt -{}-end} are specified) \\
   -d&  {\tt -{}-density}                 &  density plot \\
-    &  {\tt -{}-slab\_density}           &  slab density \\
+    &  {\tt -{}-slab\_density}           &  slab density, $\rho(z)$ \\
+    &  {\tt -{}-pipe\_density}           &  slab density,
+                                           $\rho(\mathrm{axis1}, \mathrm{axis2})$\\
     &  {\tt -{}-p\_angle}                & $p(\cos(\theta))$ ($\theta$
     is the angle between molecular axis and radial vector from origin\\
     &  {\tt -{}-hxy}                     & Calculates the undulation  spectrum, $h(x,y)$, of an interface \\
     &  {\tt -{}-rho\_r}                  & $\rho(r)$\\
-    &  {\tt -{}-angle\_r}                &  $\theta(r)$ (spatially resolves the
+    &  {\tt -{}-angle\_r}                & $\theta(r)$ (spatially resolves the
     angle between the molecular axis and the radial vector from the
     origin)\\
     &  {\tt -{}-hullvol}                 & hull volume of nanoparticle\\
@@ -5036,7 +5056,14 @@ The options available for {\tt StaticProps} are as follows:
                                   molecules \\
   -k& {\tt -{}-kirkwood}                & distance-dependent Kirkwood factor \\
     &  {\tt -{}-kirkwoodQ}              &  distance-dependent Kirkwood factor for
-                                  quadrupoles
+                                  quadrupoles \\
+ &  {\tt -{}-densityfield}           & density field\\
+ &  {\tt -{}-velocityfield}          & velocity field\\
+&  {\tt -{}-velocityZ}               & two-dimensional velocity map \\
+  -D&  {\tt -{}-eam\_density}         & EAM density profile \\
+  -q&  {\tt -{}-net\_charge}          & charge profile \\
+  -J&  {\tt  -{}-current\_density}    & current density \\
+  -M&  {\tt -{}-momentum\_distribution} &  momentum distribution
 \end{longtable}
 
 \subsection{\label{section:SequentialProps}SequentialProps}
@@ -5177,6 +5204,11 @@ The options available for DynamicProps are as follows:
     & {\tt -{}-thetacut=DOUBLE}        & HOO cutoff angle (degrees)  (default=`30')\\
     & {\tt -{}-OHcut=DOUBLE}           & Oxygen-Hydrogen cutoff radius (angstroms)
                                   (default=`2.45')\\
+    & {\tt -{}-privilegedAxis={x,y,z}} & Which axis should
+                                                  statistics be
+                                                  accumulated along,
+                                                  default=z \\
+
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
@@ -5189,6 +5221,9 @@ The options available for DynamicProps are as follows:
     & {\tt -{}-vcorrZ}                 & velocity correlation function along z-axis\\
     & {\tt -{}-vcorrR}                 & velocity correlation function projected
                                   radially\\
+  -w& {\tt -{}-wcorr}                  & charge velocity autocorrelation
+                                         function \\
+
   -d& {\tt -{}-dcorr}                  & dipole correlation function \\
   -l& {\tt -{}-lcorr}                  & Lengendre correlation function \\
     & {\tt -{}-lcorrZ}                 & Lengendre correlation function binned by $z$ \\
@@ -5203,7 +5238,24 @@ The options available for DynamicProps are as follows:
                                          function\\
   -b& {\tt -{}-bondcorr}               & Bond extension correlation function\\
   -f& {\tt -{}-freqfluccorr}           & Frequency Fluctuation correlation function\\
-  -j& {\tt -{}-jumptime}               & Hydrogen bond jump time correlation function
+  -j& {\tt -{}-jumptime}               & Hydrogen bond jump time
+                                         correlation function \\
+    & {\tt -{}-jumptimeZ}               & Hydrogen bond jump time correlation function
+                                  binned by Z \\
+    & {\tt -{}-persistence}               & Hydrogen bond persistence correlation function\\
+    & {\tt -{}-pjcorr}               & Momentum - Angular Momentum cross correlation
+                                  function \\
+    & {\tt -{}-ftcorr}               & Force - Torque cross
+                                       correlation function \\
+    & {\tt -{}-facorr}               & Force - Force auto correlation
+                                       function \\
+    & {\tt -{}-tfcorr}               & Torque - Force Cross
+                                       correlation function \\
+    & {\tt -{}-tacorr}               & Torque auto correlation
+                                       function \\
+    & {\tt -{}-disp}               & Displacement correlation function \\
+    & {\tt -{}-dispZ}               & Displacement correlation
+                                      function binned by Z
 \end{longtable}
 
 
@@ -5927,6 +5979,61 @@ $\mathcal{O}(N/\sqrt{P})$ in communication cost. Plimpton has also
 found that force decompositions scale more favorably than spatial
 decompositions for systems up to 10,000 atoms and favorably compete
 with spatial methods up to 100,000 atoms.\cite{plimpton95}
+
+There is one interesting issue with of how OpenMD distributes load on
+parallel (MPI) architectures.  At the very beginning of a parallel
+simulation, the molecules are distributed among the processors using a
+short Monte Carlo procedure to divide the labor.  This ensures that
+each processor has an approximately equal number of atoms to work
+with, and that the row- and column-distribution of atoms in the force
+decomposition is roughly equitable. The Monte Carlo procedure
+involves the use of a pseudo-random number to make processor
+assignments. So, if you run the same parallel simulation multiple
+times, the distribution of atoms on the processors can change from run
+to run.
+
+One thing that many people forget is a specific limitation of floating
+point arithmetic.  Due to roundoff errors, the associative laws of
+algebra do not necessarily hold for floating-point numbers. For
+example, on a computer, the sum
+\begin{equation*}
+(x+y)+z
+\end{equation*}
+can have a different answer than
+\begin{equation*}
+x+(y+z)
+\end{equation*}
+when $x = 10^{30}$, $y = -10^{30}$ and $z = 1$.  In the first case,
+the answer we get is 1, while roundoff might give us 0 for the second
+expression.  The addition-ordering roundoff issue can have effects on
+a simulation that are somewhat subtle.  If you add up the forces on an
+atom in a different order, the total force might change by a small
+amount (perhaps 1 part in $10^{10}$). When we use this force to move that
+atom, we’ll be off by a small amount (perhaps 1 part in $10^9$). These
+small errors can start to make real differences in the {\it microstate} of a
+simulation (i.e. the configuration of the atoms), but shouldn’t alter
+the {\it macrostate} (i.e. the temperature, pressure, etc.).
+
+That said, whenever there’s a random element to the order in which
+quantities are added up, we can get simulations that are not
+reproducible.  And non-reproducibility is, in general, not good.  So,
+how do we get around this issue in OpenMD?  We let the user introduce
+a static seed for the random number generator that ensures that we
+always start with exactly the same set of pseudo-random numbers.  If
+we seed the random number generator, then on the same number of
+processors, we’ll always get the same division of atoms, and we’ll get
+reproducible simulations.
+
+To use this feature simply add a seed value to your {\tt <MetaData>} section:
+
+{\tt seed = 8675309;}
+
+This seed can be any large positive integer (an {\tt unsigned long int}).
+
+Once the seed is set, you can run on MPI clusters and be reasonably
+sure of getting reproducible simulations for runs with the same number
+of processors.  However, if you mix runs of different numbers of
+processors, then the roundoff issue will reappear.
  
 \chapter{\label{section:conclusion}Conclusion}
 
