@@ -5494,6 +5494,89 @@ origin.
                                      (mandatory) \\
 \end{longtable}
 
+
+
+\section{elasticConstants}
+
+{\tt elasticConstants} computes the general elastic constants that
+relate stress and strain for a given input configuration.  For
+sufficiently small deformations, the Lagrangian stress ($\tau$) and
+strain ($\eta$) are related by generalized Hooke's law
+\begin{equation}
+    \tau_{\alpha\beta} = \sum_{\gamma,\delta=\{x,y,z\}} c_{\alpha\beta\gamma\delta} \,\eta_{\gamma\delta}
+\end{equation}
+where the coefficients $c_{\alpha\beta\gamma\delta}$ are components of the fourth-rank stiffness tensor. This can be expressed in a more condensed form,
+\begin{equation}
+    \tau_i=\sum_{j=1}^6 C_\mathrm{ij} \eta_j
+\end{equation}
+These tensors are in Voigt notation. Values for the two indices $(i, j)$ from 1--6 denote locations in the rank 2 tensors, $1\mapsto xx, 2\mapsto  yy, 3\mapsto zz, 4 \mapsto yz, 5 \mapsto xz, 6 \mapsto xy$.
+
+Bulk elastic properties may computed by first obtaining the elastic
+tensor, $C_{ij}$ using the Energy vs. Strain method of Yu \textit{et
+  al.},\cite{Yu:2010qm,Golesorkhtabar:2013cr} or equivalently, the
+linear Stress vs. Strain relationship above. Once the elastic tensor
+is known, the elastic constants can be computed using the same
+definitions that are utilized by the Materials
+Project.\cite{Jong:2015bs,Gaillac:2016eu} Notably, the bulk modulus,
+$B$, can be computed using the Voigt average,\cite{Jong:2015bs}
+\begin{equation}
+    9 B_V =\left(C_{11}+C_{22}+C_{33}\right) +2\left(C_{12}+C_{23}+C_{31}\right)
+\label{eq:BM}
+\end{equation}
+The shear modulus, $G$, may also computed using the Voigt average,
+\begin{equation}
+    15 G_V =\left(C_{11}+C_{22}+C_{33}\right) - \left(C_{12}+C_{23} + C_{31}\right) +3\left(C_{44}+C_{55}+C_{66}\right) 
+\label{eq:SM}
+\end{equation}
+Poisson's ratio $(\sigma)$ is a dimensionless number describing the
+lateral response to loading. Once the bulk and shear moduli computed
+above are known, they may be used to calculate Poisson's ratio.
+\begin{equation}
+\sigma = \frac{3\,B - 2\,G}{6\,B+2\,G}    
+\end{equation}
+Similar relationships can be made using the compliance tensor,
+\begin{equation}
+  s = C^{-1}
+\end{equation}
+instead of the elastic tensor, and these averages are called the
+``Reuss averages'' for the bulk modulus,
+\begin{equation}
+    \frac{1}{B_R} =\left(s_{11}+s_{22}+s_{33}\right) +2\left(s_{12}+s_{23}+s_{31}\right),
+\label{eq:BMR}
+\end{equation}
+and shear modulus:
+\begin{equation}
+    \frac{15}{G_R} =4 \left(s_{11}+s_{22}+s_{33}\right) -
+    4\left(s_{12}+s_{23} + s_{31}\right) +3 \left(s_{44}+s_{55}+s_{66}\right) 
+\label{eq:SMr}
+\end{equation}
+The Voigt and Reuss averages are respectively upper and lower bounds
+on the elastic constants for polycrystalline materials.   {\tt
+  elasticConstants} computes both sets of averages as well as means
+(known as the ``Hill average'').  
+
+\newpage
+
+\begin{longtable}[c]{|EFG|}
+\caption{elasticConstants command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -v& {\tt -{}-version}          & print version and exit \\
+  -i& {\tt -{}-input}        & use specified input file name
+                               (mandatory) \\
+  -b& {\tt -{}-box}          &  Optimize box geometry before performing calculation
+                         (default=off) \\
+  -m& {\tt -{}-method={energy,stress}} & Calculation Method \\
+  -n& {\tt -{}-npoints} &   number of points for fitting
+                         stress-strain relationship  (default=`25') \\
+  -d& {\tt -{}-delta}  & size of relative volume changes for strains
+\end{longtable}
+
+
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
 {\sc OpenMD} comes with a few utility programs to aid in setting up
