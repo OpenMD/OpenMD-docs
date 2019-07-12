@@ -2,6 +2,7 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{times}
+\usepackage{newtxtext,newtxmath}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{setspace}
@@ -3537,7 +3538,7 @@ solvent  \\
 {\tt targetTemp} & K & Sets the target temperature of the system.
 This parameter must be specified to use Langevin dynamics. \\ 
 {\tt HydroPropFile} & string & Specifies the name of the resistance
-tensor (usually a {\tt .diff} file) which is precalculated by {\tt
+tensor (usually a {\tt .hydro} file) which is precalculated by {\tt
 Hydro}. This keyword is not necessary if the simulation contains only
 simple bodies (spheres and ellipsoids). \\ 
 {\tt beadSize} & $\mbox{\AA}$ & Sets the diameter of the beads to use
@@ -5555,8 +5556,6 @@ on the elastic constants for polycrystalline materials.   {\tt
   elasticConstants} computes both sets of averages as well as means
 (known as the ``Hill average'').  
 
-\newpage
-
 \begin{longtable}[c]{|EFG|}
 \caption{elasticConstants command-line Options}
 \\ \hline
@@ -5570,9 +5569,9 @@ on the elastic constants for polycrystalline materials.   {\tt
                                (mandatory) \\
   -b& {\tt -{}-box}          &  Optimize box geometry before performing calculation
                          (default=off) \\
-  -m& {\tt -{}-method={energy,stress}} & Calculation Method \\
+  -m& {\tt -{}-method=\{``energy'',``stress''\}} & Calculation Method \\
   -n& {\tt -{}-npoints} &   number of points for fitting
-                         stress-strain relationship  (default=`25') \\
+                         stress-strain relationship  (default=25) \\
   -d& {\tt -{}-delta}  & size of relative volume changes for strains
 \end{longtable}
 
@@ -5760,18 +5759,18 @@ the xy-plane.
 
 
 \section{\label{section:Hydro}Hydro}
-{\tt Hydro} generates resistance tensor ({\tt .diff}) files which are
+{\tt Hydro} generates hydrodynamic resistance tensor ({\tt .hydro}) files which are
 required when using the Langevin integrator using complex rigid
 bodies.  {\tt Hydro} supports two approximate models: the {\tt
   BeadModel} and {\tt RoughShell}.  Additionally, {\tt Hydro} can
 generate resistance tensor files using analytic solutions for simple
-shapes. To generate a {\tt }.diff file, a meta-data file is needed as
+shapes. To generate a {\tt .hydro} file, a meta-data file is needed as
 the input file. Since the resistance tensor depends on these
 quantities, the {\tt viscosity} of the solvent and the temperature
 ({\tt targetTemp}) of the system must be defined in meta-data file. If
 the approximate model in use is the {\tt RoughShell} model the {\tt
   beadSize} (the diameter of the small beads used to approximate the
-surface of the body) must also be specified.
+surface of the body) must also be specified on the command line.
 
 The options available for Hydro are as follows:
 \begin{longtable}[c]{|EFG|}
@@ -5783,12 +5782,16 @@ The options available for Hydro are as follows:
 \endfoot
   -h& {\tt -{}-help}               & Print help and exit\\
   -V& {\tt -{}-version}            & Print version and exit\\
-  -i& {\tt -{}-input=filename}     & input MetaData (md) file\\
-  -o& {\tt -{}-output=STRING}      & Output file name\\
-   &  {\tt -{}-model=STRING}     & hydrodynamics model (supports both
-{\tt RoughShell} and {\tt BeadModel})\\
+  -i& {\tt -{}-input=filename}     & input MetaData (omd) file\\
+  -o& {\tt -{}-output=STRING}      & output file prefix (default = `hydro')\\
+   &  {\tt -{}-model=\{``RoughShell'',``BeadModel''\}}  & hydrodynamics
+                                                       model, default
+                                                       is
+                                                       ``RoughShell'' \\
+  -s& {\tt -{}-beadSize=DOUBLE} & bead size for RoughShell model in angstroms
+                           (default=0.2) \\
   -b&  {\tt -{}-beads}            & generate the beads only,
-hydrodynamic calculations will not be performed (default=off)\\
+                                    hydrodynamic calculations will not be performed (default=off)
 \end{longtable}
 
 
