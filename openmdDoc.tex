@@ -1,7 +1,8 @@
 \documentclass[]{book}
 \usepackage{amssymb}
 \usepackage{amsmath}
-\usepackage{times}
+%\usepackage{times}
+\usepackage[T1]{fontenc}
 \usepackage{newtxtext,newtxmath}
 \usepackage{listings}
 \usepackage{graphicx}
@@ -2078,13 +2079,13 @@ V_{\text{NB}}(r) = 4 \epsilon_{ij} \left(
 \item {\tt ShiftedMorse}:
 \begin{equation*}
  V_{\text{NB}}(r) = D_{ij} \left( e^{-2 \beta_{ij} (r -
-     r^0)} - 2 e^{- \beta_{ij} (r -
-     r^0)} \right),
+     r_0)} - 2 e^{- \beta_{ij} (r -
+     r_0)} \right),
 \end{equation*}
 \item {\tt RepulsiveMorse}:
 \begin{equation*}
  V_{\text{NB}}(r) = D_{ij} \left( e^{-2 \beta_{ij} (r -
-     r^0)} \right),
+     r_0)} \right),
 \end{equation*}
 \item {\tt RepulsivePower}:
 \begin{equation*}
@@ -2104,7 +2105,7 @@ V_{\text{NB}}(r) = 4 \epsilon_{ij} \left(
 \end{equation*}
 \item {\tt Buckingham Modified}:
 \begin{equation*}
-  V_{\text{NB}}(r) = A \exp( -B r) - \frac{C}{r^6} + 4 \epsilon \left( \left( \frac{\sigma}{r} \right)^30 - \left( \frac{\sigma}{r} \right)^6 \right).
+  V_{\text{NB}}(r) = A \exp( -B r) - \frac{C}{r^6} + 4 \epsilon \left( \left( \frac{\sigma}{r} \right)^{30} - \left( \frac{\sigma}{r} \right)^6 \right).
 \end{equation*}
 \item {\tt EAMZhou} (pair potential only):
 \begin{equation*}
@@ -4872,29 +4873,29 @@ StaticProps which bodies to include in the calculation.
 \begin{description}
 \item[{\tt -{}-gofr}] Computes the pair distribution function,
 \begin{equation*}
-g_{AB}(r) = \frac{1}{\rho_B}\frac{1}{N_A} \langle \sum_{i \in A}
-\sum_{j \in B} \delta(r - r_{ij}) \rangle
+g_{AB}(r) = \frac{1}{\rho_B}\frac{1}{N_A} \left\langle \sum_{i \in A}
+\sum_{j \in B} \delta(r - r_{ij}) \right\rangle
 \end{equation*}
 \item[{\tt -{}-r\_theta}] Computes the angle-dependent pair distribution
 function. The angle is defined by the intermolecular vector $\vec{r}$ and
 $z$-axis of DirectionalAtom A,
 \begin{equation*}
-g_{AB}(r, \cos \theta) = \frac{1}{\rho_B}\frac{1}{N_A} \langle \sum_{i \in A}
-\sum_{j \in B} \delta(r - r_{ij}) \delta(\cos \theta_{ij} - \cos \theta)\rangle
+g_{AB}(r, \cos \theta) = \frac{1}{\rho_B}\frac{1}{N_A} \left\langle \sum_{i \in A}
+\sum_{j \in B} \delta(r - r_{ij}) \delta(\cos \theta_{ij} - \cos \theta)\right\rangle
 \end{equation*}
 \item[{\tt -{}-r\_omega}] Computes the angle-dependent pair distribution
 function. The angle is defined by the $z$-axes of the two
 DirectionalAtoms A and B. 
 \begin{equation*}
-g_{AB}(r, \cos \omega) = \frac{1}{\rho_B}\frac{1}{N_A} \langle \sum_{i \in A}
-\sum_{j \in B} \delta(r - r_{ij}) \delta(\cos \omega_{ij} - \cos \omega)\rangle
+g_{AB}(r, \cos \omega) = \frac{1}{\rho_B}\frac{1}{N_A} \left\langle \sum_{i \in A}
+\sum_{j \in B} \delta(r - r_{ij}) \delta(\cos \omega_{ij} - \cos \omega)\right\rangle
 \end{equation*}
 \item[{\tt -{}-theta\_omega}] Computes the pair distribution in the angular
 space $\theta, \omega$ defined by the two angles mentioned above.
 \begin{equation*}
-g_{AB}(\cos\theta, \cos \omega) = \frac{1}{\rho_B}\frac{1}{N_A} \langle \sum_{i \in A}
-\sum_{j \in B} \langle \delta(\cos \theta_{ij} - \cos \theta)
-\delta(\cos \omega_{ij} - \cos \omega)\rangle
+g_{AB}(\cos\theta, \cos \omega) = \frac{1}{\rho_B}\frac{1}{N_A} \left\langle \sum_{i \in A}
+\sum_{j \in B} \delta(\cos \theta_{ij} - \cos \theta)
+\delta(\cos \omega_{ij} - \cos \omega)\right\rangle
 \end{equation*}
 \item[{\tt -{}-gxyz}] Calculates the density distribution of particles of type
 B in the body frame of particle A. Therefore, {\tt -{}-originsele} and
@@ -5351,12 +5352,13 @@ information is available from the help prompt ({\tt -h}) from
 This script assumes the fluctuation formula appropriate for conducting
 boundaries:
 \begin{equation}
-\epsilon_\mathrm{A} = 1 + \frac{<M^{2}> -
-  <M>^{2}}{3k_{B}<T><V>\epsilon_{0}}
+\epsilon_\mathrm{A} = 1 + \frac{\left\langle M^{2}\right\rangle -
+  \left\langle M \right\rangle^{2}}{3k_{B}\left\langle T\right\rangle
+  \left\langle V \right\rangle \epsilon_{0}}
 \end{equation}
 where $\epsilon_\mathrm{A}$ is the dielectric constant of the system,
-$M$ is the total dipole moment of the simulation box,$<V>$ is the
-average volume of the box, $<T>$ is the average temperature of the
+$M$ is the total dipole moment of the simulation box,$\langle V \rangle$ is the
+average volume of the box, $\langle T \rangle$ is the average temperature of the
 box, $\epsilon_{0}$ is the permittivity of a vacuum, and $k_{B}$ is
 Boltzmann's constant. 
 
@@ -5399,22 +5401,23 @@ P_{t}(z) = ( P_{xx} + P_{yy}) / 2
 The surface tension is defined using the normal and tangential
 components of the pressure,
 \begin{equation}
-\gamma = \int_{-\infty}^{\infty} (P_{n} - P_{t}(z)) dz.
+\gamma = \int_{-\infty}^{\infty} \left(P_{n} - P_{t}(z)\right) dz.
 \end{equation} 
 
 The tangential pressure is different from the normal pressure only in
 the vicinity of the interfaces, so the net surface tension for the
 system can be simplified:
 \begin{equation}
-\gamma = L_{z} (P_{n} - <P_{t}>)
+\gamma = L_{z} \left( P_{n} - \langle P_{t} \rangle \right)
 \end{equation}
-where $<P_{t}>$ is the statistical average of the tangential pressure.
+where $\langle P_{t} \rangle$ is the statistical average of the
+tangential pressure.
 
 In practice, many surface tension simulations comprise two regions,
 with one material in each region.  Periodic boundary conditions then
 require two interfaces, so
 \begin{equation}
-  \gamma = L_{z} (P_{n} - <P_{t}>)
+  \gamma = L_{z} \left(P_{n} - \langle P_{t} \rangle \right)
 \end{equation}
 
 \begin{longtable}[c]{|EFG|}
@@ -5465,13 +5468,15 @@ below, and further information is available from the help prompt ({\tt
 
 The Green-Kubo formulae option will compute: 
 \begin{equation}
-V*<(P(t)-<P>)*(P(0)-<P>)>/kT ,
+V \langle \left(P(t)-\langle P \rangle \right) \cdot \left(P(0)-\langle P
+  \rangle \right)\rangle / k_B T ,
 \end{equation}
 which may be integrated to give a slowly-converging value for the viscosity.
 
 The Einstein relation option will compute: 
 \begin{equation}
-V*<(\int_0^t (P(t')-<P>)dt')^2>/2kT,
+V \left\langle \left( \int_0^t \left(P(t')- \langle P\rangle
+    \right) dt' \right)^2 \right\rangle / 2 k_b T,
 \end{equation}
 which will grow approximately linearly in time.  The long-time slope of this
 function will be the viscosity.
@@ -5750,7 +5755,12 @@ the xy-plane.
   perpindicular directions (specify with three separate integers) \\
   -e& {\tt -{}-elementType}        & the element composing the lattice (only single
   element lattices are supported) \\
-  -v& {\tt -{}-vacuum}             & should the output (.omd) file have vacuum in the z-dimension? (true / false) \\
+  -v& {\tt -{}-vacuum}             & should the output (.omd) file
+                                     have vacuum in the z-dimension?
+                                     (true / false) \\
+  -d& {\tt -{}-directional}        & Output atoms with orientational
+                                     degrees of freedom (i.e. pvqj
+                                     fields instead of pv fields) \\ 
   -q& {\tt -{}-chargedPlates}      & should the output (.omd) file include metal plates in the vacuum space? (true / false) \\
   -k& {\tt -{}-kPoints}            & number of points to be used in the charged plates (default=400) \\
   -s& {\tt -{}-offSet}             & the distance the charges plates will be placed from the surface \\
@@ -5796,17 +5806,12 @@ The options available for Hydro are as follows:
 
 
 \section{\label{section:waterBoxer}waterBoxer} 
-{\tt waterBoxer} builds cubic {\tt .omd} files of water, in either an
-FCC or SC lattice. The boxes of water can be generated with user
-defined {\tt -d} densities, as well as being constructed with user
-defined {\tt -x}, {\tt -y}, and {\tt -z} box dimensions. At runtime,
-the user must indicate the number of molecules to build the water
-lattice from. If the number of molecules specified is insufficient to
-construct the lattice with the desired density, the user will be
-prompted to run the script again with a larger value for {\tt -n}
-molecules.
 
-The options available for waterBoxer follows:
+{\tt waterBoxer} builds {\tt .omd} files of water, in either an FCC or
+SC lattice. The boxes of water can be generated with user defined {\tt
+  -d} densities, as well as being constructed with user defined {\tt
+  -x}, {\tt -y}, and {\tt -z} box dimensions.  The options available
+for waterBoxer follows:
 \begin{longtable}[c]{|EG|}
 \caption{waterBoxer Command-line Options}
 \\ \hline
@@ -5819,8 +5824,9 @@ The options available for waterBoxer follows:
   -r               & randomize the orientations of the water molecules \\
   -v               & verbose output (water model defined in .omd file) \\
   -d               & density in g/cm$^3$ (default 1) \\
+  -c               & default overlap cutoff for spacing water
+                     molecules (default 3.2) \\
   -l               & 0 $-$ FCC lattice, 1 $-$ SC lattice  \\
-  -n               & number of water molecules to attempt to build lattice with \\
   -o               & output file name \\
   -w               & name of the water stuntDouble \\
 \end{longtable}
@@ -5908,7 +5914,7 @@ back to the periodic box.
 
 \section{\label{section:affineScale}affineScale} 
 
-{\tt affineScale} is a utility script which takes and {\sc OpenMD}
+{\tt affineScale} is a utility script which takes an {\sc OpenMD}
 {\tt .omd} or {\tt .eor} file and scales both the periodic box and the
 coordinates of all {\tt stuntDoubles} in the system by the same
 amount. You can either specify a new volume scaling for isotropic
@@ -5933,6 +5939,24 @@ component of the {\tt .stat} file.
   -y& {\tt -{}-newY}               & scale the system to a new y dimension \\
   -z& {\tt -{}-newZ}               & scale the system to a new z dimension \\
   -v& {\tt -{}-newV}               & scale the system to a new volume \\
+\end{longtable}
+
+\section{\label{section:omdLast}omdLast} 
+
+{\tt omdLast} is a utility script which extracts the last good frame
+from an {\sc OpenMD}
+{\tt .dump} file and places it in a new {\tt .omd} file.  This is
+particularly useful for starting a run from a crashed or terminated job.
+
+\begin{longtable}[c]{|EFG|}
+\caption{omdLast Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -m& {\tt -{}-meta-data}          & use specified OpenMD (.dump) file \\
 \end{longtable}
 
 
