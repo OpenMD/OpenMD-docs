@@ -53,8 +53,8 @@
 \newcolumntype{D}{p{2in}}
 
 \newcolumntype{E}{p{0.5in}}
-\newcolumntype{F}{p{2.25in}}
-\newcolumntype{G}{p{3in}}
+\newcolumntype{F}{p{1.75in}}
+\newcolumntype{G}{p{3.5in}}
 
 \newcolumntype{H}{p{0.75in}}
 \newcolumntype{I}{p{5in}}
@@ -4965,26 +4965,37 @@ The options available for {\tt StaticProps} are as follows:
     & {\tt -{}-seleoffset2=INT}        & global index offset for a third object (used 
                                   to define a vector between sites in molecule)\\
 
-             & {\tt -{}-molname=STRING}           & molecule name \\
-             & {\tt -{}-begin=INT}                & begin internal index \\
-             & {\tt -{}-end=INT}                  & end internal index \\
-             & {\tt -{}-radius=DOUBLE}            & nanoparticle radius\\
+    & {\tt -{}-molname=STRING}           & molecule name \\
+    & {\tt -{}-begin=INT}                & begin internal index \\
+    & {\tt -{}-end=INT}                  & end internal index \\
+    & {\tt -{}-radius=DOUBLE}            & nanoparticle radius\\
   -v& {\tt -{}-voxelSize=DOUBLE}      & voxel size (angstroms) \\
-             &  {\tt -{}-gaussWidth=DOUBLE}    &   Gaussian width (angstroms)\\
-             & {\tt -{}-privilegedAxis={x,y,z}} & Which axis should
+    &  {\tt -{}-gaussWidth=DOUBLE}    &   Gaussian width (angstroms)\\
+    & {\tt -{}-privilegedAxis={x,y,z}} & Which axis should
                                                   statistics be
                                                   accumulated along,
                                                   default=z \\
-
-      & {\tt -{}-privilegedAxis2={x,y,z}} & Which axis is special
+    & {\tt -{}-privilegedAxis2={x,y,z}} & Which axis is special
                                             for spatial analysis,
                                             default=x \\
-      & {\tt -{}-momentum={P,J}}         &  Type of momentum
+    & {\tt -{}-momentum={P,J}}         &  Type of momentum
                                           distribution (default=P,
-                                          Linear Momentum) \\                         & {\tt -{}-component={x,y,x}}    & Which component of momentum is
-                                        sampled for the momemtum 
-                                                                                                                        distribution, default=z \\
-                                      
+                                           Linear Momentum) \\
+      & {\tt -{}-component={x,y,x}}    & Which component of momentum is
+                                        sampled for the momemtum
+                                         distribution, default=z \\
+      & {\tt -{}-dipoleX=DOUBLE}         & X-component of the dipole with respect to body
+                                  frame\\
+      & {\tt -{}-dipoleY=DOUBLE}         & Y-component of the dipole with respect to body
+                                  frame\\
+      & {\tt -{}-dipoleZ=DOUBLE}         & Z-component of the dipole with respect to body
+                                  frame\\
+      & {\tt -{}-v\_radius=DOUBLE}        & VanderWaals radiius for fictious atoms used in
+                                  model e.g. M site in TIP4P-FQ water model\\
+      & {\tt -{}-gen\_xyz}                & generates xyz file  (default=off)\\
+      & {\tt -{}-atom\_name=selection script}
+                                & name of atom for with average charge to be
+                                  generated\\                                     
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
@@ -5006,8 +5017,17 @@ The options available for {\tt StaticProps} are as follows:
                                            \cos(\omega))$ \\
     &  {\tt -{}-r\_theta\_omega}         &  $g(r, \cos(\theta), \cos(\omega))$ \\
     &  {\tt -{}-gxyz}                    &  $g(x, y, z)$ \\
-    &  {\tt -{}-twodgofr}                & 2D $g(r)$ (Slab width {\tt -{}-dz} must be specified)\\
-  -p&  {\tt -{}-p2}                      &  $P_2$ order parameter  ({\tt -{}-sele1} must be specified, {\tt -{}-sele2} is optional) \\
+    &  {\tt -{}-twodgofr}                & 2D $g(r)$ (Slab width {\tt
+                                           -{}-dz} must be
+                                           specified)\\
+    &  {\tt -{}-kirkwood\_buff}          & Kirkwood-Buff integrals ({\tt -{}-sele1} and {\tt -{}-sele2}
+                                  must both be specified)\\
+  -p&  {\tt -{}-p2}                      &  $P_2$ order parameter
+                                           ({\tt -{}-sele1} must be
+                                           specified, {\tt -{}-sele2}
+                                           is optional) \\
+    &  {\tt -{}-p2r}                   & $P_2$ order parameter using r
+                                         as director axis \\
     &  {\tt -{}-rp2}                     &  Ripple order parameter ({\tt -{}-sele1} and {\tt -{}-sele2} must be specified) \\
     &  {\tt -{}-scd}                     &  $S_{CD}$ order parameter(either {\tt -{}-sele1}, {\tt -{}-sele2}, {\tt -{}-sele3} are specified or {\tt -{}-molname}, {\tt -{}-begin}, {\tt -{}-end} are specified) \\
   -d&  {\tt -{}-density}                 &  density plot \\
@@ -5049,7 +5069,17 @@ The options available for {\tt StaticProps} are as follows:
                                            Number \\
     &  {\tt -{}-hbond}                   & Hydrogen Bonding statistics using geometric
                                   criteria ({\tt rcut} and {\tt thetacut} must be
-                                  specified) \\
+                                           specified) \\
+    &  {\tt -{}-hbondz}                 & Hydrogen Bonding density binned by z ({\tt rcut} and
+                                  {\tt thetacut} must be specified)\\
+    &  {\tt -{}-hbondzvol}              & Hydrogen Bonding density binned by z and
+                                  normalized by bin volume ({\tt rcut} and {\tt thetacut}
+                                  must be specified)\\
+    &  {\tt -{}-hbondr}                 & Hydrogen Bonding density binned by r ({\tt rcut} and
+                                  {\tt thetacut} must be specified)\\
+    &  {\tt -{}-hbondrvol}              & Hydrogen Bonding density binned by r and
+                                  normalized by bin volume ({\tt rcut} and {\tt thetacut}
+                                  must be specified)\\
     &  {\tt -{}-potDiff}                 & potential energy difference when charge on
                                   selection is set to zero \\
     &  {\tt -{}-tet\_hb}                  & hydrogen bond statistics binned by
@@ -5064,7 +5094,29 @@ The options available for {\tt StaticProps} are as follows:
   -D&  {\tt -{}-eam\_density}         & EAM density profile \\
   -q&  {\tt -{}-net\_charge}          & charge profile \\
   -J&  {\tt  -{}-current\_density}    & current density \\
-  -M&  {\tt -{}-momentum\_distribution} &  momentum distribution
+ &  {\tt -{}-chargez}                & computes the charge distribution along selected
+                                  axis and selected atom\\
+ &  {\tt -{}-charger}                & computes the charge density as a function of
+                                  the radius and selected atom\\
+ &  {\tt -{}-massdensityz}           & computes the mass density of the selection
+                                  along selected axis\\
+ &  {\tt -{}-massdensityr}           & computes the mass density of the selection as a
+                                  function of the radius from the center of
+                                  mass\\
+ &  {\tt -{}-numberz}                & computes the number density along selected axis
+                                  and selected molcule\\
+ &  {\tt -{}-numberr}                & computes the number density as a function of
+                                  the radius and selected molecule\\
+ &  {\tt -{}-charge\_density\_z}      &  computes the continuous charge distribution
+                                  along selected axis and selected atom\\
+ &  {\tt -{}-countz}                 & computes the number of selected atoms  along
+                                  selected axis\\
+  -M&  {\tt -{}-momentum\_distribution} &  momentum distribution \\
+  -S&  {\tt -{}-dipole\_orientation}     & spatially-resolved dipole order parameter $S(z)$,
+                                  $S = (3 \cos^2\theta - 1)/2$ \\
+ &  {\tt -{}-order\_prob}            &  probability of order parameter for given
+                                  selection
+
 \end{longtable}
 
 \subsection{\label{section:SequentialProps}SequentialProps}
@@ -5153,7 +5205,10 @@ The options available for SequentialProps are as follows:
                                   mass)\\
     & {\tt -{}-ca2}                   &  contact angle of selection (using density
                                   profile)\\
-    & {\tt -{}-gcn}                   &  Generalized Coordinate Number\\
+    & {\tt -{}-gcn}                   &  Generalized Coordinate
+                                        Number\\
+ {\tt -t}& {\tt -{}-testequi}     & Temperature using all componets of linear and
+                                  angular momentum
 \end{longtable}
 
 \subsection{\label{section:DynamicProps}DynamicProps}
@@ -5193,12 +5248,12 @@ The options available for DynamicProps are as follows:
   -i& {\tt -{}-input=filename}         & input dump file \\
   -o& {\tt -{}-output=filename}        & output file name \\
     & {\tt -{}-sele1=selection script} & select first StuntDouble set \\
-    & {\tt -{}-sele2=selection script} & select second StuntDouble set (if sele2 is not set, use script from sele1) \\
+    & {\tt -{}-sele2=selection script} & select second StuntDouble set
+                                         (if sele2 is not set, use
+                                         script from sele1) \\
+    & {\tt -{}-sele3=selection script} & select third stuntdouble set\\
     & {\tt -{}-order=INT}              & Lengendre Polynomial Order\\
   -z& {\tt -{}-nzbins=INT}             & Number of $z$ bins (default=`100`)\\
-  -m& {\tt -{}-memory=memory specification}
-                                &Available memory  
-                                  (default=`2G`)\\
   -c& {\tt -{}-rcut=DOUBLE}            & cutoff radius (angstroms)\\
     & {\tt -{}-OOcut=DOUBLE}           & Oxygen-Oxygen cutoff radius (angstroms)
                                   (default=`3.5')\\
@@ -5209,7 +5264,13 @@ The options available for DynamicProps are as follows:
                                                   statistics be
                                                   accumulated along,
                                                   default=z \\
-
+    & {\tt -{}-length=DOUBLE}          & maximum length  (default=`100')\\
+    & {\tt -{}-dipoleX=DOUBLE}         & X-component of the dipole with respect to body
+                                  frame  (default=`0.0')\\
+    & {\tt -{}-dipoleY=DOUBLE}         & Y-component of the dipole with respect to body
+                                  frame  (default=`0.0')\\
+    & {\tt -{}-dipoleZ=DOUBLE}         & Z-component of the dipole with respect to body
+                                  frame  (default=`-1.0')\\
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
@@ -5221,7 +5282,15 @@ The options available for DynamicProps are as follows:
                                          function \\
     & {\tt -{}-vcorrZ}                 & velocity correlation function along z-axis\\
     & {\tt -{}-vcorrR}                 & velocity correlation function projected
-                                  radially\\
+                                         radially\\
+    & {\tt -{}-vaOutProdcorr}           & Velocity - Velocity auto outer product
+                                  correlation function\\
+    & {\tt -{}-waOutProdcorr}           & Angular Velocity - Angular Velocity auto outer
+                                  product correlation function\\
+    & {\tt -{}-vwOutProdcorr}           & Velocity - Angular Velocity outer product
+                                  correlation function\\
+    & {\tt -{}-wvOutProdcorr}           & Angular Velocity - Velocity outer product
+                                  correlation function\\
   -w& {\tt -{}-wcorr}                  & charge velocity autocorrelation
                                          function \\
 
@@ -5233,8 +5302,6 @@ The options available for DynamicProps are as follows:
     & {\tt -{}-r\_rcorr}               & Radial mean squared displacement\\
     & {\tt -{}-thetacorr}              & Angular mean squared displacement\\
     & {\tt -{}-drcorr}                 & Directional mean squared displacement for particles with unit vectors\\
-    & {\tt -{}-helfandEcorr}           & Helfand moment for thermal conductvity\\
-  -p& {\tt -{}-momentum}               & Helfand momentum for viscosity\\
     & {\tt -{}-stresscorr}             & Stress tensor correlation
                                          function\\
   -b& {\tt -{}-bondcorr}               & Bond extension correlation function\\
@@ -5243,6 +5310,8 @@ The options available for DynamicProps are as follows:
                                          correlation function \\
     & {\tt -{}-jumptimeZ}               & Hydrogen bond jump time correlation function
                                   binned by Z \\
+    & {\tt -{}-jumptimeR}               & Hydrogen bond jump time correlation function
+                                  binned by R around a third selection \\
     & {\tt -{}-persistence}               & Hydrogen bond persistence correlation function\\
     & {\tt -{}-pjcorr}               & Momentum - Angular Momentum cross correlation
                                   function \\
@@ -5256,7 +5325,14 @@ The options available for DynamicProps are as follows:
                                        function \\
     & {\tt -{}-disp}               & Displacement correlation function \\
     & {\tt -{}-dispZ}               & Displacement correlation
-                                      function binned by Z
+                                      function binned by Z \\
+    & {\tt -{}-current}                & Current density auto correlation function\\
+    & {\tt -{}-onsager}                & Onsager coefficient correlation functions\\
+    & {\tt -{}-ddisp}                  & Collective Dipole displacement function
+                                  (Helfand moment of Current Density)\\
+     & {\tt -{}-rotAngleDisp}           & Displacement correlation function for rotation
+                                  angles\\
+
 \end{longtable}
 
 
@@ -5765,21 +5841,63 @@ the xy-plane.
   -s& {\tt -{}-offSet}             & the distance the charges plates will be placed from the surface \\
 \end{longtable}
 
+\section{\label{section:thermalizer}thermalizer}
+The thermalizer program has two functionalities which are useful in
+setting velocity and angular velocity information in an omd file:
+\begin{enumerate}
+\item (-t) This option resamples the velocities (and angular
+  velocities) for all the integrable objects in 
+  an OpenMD file from a Maxwell-Boltzmann distribution.
+\item (-e) This option scales the total energy of all integrable objects in an
+  OpenMD file to a desired total energy.  This is particularly useful
+  in transitioning from canonical ensemble (NVT) to
+  microcanonical ensemble (NVE) simulations, where the user wishes to
+  preserve the average energy from the NVT simulation.
+\end{enumerate}
+
+The options available for thermalizer are as follows:
+\begin{longtable}[c]{|EFG|}
+\caption{thermalizer Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+  -h& {\tt -{}-help}               & Print help and exit\\
+  -V& {\tt -{}-version}            & Print version and exit\\
+  -i& {\tt -{}-input=filename}     & Input (omd) file\\
+  -o& {\tt -{}-output=STRING}      & Output file prefix (mandatory)\\
+
+\hline
+\multicolumn{3}{|l|}{One option from the following group of options is required:} \\
+\hline
+  -t& {\tt -{}-temperature=DOUBLE}     & temperature (K) \\
+  -e& {\tt -{}-energy=DOUBLE}          & energy (kcal/mol) \\
+  -c& {\tt -{}-chargetemperature=DOUBLE}
+                               & charge temperature (K) 
+\end{longtable}
 
 
 \section{\label{section:Hydro}Hydro}
 {\tt Hydro} generates hydrodynamic resistance tensor ({\tt .hydro}) files which are
 required when using the Langevin integrator using complex rigid
-bodies.  {\tt Hydro} supports two approximate models: the {\tt
-  BeadModel} and {\tt RoughShell}.  Additionally, {\tt Hydro} can
+bodies.  {\tt Hydro} supports three approximate models: {\tt
+  AtomicBead}, {\tt RoughShell}, and {\tt BoundaryElement}.  Additionally, {\tt Hydro} can
 generate resistance tensor files using analytic solutions for simple
-shapes. To generate a {\tt .hydro} file, a meta-data file is needed as
-the input file. Since the resistance tensor depends on these
-quantities, the {\tt viscosity} of the solvent and the temperature
-({\tt targetTemp}) of the system must be defined in meta-data file. If
+shapes. To generate a {\tt .hydro} file, one form of an input file must be
+specified.  This can either be a MetaData (omd) file, or xyz, stl, or
+MSMS output files. For stl and MSMS files which both describe triangulated
+surfaces, the hydrodynamics model must be {\tt BoundaryElement}.
+
+Since the resistance tensor depends on viscosity of the solvent, and
+diffusion tensors depend on temperature, these must either be
+specified as arguments or listed in the MetaData (omd) file with the
+keywords {\tt viscosity} and {\tt targetTemp}.  If
 the approximate model in use is the {\tt RoughShell} model the {\tt
   beadSize} (the diameter of the small beads used to approximate the
 surface of the body) must also be specified on the command line.
+
+Note that Hydro also generates molecular Pitch matrices.
 
 The options available for Hydro are as follows:
 \begin{longtable}[c]{|EFG|}
@@ -5792,15 +5910,19 @@ The options available for Hydro are as follows:
   -h& {\tt -{}-help}               & Print help and exit\\
   -V& {\tt -{}-version}            & Print version and exit\\
   -i& {\tt -{}-input=filename}     & input MetaData (omd) file\\
+  -x& {\tt -{}-xyz=filename}       & xyz file for AtomicBead model\\
+    & {\tt -{}-stl=filename}       & stl file for BoundaryElement model\\
+    & {\tt -{}-msms=filename}      & filename root for MSMS .vert and .face files\\
   -o& {\tt -{}-output=STRING}      & output file prefix (default = `hydro')\\
-   &  {\tt -{}-model=\{``RoughShell'',``BeadModel''\}}  & hydrodynamics
-                                                       model, default
-                                                       is
-                                                       ``RoughShell'' \\
-  -s& {\tt -{}-beadSize=DOUBLE} & bead size for RoughShell model in angstroms
+    &  {\tt -{}-model=\{``AtomicBead'', ``RoughShell'', or ``BoundaryElement''\}}  & hydrodynamics
+                                                       model, mandatory \\
+  -s& {\tt -{}-beadSize=DOUBLE}    & bead size for RoughShell model in angstroms
                            (default=0.2) \\
-  -b&  {\tt -{}-beads}            & generate the beads only,
-                                    hydrodynamic calculations will not be performed (default=off)
+  -b&  {\tt -{}-elements}          & output the hydrodynamic elements (beads or
+                              triangles) only, hydrodynamics calculation will
+                                       not be performed  (default=off)\\
+  -v& {\tt -{}-viscosity=DOUBLE}   & viscosity (in poise)  (default=`0.01')\\
+  -t& {\tt -{}-temperature=DOUBLE} & temperature (in Kelvin  (default=`300')
 \end{longtable}
 
 
@@ -5824,10 +5946,10 @@ for waterBoxer follows:
   -v               & verbose output (water model defined in .omd file) \\
   -d               & density in g/cm$^3$ (default 1) \\
   -c               & default overlap cutoff for spacing water
-                     molecules (default 3.2) \\
+                     molecules (default 3.3) \\
   -l               & 0 $-$ FCC lattice, 1 $-$ SC lattice  \\
   -o               & output file name \\
-  -w               & name of the water stuntDouble \\
+  -w               & name of the water stuntDouble (default: SPCE)\\
 \end{longtable}
 
 
