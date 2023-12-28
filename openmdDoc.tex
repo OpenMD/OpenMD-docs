@@ -65,15 +65,14 @@
 \newcolumntype{M}{p{1.55in}}
 
 
-\title{{\sc OpenMD-2.6}: Molecular Dynamics in the Open}
+\title{{\sc OpenMD-3.0: Molecular Dynamics in the Open}}
 
-\author{Hemanta Bhattarai, Cody Drisko, Anderson D.S. Duraes,\\
-  Teng Lin, Charles F. Vardeman II, Christopher J. Fennell, Matthew
-  A. Meineke, \\
-   Patrick Louden,  Suzanne Neidhart,\\
-   Shenyu Kuang, Madan Lamichhane, Joseph Michalka, 
-  Kelsey Stocker, James Marr, \\ Xiuquan Sun,
-  Chunlei Li,  Kyle Daily, Yang Zheng, \\ and \\
+\author{Cody Drisko, Sydney Shavalier,  Benjamin Harless, Veronica Freund, \\
+  Teng Lin,  Charles F. Vardeman II, Christopher J. Fennell,  Matthew  A. Meineke, \\
+  Patrick Louden,   Hemanta Bhattarai,   Joseph Michalka,  Kelsey  Stocker, \\
+  James Marr,  Anderson D.S. Duraes,   Suzanne Neidhart,   Shenyu Kuang,  \\
+  Madan Lamichhane, Xiuquan Sun, Chunlei Li,   Kyle Daily, \\
+  Alexander Mazanek,  Yang Zheng, \\ and \\
   J. Daniel Gezelter \\ \\
   Department of Chemistry and Biochemistry\\
   University of Notre Dame\\
@@ -1932,8 +1931,8 @@ V_{\text{torsion}}(\phi) = \sum_n K_n \left( 1 + cos(n
 \end{equation*}
 \item {\tt Opls}:
 \begin{equation*}
-  V_{\text{torsion}}(\phi) =  \frac{1}{2} \left(v_1 (1 + \cos \phi) \right)
-    + v_2 (1 - \cos 2 \phi) +  v_3 (1 + \cos 3 \phi),
+  V_{\text{torsion}}(\phi) =  \frac{1}{2} \left(v_1 (1 + \cos \phi)
+    + v_2 (1 - \cos 2 \phi) +  v_3 (1 + \cos 3 \phi)  \right),
 \end{equation*}
 \item {\tt Trappe}:\cite{Siepmann1998}
 \begin{equation*}
