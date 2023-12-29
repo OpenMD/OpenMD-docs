@@ -14,9 +14,22 @@
 \pagestyle{plain}
 \pagenumbering{arabic}
 \usepackage{floatrow}
+\usepackage{url}
 \usepackage[margin=0.5cm,font=small,format=hang]{caption}
 
+\newcommand{\angstrom}{\mbox{\normalfont\AA}}
+\let\textDJ\DJ
+\let\DJ\relax
+
+\DeclareRobustCommand{\DJ}{%
+  \ifmmode
+    \mathDJ
+  \else
+    \textDJ
+  \fi
+}
 \makeatletter
+\newcommand{\mathDJ}{\text{\raisebox{0.25ex}{-}\kern-0.4em$\m@th D$}}
 \renewcommand{\l@section}{\@dottedtocline{1}{2em}{3em}}
 \renewcommand{\l@subsection}{\@dottedtocline{2}{4.0em}{4em}}
 \renewcommand{\l@subsubsection}{\@dottedtocline{3}{7.4em}{5em}}
@@ -929,7 +942,7 @@ end Options
 
 \section{\label{section:ffBase}The BaseAtomTypes block}
 
-An AtomType the primary data structure that OpenMD uses to store
+An {\tt AtomType} is the primary data structure that OpenMD uses to store
 static data about an atom.  Things that belong to AtomType are
 universal properties (i.e. does this atom have a fixed charge?  What
 is its mass?)  Dynamic properties of an atom are not intended to be
@@ -4324,7 +4337,7 @@ simulation times to obtain converged results for transport properties.
 \label{rnemdDemo}
 \end{figure}
 
-\section{\label{section:algo}Three algorithms for carrying out RNEMD simulations}
+\section{\label{section:algo}Algorithms for carrying out RNEMD simulations}
 \subsection{\label{subsection:swapping}The swapping algorithm}
 The original ``swapping'' approaches by M\"{u}ller-Plathe {\it et
   al.}\cite{ISI:000080382700030,MullerPlathe:1997xw} can be understood
@@ -4434,6 +4447,13 @@ thermal and {\it angular} momentum flux between the two regions.  This
 variant on VSS is particularly useful for simulating heat flow in
 nanoparticle / ligand / solvent systems.
 
+For non-periodic simulation cells, it is useful to have exchanges
+between concentric regions. To do so, the user must to specify the
+radii defining the two exchange regions. There are two parameters for
+doing this, {\tt sphereAradius} and {\tt sphereBradius}.  More
+complicated regions can also be specified using the selection syntax
+described in section \ref{section:syntax}.
+
 \section{\label{section:usingRNEMD}Using OpenMD to perform a RNEMD simulation}
 \subsection{\label{section:rnemdParams} What the user needs to specify}
 
@@ -4450,7 +4470,10 @@ slabs (either Kinetic Energy ({\tt KE}), momentum ({\tt Px, Py, Pz,
 these).  The flux is specified with the use of four possible
 parameters: {\tt kineticFlux} for kinetic energy exchange, as well as
 {\tt momentumFlux} or {\tt momentumFluxVector} for simulations with
-directional exchange, and {\tt particleFlux} for SPF simulations.
+directional exchange, and {\tt particleFlux} for SPF simulations.  For
+concentric exchange, {\tt momentumFlux} and {\tt momentumFluxVector}
+are replaced with {\tt angularMomentumFlux} or {\tt
+  angularMomentumFluxVector}.
 
 \begin{longtable}[c]{JKLM}
 \caption{Meta-data Keywords: Parameters for RNEMD simulations}\\
@@ -4506,18 +4529,19 @@ file where each column is separated by a pipe ($\mid$) symbol. & Allowed column 
 OpenMD will generate a {\tt .rnemd} file with the same prefix as the
 original {\tt .omd} file.  This file contains a running average of
 properties of interest computed within a set of bins that divide the
-simulation cell along the $z$-axis.  The first column of the {\tt
-  .rnemd} file is the $z$ coordinate of the center of each bin, while
-following columns may contain the average temperature, velocity,
-density, or activities (concentrations) within each bin.  The output
-format in the {\tt .rnemd} file can be altered with the {\tt
-  outputFields}, {\tt outputBins}, and {\tt outputFileName}
-parameters.  A report at the top of the {\tt .rnemd} file contains the
-current exchange totals as well as the average flux applied during the
-simulation.  Using the slope of the temperature or velocity gradient
-obtaine from the {\tt .rnemd} file along with the applied flux, the
-user can very simply arrive at estimates of thermal conductivities
-($\lambda$),
+simulation cell along the $z$-axis (in periodic simulation cells) or
+along the radial coordinate, $r$, in concentric exchanges.  The first
+column of the {\tt .rnemd} file is the $z$ (or $r$) coordinate of the
+center of each bin, while following columns may contain the average
+temperature, velocity, density, or activities (concentrations) within
+each bin. The output format in the {\tt .rnemd} file can be altered
+with the {\tt outputFields}, {\tt outputBins}, {\tt outputBinWidth}, and {\tt
+  outputFileName} parameters.  A report at the top of the {\tt .rnemd}
+file contains the current exchange totals as well as the average flux
+applied during the simulation.  Using the slope of the temperature, velocity, or
+concentration gradients obtained from the {\tt .rnemd} file along with the
+applied flux, the user can very simply arrive at estimates of thermal
+conductivities ($\lambda$),
 \begin{equation}
 J_z = -\lambda \frac{\partial T}{\partial z},
 \end{equation}
@@ -4525,34 +4549,40 @@ and shear viscosities ($\eta$),
 \begin{equation}
 j_z(p_x) = -\eta \frac{\partial \langle v_x \rangle}{\partial z}.
 \end{equation}
+or Fick diffusion coefficients ($D$)
+\begin{equation}
+   x_2 \mathbf{J}_1 = - D \nabla c_1. \label{eq:spfDiffusion}
+\end{equation}
 Here, the quantities on the left hand side are the actual flux values
 (in the header of the {\tt .rnemd} file), while the slopes are
 obtained from linear fits to the gradients observed in the {\tt
-  .rnemd} file.
+  .rnemd} file.  Note that $\mathbf{J}_1$ is the externally-applied
+particle flux in one component of a binary mixture and $x_2$ is the
+mole fraction of the other component.
 
-More complicated simulations (including interfaces) require a bit more
-care. Here temperature jumps across the interface are required to
+More complicated simulations (including interfaces) require more
+care. Temperature jumps across an interface ($\Delta T$) can be used to
 compute the interfacial thermal conductance,
 \begin{equation}
-    G=\left(\frac{J_z}{\Delta T}\right)
-    \label{eq:periodicg}
-  \end{equation}
+  G=\left(\frac{J_z}{\Delta T}\right)
+  \label{eq:periodicg}
+\end{equation}
 For non-periodic (concentric) geometries, it is often better to use
-the heat rate, $q_r$ and to compute interfacial thermal conductance
-from the total Kapitza resistance across a finite-width interfacial
-region, 
+the radial \textit{heat rate}, $q_r$ and to compute interfacial
+thermal conductance from the total Kapitza resistance across a
+finite-width interfacial region,
 \begin{equation}
   \frac{1}{G} = R_\mathrm{total} = \frac{1}{q_r} \sum_i \left(T_{i+i} -
     T_i\right) 4 \pi r_i^2 
 \end{equation}
-
-We suggest that users interested in interfacial conductance consult
+Users interested in interfacial conductance are encouraged to consult
 references
 \citealp{kuang:AuThl,Stocker:2016kx,Bhattarai:2020lp,Shavalier:2022kn},
-and \citealp{Shavalier:2023rm}
-for other approaches to computing $G$.  Users interested in {\it
-  friction coefficients} at heterogeneous interfaces may also find
-references \citealp{2012MolPh.110..691K,Louden:2017tc}, and \citealp{Louden:2018le} useful.
+and \citealp{Shavalier:2023rm} for other approaches to computing
+$G$. Users interested in {\it friction coefficients} at heterogeneous
+interfaces may also find references
+\citealp{2012MolPh.110..691K,Louden:2017tc}, and
+\citealp{Louden:2018le} useful.
 
 \newpage
 
@@ -4778,7 +4808,7 @@ operators.
 \begin{center}
 \begin{tabular}{|ll|}
 \hline
-{\bf logical operator} & {\bf equivalent operator}  \\  
+{\bf logical operator} & {\bf equivalent operators}  \\  
 \hline
 and & ``\&'', ``\&\&'' \\
 or & ``$|$'', ``$||$'', ``,'' \\
@@ -4795,22 +4825,22 @@ not & ``!''  \\
 {\bf type of expression} & {\bf examples} & {\bf translation of
 examples} \\
 \hline
-expression without ``.'' & select DMPC & select all StuntDoubles
+expression without ``.'' & {\tt select DMPC} & select all StuntDoubles
 belonging to all DMPC molecules \\
- & select C* & select all atoms which have atom types beginning with C
+ & {\tt select C*} & select all atoms which have atom types beginning with C
 \\
- & select DMPC\_RB\_* & select all RigidBodies in DMPC molecules (but
+ & {\tt select DMPC\_RB\_*} & select all RigidBodies in DMPC molecules (but
 only select the rigid bodies, and not the atoms belonging to them). \\
 \hline
-expression has one ``.'' & select TIP3P.O\_TIP3P & select the O\_TIP3P
+expression has one ``.'' & {\tt select TIP3P.O\_TIP3P} & select the O\_TIP3P
 atoms belonging to TIP3P molecules \\
- & select DMPC\_RB\_O.PO4 & select the PO4 atoms belonging to
+ & {\tt select DMPC\_RB\_O.PO4} & select the PO4 atoms belonging to
 the first 
 RigidBody in each DMPC molecule \\
- & select DMPC.20 & select the twentieth StuntDouble in each DMPC
+ & {\tt select DMPC.20} & select the twentieth StuntDouble in each DMPC
 molecule \\
 \hline
-expression has two ``.''s & select DMPC.DMPC\_RB\_?.* &
+expression has two ``.''s & {\tt select DMPC.DMPC\_RB\_?.*} &
 select all atoms 
 belonging to all rigid bodies within all DMPC molecules \\
 \hline
@@ -4824,8 +4854,8 @@ belonging to all rigid bodies within all DMPC molecules \\
 \hline
 {\bf examples} & {\bf translation of examples} \\
 \hline
-select 20 & select all of the StuntDoubles belonging to Molecule 20 \\
-select 20 to 30 & select all of the StuntDoubles belonging to
+{\tt select 20} & select all of the StuntDoubles belonging to Molecule 20 \\
+{\tt select 20 to 30} & select all of the StuntDoubles belonging to
 molecules which have global indices between 20 (inclusive) and 30
 (exclusive) \\
 \hline
@@ -4839,8 +4869,8 @@ molecules which have global indices between 20 (inclusive) and 30
 \hline
 {\bf keyword} & {\bf description} \\
 \hline
-all & select all StuntDoubles \\
-none & select none of the StuntDoubles \\
+{\tt all} & select all StuntDoubles \\
+{\tt none} & select none of the StuntDoubles \\
 \hline
 \end{tabular}
 \end{center}
@@ -4866,7 +4896,7 @@ name, followed by a comparision operator and then a number.
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline
-{\bf property} & mass, charge, x, y, z, r, wrappedx, wrappedy, wrappedz \\
+{\bf property} & {\tt mass, charge, x, y, z, r, wrappedx, wrappedy, wrappedz} \\
 {\bf comparison operator} & ``$>$'', ``$<$'', ``$=$'', ``$>=$'',
 ``$<=$'', ``$!=$'' \\
 \hline
@@ -5700,6 +5730,36 @@ on the elastic constants for polycrystalline materials.   {\tt
 \end{longtable}
 
 
+\section{equationofstate}
+
+{\tt equationofstate} takes an OpenMD (.omd) file and generates the
+equation of state for a crystal. The periodic box is uniformly affine
+scaled between starting and ending ratios of the original box
+geometry. The potential energy is calculated at each scaled geometry,
+and the energy vs. scaling data is put into a specified output file.
+
+\begin{longtable}[c]{|EFG|}
+\caption{equationofstate Command-line Options}
+\\ \hline
+{\bf option} & {\bf verbose option} & {\bf behavior} \\ \hline
+\endhead
+\hline
+\endfoot
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -v} & {\tt -{}-version}          & print version and exit \\
+{\tt -i} & {\tt -{}-input=filename}        & use specified input (.omd) file 
+                                     (mandatory) \\
+{\tt -o} & {\tt -{}-output=filename}        & use specified output file
+                                              (mandatory) \\
+{\tt -s} & {\tt -{}-start=DOUBLE}    & starting affine scale ratio
+                                       (default=0.8) \\
+{\tt -e} & {\tt -{}-end=DOUBLE}      & ending affine scale ratio
+                                       (default=1.2) \\
+{\tt -n} & {\tt -{}-number=INT}      & number of data points
+                                       (default=50) 
+\end{longtable}
+
+
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
 {\sc OpenMD} comes with a few utility programs to aid in setting up
@@ -5930,7 +5990,7 @@ bodies.  {\tt Hydro} supports three approximate models: {\tt
 generate resistance tensor files using analytic solutions for simple
 shapes. To generate a {\tt .hydro} file, one form of an input file must be
 specified.  This can either be a MetaData (omd) file, or xyz, stl, or
-MSMS output files. For stl and MSMS files which both describe triangulated
+MSMS output files. For stl and MSMS~\cite{Sanner96} files which both describe triangulated
 surfaces, the hydrodynamics model must be {\tt BoundaryElement}.
 
 Since the resistance tensor depends on viscosity of the solvent, and
@@ -5941,7 +6001,7 @@ the approximate model in use is the {\tt RoughShell} model the {\tt
   beadSize} (the diameter of the small beads used to approximate the
 surface of the body) must also be specified on the command line.
 
-Note that Hydro also generates molecular Pitch matrices.
+Note that Hydro also generates molecular Pitch matrices.\cite{Duraes:2021xp,Duraes:2023kk}
 
 The options available for Hydro are as follows:
 \begin{longtable}[c]{|EFG|}
