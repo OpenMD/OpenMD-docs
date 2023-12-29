@@ -1,8 +1,10 @@
 \documentclass[]{book}
+\usepackage[text={6.5in,9in},centering]{geometry}
+\usepackage[T1]{fontenc}
 \usepackage{amssymb}
 \usepackage{amsmath}
 %\usepackage{times}
-\usepackage[T1]{fontenc}
+%\usepackage{mathptmx}
 \usepackage{newtxtext,newtxmath}
 \usepackage{listings}
 \usepackage{graphicx}
@@ -14,19 +16,18 @@
 \usepackage{floatrow}
 \usepackage[margin=0.5cm,font=small,format=hang]{caption}
 
-\oddsidemargin 0.0cm 
-\evensidemargin 0.0cm
-\topmargin -21pt
-\headsep 10pt
-\textheight 9.0in 
-\textwidth 6.5in
-\brokenpenalty=10000
+\makeatletter
+\renewcommand{\l@section}{\@dottedtocline{1}{2em}{3em}}
+\renewcommand{\l@subsection}{\@dottedtocline{2}{4.0em}{4em}}
+\renewcommand{\l@subsubsection}{\@dottedtocline{3}{7.4em}{5em}}
+\makeatother
+
 \renewcommand{\baselinestretch}{1.2}
 \usepackage[square, comma, sort&compress]{natbib}
 \bibpunct{[}{]}{,}{n}{}{;}
 
 \DeclareFloatFont{tiny}{\scriptsize}% "scriptsize" is defined by floatrow, "tiny" not
-\floatsetup[table]{font=tiny}
+\floatsetup[table]{font=small}
 
 
 %\renewcommand\citemid{\ } % no comma in optional reference note
@@ -52,9 +53,9 @@
 \newcolumntype{C}{p{1.5in}}
 \newcolumntype{D}{p{2in}}
 
-\newcolumntype{E}{p{0.5in}}
-\newcolumntype{F}{p{1.75in}}
-\newcolumntype{G}{p{3.5in}}
+\newcolumntype{E}{p{0.25in}}
+\newcolumntype{F}{p{2in}}
+\newcolumntype{G}{p{3.75in}}
 
 \newcolumntype{H}{p{0.75in}}
 \newcolumntype{I}{p{5in}}
@@ -4824,29 +4825,29 @@ VMD. The options available for Dump2XYZ are as follows:
 \endhead
 \hline
 \endfoot
-  -h & {\tt -{}-help} &                        Print help and exit \\
-  -V & {\tt -{}-version} &                     Print version and exit \\
-  -i & {\tt -{}-input=filename}  &             input dump file \\
-  -o & {\tt -{}-output=filename} &             output file name \\
-  -n & {\tt -{}-frame=INT}   &                 print every n frame  (default=`1') \\
-  -w & {\tt -{}-water}       &                 skip the the waters  (default=off) \\
-  -m & {\tt -{}-periodicBox} &                 map to the periodic box  (default=off)\\
-  -z & {\tt -{}-zconstraint}  &                replace the atom types of zconstraint molecules  (default=off) \\
-  -r & {\tt -{}-rigidbody}  &                  add a pseudo COM atom to rigidbody  (default=off) \\
-  -t & {\tt -{}-watertype} &                   replace the atom type of water model (default=on) \\
-  -b & {\tt -{}-basetype}  &                   using base atom type
+{\tt -h } & {\tt -{}-help} &                        Print help and exit \\
+{\tt -V } & {\tt -{}-version} &                     Print version and exit \\
+{\tt -i } & {\tt -{}-input=filename}  &             input dump file \\
+{\tt -o } & {\tt -{}-output=filename} &             output file name \\
+{\tt -n } & {\tt -{}-frame=INT}   &                 print every n frame  (default=`1') \\
+{\tt -w } & {\tt -{}-water}       &                 skip the the waters  (default=off) \\
+{\tt -m } & {\tt -{}-periodicBox} &                 map to the periodic box  (default=off)\\
+{\tt -z } & {\tt -{}-zconstraint}  &                replace the atom types of zconstraint molecules  (default=off) \\
+{\tt -r } & {\tt -{}-rigidbody}  &                  add a pseudo COM atom to rigidbody  (default=off) \\
+{\tt -t } & {\tt -{}-watertype} &                   replace the atom type of water model (default=on) \\
+{\tt -b } & {\tt -{}-basetype}  &                   using base atom type
   (default=off) \\
-  -v& {\tt -{}-velocities}             & Print velocities in xyz file  (default=off)\\
-  -f& {\tt -{}-forces}                 & Print forces xyz file  (default=off)\\
-  -u& {\tt -{}-vectors}                & Print vectors (dipoles, etc) in xyz file  
+{\tt -v} & {\tt -{}-velocities}             & Print velocities in xyz file  (default=off)\\
+{\tt -f} & {\tt -{}-forces}                 & Print forces xyz file  (default=off)\\
+{\tt -u} & {\tt -{}-vectors}                & Print vectors (dipoles, etc) in xyz file  
                                   (default=off)\\
-  -c& {\tt -{}-charges}                & Print charges in xyz file  (default=off)\\
-  -e& {\tt -{}-efield}                 & Print electric field vector in xyz file  
+{\tt -c} & {\tt -{}-charges}                & Print charges in xyz file  (default=off)\\
+{\tt -e} & {\tt -{}-efield}                 & Print electric field vector in xyz file  
                                   (default=off)\\
      & {\tt -{}-repeatX=INT}  &                 The number of images to repeat in the x direction  (default=`0') \\
      & {\tt -{}-repeatY=INT} &                 The number of images to repeat in the y direction  (default=`0') \\
      &  {\tt -{}-repeatZ=INT}  &                The number of images to repeat in the z direction  (default=`0') \\
-  -s & {\tt -{}-selection=selection script} & By specifying {\tt -{}-selection}=``selection command'' with Dump2XYZ, the user can select an arbitrary set of StuntDoubles to be
+{\tt -s } & {\tt -{}-selection=selection script} & By specifying {\tt -{}-selection}=``selection command'' with Dump2XYZ, the user can select an arbitrary set of StuntDoubles to be
 converted. \\ 
      & {\tt -{}-originsele} & By specifying {\tt -{}-originsele}=``selection command'' with Dump2XYZ, the user can re-center the origin of the system around a specific StuntDouble \\ 
      & {\tt -{}-refsele} &  In order to rotate the system, {\tt -{}-originsele} and {\tt -{}-refsele} must be given to define the new coordinate set. A StuntDouble which contains a dipole (the direction of the dipole is always (0, 0, 1) in body frame) is specified by {\tt -{}-originsele}. The new x-z plane is defined by the direction of the dipole and the StuntDouble is specified by {\tt -{}-refsele}.
@@ -4923,21 +4924,21 @@ The options available for {\tt StaticProps} are as follows:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}                    &  Print help and exit \\
-  -V& {\tt -{}-version}                 &  Print version and exit \\
-  -i& {\tt -{}-input=filename}          &  input dump file \\
-  -o& {\tt -{}-output=filename}         &  output file name \\
-  -n& {\tt -{}-step=INT}                &  process every n frame
+{\tt -h} & {\tt -{}-help}                    &  Print help and exit \\
+{\tt -V} & {\tt -{}-version}                 &  Print version and exit \\
+{\tt -i} & {\tt -{}-input=filename}          &  input dump file \\
+{\tt -o} & {\tt -{}-output=filename}         &  output file name \\
+{\tt -n} & {\tt -{}-step=INT}                &  process every n frame
                                           (default=`1') \\
-  -b& {\tt -{}-nbins=INT}               &  number of bins (general
+{\tt -b} & {\tt -{}-nbins=INT}               &  number of bins (general
                                           purpose)  (default=`100') \\
-  -x& {\tt -{}-nbins\_x=INT}            & number of bins in x axis  (default=`100')\\
-  -y& {\tt -{}-nbins\_y=INT}            & number of bins in y axis  (default=`100')\\
+{\tt -x} & {\tt -{}-nbins\_x=INT}            & number of bins in x axis  (default=`100')\\
+{\tt -y} & {\tt -{}-nbins\_y=INT}            & number of bins in y axis  (default=`100')\\
     & {\tt -{}-nbins\_z=INT}            & number of bins in z axis  (default=`100')\\
-  -r& {\tt -{}-nrbins=INT}              &  number of bins for distance  (default=`100') \\
-  -a& {\tt -{}-nanglebins=INT}          &  number of bins for
+{\tt -r} & {\tt -{}-nrbins=INT}              &  number of bins for distance  (default=`100') \\
+{\tt -a} & {\tt -{}-nanglebins=INT}          &  number of bins for
                                           cos(angle)  (default= `50')  \\
-  -c& {\tt -{}-rcut=DOUBLE}            & cutoff radius (rcut)\\
+{\tt -c} & {\tt -{}-rcut=DOUBLE}            & cutoff radius (rcut)\\
     & {\tt -{}-OOcut=DOUBLE}           & Oxygen-Oxygen cutoff radius (angstroms)
                                   (default=`3.5')\\
     & {\tt -{}-thetacut=DOUBLE}        & HOO cutoff angle (degrees)  (default=`30')\\
@@ -4945,11 +4946,11 @@ The options available for {\tt StaticProps} are as follows:
                                   (default=`2.45')\\
     & {\tt -{}-dz=DOUBLE}              & slab width (dz)\\
 
-  -l& {\tt -{}-length=DOUBLE}           &  maximum length (Defaults to 1/2 smallest length of first frame) \\
+{\tt -l} & {\tt -{}-length=DOUBLE}           &  maximum length (Defaults to 1/2 smallest length of first frame) \\
     & {\tt -{}-zlength=DOUBLE}           &  maximum length (Defaults
                                            to 1/2 smallest length of
                                            first frame) \\
-  -z& {\tt -{}-zoffset=DOUBLE}         & Where to set the zero for the
+{\tt -z} & {\tt -{}-zoffset=DOUBLE}         & Where to set the zero for the
                                          {\tt slab\_density}
                                   calculation  (default=`0') \\
     & {\tt -{}-sele1=selection script}   & select the first StuntDouble set \\
@@ -4969,7 +4970,7 @@ The options available for {\tt StaticProps} are as follows:
     & {\tt -{}-begin=INT}                & begin internal index \\
     & {\tt -{}-end=INT}                  & end internal index \\
     & {\tt -{}-radius=DOUBLE}            & nanoparticle radius\\
-  -v& {\tt -{}-voxelSize=DOUBLE}      & voxel size (angstroms) \\
+{\tt -v} & {\tt -{}-voxelSize=DOUBLE}      & voxel size (angstroms) \\
     &  {\tt -{}-gaussWidth=DOUBLE}    &   Gaussian width (angstroms)\\
     & {\tt -{}-privilegedAxis={x,y,z}} & Which axis should
                                                   statistics be
@@ -5008,7 +5009,7 @@ The options available for {\tt StaticProps} are as follows:
     & {\tt -{}-bad}         & $N(\theta)$ bond angle density within ({\tt -{}-rcut} must be specified) \\
     & {\tt -{}-count}       & count of molecules matching selection
     criteria (and associated statistics) \\
-  -g&  {\tt -{}-gofr}                    &  $g(r)$ \\
+ {\tt -g} &  {\tt -{}-gofr}                    &  $g(r)$ \\
     &  {\tt -{}-gofz}                    &  $g(z)$ \\
     &  {\tt -{}-r\_theta}                &  $g(r, \cos(\theta))$ \\
     &  {\tt -{}-r\_omega}                &  $g(r, \cos(\omega))$ \\
@@ -5022,7 +5023,7 @@ The options available for {\tt StaticProps} are as follows:
                                            specified)\\
     &  {\tt -{}-kirkwood\_buff}          & Kirkwood-Buff integrals ({\tt -{}-sele1} and {\tt -{}-sele2}
                                   must both be specified)\\
-  -p&  {\tt -{}-p2}                      &  $P_2$ order parameter
+{\tt -p} &  {\tt -{}-p2}                      &  $P_2$ order parameter
                                            ({\tt -{}-sele1} must be
                                            specified, {\tt -{}-sele2}
                                            is optional) \\
@@ -5030,7 +5031,7 @@ The options available for {\tt StaticProps} are as follows:
                                          as director axis \\
     &  {\tt -{}-rp2}                     &  Ripple order parameter ({\tt -{}-sele1} and {\tt -{}-sele2} must be specified) \\
     &  {\tt -{}-scd}                     &  $S_{CD}$ order parameter(either {\tt -{}-sele1}, {\tt -{}-sele2}, {\tt -{}-sele3} are specified or {\tt -{}-molname}, {\tt -{}-begin}, {\tt -{}-end} are specified) \\
-  -d&  {\tt -{}-density}                 &  density plot \\
+ {\tt -d} &  {\tt -{}-density}                 &  density plot \\
     &  {\tt -{}-slab\_density}           &  slab density, $\rho(z)$ \\
     &  {\tt -{}-pipe\_density}           &  slab density,
                                            $\rho(\mathrm{axis1}, \mathrm{axis2})$\\
@@ -5043,11 +5044,11 @@ The options available for {\tt StaticProps} are as follows:
     origin)\\
     &  {\tt -{}-hullvol}                 & hull volume of nanoparticle\\
     &  {\tt -{}-rodlength}               & length of nanorod\\
-  -Q&  {\tt -{}-tet\_param}              & tetrahedrality order parameter ($Q$)\\
+{\tt -Q} &  {\tt -{}-tet\_param}              & tetrahedrality order parameter ($Q$)\\
     &  {\tt -{}-tet\_param\_z}           & spatially-resolved
                                            tetrahedrality order
                                            parameter $Q(z)$ \\
-  & {\tt -{}-tet\_param\_dens} & spatially-resolved tetrahedrality
+    & {\tt -{}-tet\_param\_dens} & spatially-resolved tetrahedrality
                                  order parameter Qk(z) \\
     &  {\tt -{}-tet\_param\_xyz}         & volume-resolved tetrahedrality order parameter
                                   $Q(x,y,z)$.  (voxelSize, rcut, and gaussWidth
@@ -5060,7 +5061,7 @@ The options available for {\tt StaticProps} are as follows:
                                   (temperature, density, angular velocity) \\
     &  {\tt -{}-nitrile}                 & electrostatic potential to frequency map based
                                   on the Cho nitrile fits \\
-  -m& {\tt -{}-multipole}               & average multipole moments contained within
+{\tt -m} & {\tt -{}-multipole}               & average multipole moments contained within
                                   cutoff spheres as a function of
                                           radius \\
   & {\tt -{}-cn} & Coordination Number Distribution \\
@@ -5085,15 +5086,15 @@ The options available for {\tt StaticProps} are as follows:
     &  {\tt -{}-tet\_hb}                  & hydrogen bond statistics binned by
                                   tetrahedrality of donor and acceptor
                                   molecules \\
-  -k& {\tt -{}-kirkwood}                & distance-dependent Kirkwood factor \\
+{\tt -k} & {\tt -{}-kirkwood}                & distance-dependent Kirkwood factor \\
     &  {\tt -{}-kirkwoodQ}              &  distance-dependent Kirkwood factor for
                                   quadrupoles \\
  &  {\tt -{}-densityfield}           & density field\\
  &  {\tt -{}-velocityfield}          & velocity field\\
 &  {\tt -{}-velocityZ}               & two-dimensional velocity map \\
-  -D&  {\tt -{}-eam\_density}         & EAM density profile \\
-  -q&  {\tt -{}-net\_charge}          & charge profile \\
-  -J&  {\tt  -{}-current\_density}    & current density \\
+{\tt -D} &  {\tt -{}-eam\_density}         & EAM density profile \\
+{\tt -q} &  {\tt -{}-net\_charge}          & charge profile \\
+{\tt -J} &  {\tt -{}-current\_density}    & current density \\
  &  {\tt -{}-chargez}                & computes the charge distribution along selected
                                   axis and selected atom\\
  &  {\tt -{}-charger}                & computes the charge density as a function of
@@ -5109,14 +5110,11 @@ The options available for {\tt StaticProps} are as follows:
                                   the radius and selected molecule\\
  &  {\tt -{}-charge\_density\_z}      &  computes the continuous charge distribution
                                   along selected axis and selected atom\\
- &  {\tt -{}-countz}                 & computes the number of selected atoms  along
-                                  selected axis\\
-  -M&  {\tt -{}-momentum\_distribution} &  momentum distribution \\
-  -S&  {\tt -{}-dipole\_orientation}     & spatially-resolved dipole order parameter $S(z)$,
+ &  {\tt -{}-countz}                 & computes the number of selected atoms along selected axis\\
+{\tt -M} &  {\tt -{}-momentum\_distribution} &  momentum distribution \\
+{\tt -S} &  {\tt -{}-dipole\_orientation}     & spatially-resolved dipole order parameter $S(z)$,
                                   $S = (3 \cos^2\theta - 1)/2$ \\
- &  {\tt -{}-order\_prob}            &  probability of order parameter for given
-                                  selection
-
+ &  {\tt -{}-order\_prob}            &  probability of order parameter for given selection
 \end{longtable}
 
 \subsection{\label{section:SequentialProps}SequentialProps}
@@ -5180,34 +5178,34 @@ The options available for SequentialProps are as follows:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}                   & Print help and exit \\
-  -V& {\tt -{}-version}                & Print version and exit \\
-  -i& {\tt -{}-input=filename}         & input dump file (mandatory) \\
-  -o& {\tt -{}-output=filename}        & output file name \\
+{\tt -h} & {\tt -{}-help}                   & Print help and exit \\
+{\tt -V} & {\tt -{}-version}                & Print version and exit \\
+{\tt -i} & {\tt -{}-input=filename}         & input dump file (mandatory) \\
+{\tt -o} & {\tt -{}-output=filename}        & output file name \\
     & {\tt -{}-sele1=selection script} & select first stuntdouble set \\
     & {\tt -{}-sele2=selection script} & select second stuntdouble set (if sele2 is not
                                   set, use script from sele1) \\
-  -b& {\tt -{}-nbins=INT}              & number of bins (general purpose)
+{\tt -b} & {\tt -{}-nbins=INT}              & number of bins (general purpose)
                                   (default=`100') \\
     & {\tt -{}-nbins\_z=INT}            & number of bins in z axis  (default=`100') \\
-  -x& {\tt -{}-centroidX=DOUBLE}       & Location of droplet centroid in x \\
-  -y& {\tt -{}-centroidY=DOUBLE}       & Location of droplet centroid in y \\
-  -z& {\tt -{}-referenceZ=DOUBLE}      & Reference z-height of solid surface \\
-  -r& {\tt -{}-dropletR=DOUBLE}        & Droplet radius in angstroms \\
+{\tt -x} & {\tt -{}-centroidX=DOUBLE}       & Location of droplet centroid in x \\
+{\tt -y} & {\tt -{}-centroidY=DOUBLE}       & Location of droplet centroid in y \\
+{\tt -z} & {\tt -{}-referenceZ=DOUBLE}      & Reference z-height of solid surface \\
+{\tt -r} & {\tt -{}-dropletR=DOUBLE}        & Droplet radius in angstroms \\
     & {\tt -{}-threshDens=DOUBLE}      & Threshold Density in g/cm$^3$ \\
     & {\tt -{}-bufferLength=DOUBLE}    & Buffer length in angstroms \\
     & {\tt -{}-rcut=DOUBLE}            & cutoff radius (rcut) \\
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
-  -c& {\tt -{}-com}                   &  selection center of mass \\
+{\tt -c} & {\tt -{}-com}                   &  selection center of mass \\
     & {\tt -{}-ca1}                   &  contact angle of selection (using center of
                                   mass)\\
     & {\tt -{}-ca2}                   &  contact angle of selection (using density
                                   profile)\\
     & {\tt -{}-gcn}                   &  Generalized Coordinate
                                         Number\\
- {\tt -t}& {\tt -{}-testequi}     & Temperature using all componets of linear and
+ {\tt -t} & {\tt -{}-testequi}     & Temperature using all componets of linear and
                                   angular momentum
 \end{longtable}
 
@@ -5243,18 +5241,18 @@ The options available for DynamicProps are as follows:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}                   & Print help and exit \\
-  -V& {\tt -{}-version}                & Print version and exit \\
-  -i& {\tt -{}-input=filename}         & input dump file \\
-  -o& {\tt -{}-output=filename}        & output file name \\
+{\tt -h} & {\tt -{}-help}                   & Print help and exit \\
+{\tt -V} & {\tt -{}-version}                & Print version and exit \\
+{\tt -i} & {\tt -{}-input=filename}         & input dump file \\
+{\tt -o} & {\tt -{}-output=filename}        & output file name \\
     & {\tt -{}-sele1=selection script} & select first StuntDouble set \\
     & {\tt -{}-sele2=selection script} & select second StuntDouble set
                                          (if sele2 is not set, use
                                          script from sele1) \\
     & {\tt -{}-sele3=selection script} & select third stuntdouble set\\
     & {\tt -{}-order=INT}              & Lengendre Polynomial Order\\
-  -z& {\tt -{}-nzbins=INT}             & Number of $z$ bins (default=`100`)\\
-  -c& {\tt -{}-rcut=DOUBLE}            & cutoff radius (angstroms)\\
+{\tt -z} & {\tt -{}-nzbins=INT}             & Number of $z$ bins (default=`100`)\\
+{\tt -c} & {\tt -{}-rcut=DOUBLE}            & cutoff radius (angstroms)\\
     & {\tt -{}-OOcut=DOUBLE}           & Oxygen-Oxygen cutoff radius (angstroms)
                                   (default=`3.5')\\
     & {\tt -{}-thetacut=DOUBLE}        & HOO cutoff angle (degrees)  (default=`30')\\
@@ -5274,65 +5272,43 @@ The options available for DynamicProps are as follows:
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
-  -s& {\tt -{}-selecorr}               & selection correlation function \\
-  -r& {\tt -{}-rcorr}                  & compute mean squared
-                                         displacement \\
-    & {\tt -{}-rcorrZ}                 & mean squared displacement binned by Z\\
-  -v& {\tt -{}-vcorr}                  & velocity autocorrelation
-                                         function \\
-    & {\tt -{}-vcorrZ}                 & velocity correlation function along z-axis\\
-    & {\tt -{}-vcorrR}                 & velocity correlation function projected
-                                         radially\\
-    & {\tt -{}-vaOutProdcorr}           & Velocity - Velocity auto outer product
-                                  correlation function\\
-    & {\tt -{}-waOutProdcorr}           & Angular Velocity - Angular Velocity auto outer
-                                  product correlation function\\
-    & {\tt -{}-vwOutProdcorr}           & Velocity - Angular Velocity outer product
-                                  correlation function\\
-    & {\tt -{}-wvOutProdcorr}           & Angular Velocity - Velocity outer product
-                                  correlation function\\
-  -w& {\tt -{}-wcorr}                  & charge velocity autocorrelation
-                                         function \\
-
-  -d& {\tt -{}-dcorr}                  & dipole correlation function \\
-  -l& {\tt -{}-lcorr}                  & Lengendre correlation function \\
-    & {\tt -{}-lcorrZ}                 & Lengendre correlation function binned by $z$ \\
-    & {\tt -{}-cohZ}                   & Lengendre correlation function for OH bond vectors binned by $z$\\
-  -M& {\tt -{}-sdcorr}                 & System dipole correlation function\\
-    & {\tt -{}-r\_rcorr}               & Radial mean squared displacement\\
-    & {\tt -{}-thetacorr}              & Angular mean squared displacement\\
-    & {\tt -{}-drcorr}                 & Directional mean squared displacement for particles with unit vectors\\
-    & {\tt -{}-stresscorr}             & Stress tensor correlation
-                                         function\\
-  -b& {\tt -{}-bondcorr}               & Bond extension correlation function\\
-  -f& {\tt -{}-freqfluccorr}           & Frequency Fluctuation correlation function\\
-  -j& {\tt -{}-jumptime}               & Hydrogen bond jump time
-                                         correlation function \\
-    & {\tt -{}-jumptimeZ}               & Hydrogen bond jump time correlation function
-                                  binned by Z \\
-    & {\tt -{}-jumptimeR}               & Hydrogen bond jump time correlation function
-                                  binned by R around a third selection \\
-    & {\tt -{}-persistence}               & Hydrogen bond persistence correlation function\\
-    & {\tt -{}-pjcorr}               & Momentum - Angular Momentum cross correlation
-                                  function \\
-    & {\tt -{}-ftcorr}               & Force - Torque cross
-                                       correlation function \\
-    & {\tt -{}-facorr}               & Force - Force auto correlation
-                                       function \\
-    & {\tt -{}-tfcorr}               & Torque - Force Cross
-                                       correlation function \\
-    & {\tt -{}-tacorr}               & Torque auto correlation
-                                       function \\
-    & {\tt -{}-disp}               & Displacement correlation function \\
-    & {\tt -{}-dispZ}               & Displacement correlation
-                                      function binned by Z \\
-    & {\tt -{}-current}                & Current density auto correlation function\\
-    & {\tt -{}-onsager}                & Onsager coefficient correlation functions\\
-    & {\tt -{}-ddisp}                  & Collective Dipole displacement function
-                                  (Helfand moment of Current Density)\\
-     & {\tt -{}-rotAngleDisp}           & Displacement correlation function for rotation
-                                  angles\\
-
+{\tt -s} & {\tt -{}-selecorr}        & selection correlation function \\
+{\tt -r} & {\tt -{}-rcorr}           & compute mean squared displacement \\
+    & {\tt -{}-rcorrZ}               & mean squared displacement binned by Z\\
+{\tt -v} & {\tt -{}-vcorr}           & velocity autocorrelation function \\
+    & {\tt -{}-vcorrZ}               & autocorrelation function of velocity projected along privileged axis\\
+    & {\tt -{}-vcorrR}               & radially-projected velocity autocorrelation function\\
+    & {\tt -{}-vaOutProdcorr}        & Velocity outer product autocorrelation function\\
+    & {\tt -{}-waOutProdcorr}        & Angular Velocity outer product autocorrelation function\\
+    & {\tt -{}-vwOutProdcorr}        & Velocity - Angular Velocity outer product cross-correlation function\\
+    & {\tt -{}-wvOutProdcorr}        & Angular Velocity - Velocity outer product cross-correlation function\\
+{\tt -w} & {\tt -{}-wcorr}           & fluctuating charge velocity autocorrelation function \\
+{\tt -d} & {\tt -{}-dcorr}           & dipole correlation function \\
+{\tt -l} & {\tt -{}-lcorr}           & Lengendre correlation function \\
+    & {\tt -{}-lcorrZ}               & Lengendre correlation function binned by $z$ \\
+    & {\tt -{}-cohZ}                 & Lengendre correlation function for OH bond vectors binned by $z$\\
+{\tt -M} & {\tt -{}-sdcorr}          & System dipole correlation function\\
+    & {\tt -{}-r\_rcorr}             & Radial mean squared displacement\\
+    & {\tt -{}-thetacorr}            & Angular mean squared displacement\\
+    & {\tt -{}-drcorr}               & Directional mean squared displacement for particles with unit vectors\\
+    & {\tt -{}-stresscorr}           & Stress tensor correlation function\\
+{\tt -b} & {\tt -{}-bondcorr}        & Bond extension correlation function\\
+{\tt -f} & {\tt -{}-freqfluccorr}    & Frequency Fluctuation correlation function\\
+{\tt -j} & {\tt -{}-jumptime}        & Hydrogen bond jump time correlation function \\
+    & {\tt -{}-jumptimeZ}            & Hydrogen bond jump time correlation function binned by Z \\
+    & {\tt -{}-jumptimeR}            & Hydrogen bond jump time correlation function binned by R around a third selection \\
+    & {\tt -{}-persistence}          & Hydrogen bond persistence correlation function\\
+    & {\tt -{}-pjcorr}               & Momentum - Angular Momentum cross correlation function \\
+    & {\tt -{}-ftcorr}               & Force - Torque cross correlation function \\
+    & {\tt -{}-facorr}               & Force autocorrelation function \\
+    & {\tt -{}-tfcorr}               & Torque - Force cross correlation function \\
+    & {\tt -{}-tacorr}               & Torque autocorrelation function \\
+    & {\tt -{}-disp}                 & Displacement correlation function \\
+    & {\tt -{}-dispZ}                & Displacement correlation function binned by Z \\
+    & {\tt -{}-current}              & Current density auto correlation function\\
+    & {\tt -{}-onsager}              & Onsager coefficient correlation functions\\
+    & {\tt -{}-ddisp}                & Collective Dipole displacement function (Helfand moment of Current Density)\\
+    & {\tt -{}-rotAngleDisp}         & Displacement correlation function for rotation angles
 \end{longtable}
 
 
@@ -5352,10 +5328,10 @@ frames.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -m& {\tt -{}-meta-data}          & use specified OpenMD (.dump) file \\
-  -o& {\tt -{}-output-file}        & specified output file name \\
-  -s& {\tt -{}-split-frame}        & split the (.dump) file every s frames \\
+{\tt -h} & {\tt -{}-help}        & Print help and exit\\
+{\tt -m} & {\tt -{}-meta-data}   & use specified OpenMD (.dump) file \\
+{\tt -o} & {\tt -{}-output-file} & specified output file name \\
+{\tt -s} & {\tt -{}-split-frame} & split the (.dump) file every s frames \\
 \end{longtable}
 
 \subsection{\label{section:omdSplit}omdSplit}
@@ -5369,9 +5345,9 @@ files and splits them into {\tt -s} separate files.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -m& {\tt -{}-meta-data}          & use specified OpenMD (.dump) file \\
-  -s& {\tt -{}-split-frame}        & split every s frames \\
+{\tt -h} & {\tt -{}-help}        & Print help and exit\\
+{\tt -m} & {\tt -{}-meta-data}   & use specified OpenMD (.dump) file \\
+{\tt -s} & {\tt -{}-split-frame} & split every s frames \\
 \end{longtable}
 
 
@@ -5392,22 +5368,15 @@ and {\tt -qL}.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -i& {\tt -{}-hbq-file}          & use specified OpenMD (.hbq) file \\
-  -o& {\tt -{}-hbqPAS-file}    & use specified output (.hbqPSA) file
-  \\
-  -qS&{\tt -{}-q(liquid)} & the tetrahedral order parameter value at
-                            the solid surface \\
-  -qL&{\tt -{}-q(solid)} & the tetrahedral order parameter value at
-                           the liquid surface \\
-  -x&{\tt -{}-boxl(x)} & the x-dimension of the simulation box
-                         (Angstroms) \\
-  -y&{\tt -{}-boxl(y)} & the y-dimension of the simulation box
-                         (Angstroms) \\
-  -z&{\tt -{}-boxl(z)} & the z-dimension of the simulation box
-                         (Angstroms) \\
-  -t&{\tt -{}-nSnapshots} & the number of snapshots used to accumulate
-                            the (.hbq) file \\
+{\tt -h}  & {\tt -{}-help}        & Print help and exit\\
+{\tt -i}  & {\tt -{}-hbq-file}    & use specified OpenMD (.hbq) file \\
+{\tt -o}  & {\tt -{}-hbqPAS-file} & use specified output (.hbqPSA) file \\
+{\tt -qS} & {\tt -{}-q(liquid)}   & the tetrahedral order parameter value at the solid surface \\
+{\tt -qL} & {\tt -{}-q(solid)}    & the tetrahedral order parameter value at the liquid surface \\
+{\tt -x}  & {\tt -{}-boxl(x)}     & the x-dimension of the simulation box (Angstroms) \\
+{\tt -y}  & {\tt -{}-boxl(y)}     & the y-dimension of the simulation box (Angstroms) \\
+{\tt -z}  & {\tt -{}-boxl(z)}     & the z-dimension of the simulation box (Angstroms) \\
+{\tt -t}  & {\tt -{}-nSnapshots}  & the number of snapshots used to accumulate the (.hbq) file \\
 \end{longtable}
 
 \section{stat2- utility scripts}
@@ -5451,12 +5420,10 @@ interaction.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -f& {\tt -{}-stat-file}          & use specified OpenMD (.stat) file \\
-  -o& {\tt -{}-output-file}        & use specified output
-                                     (.dielectric) file\\
-  -q&{\tt -{}-Q-value}  & use the specified Q value to correct the
-                          dielectric \\
+{\tt -h} & {\tt -{}-help}        & Print help and exit\\
+{\tt -f} & {\tt -{}-stat-file}   & use specified OpenMD (.stat) file \\
+{\tt -o} & {\tt -{}-output-file} & use specified output (.dielectric) file\\
+{\tt -q} & {\tt -{}-Q-value}     & use the specified Q value to correct the dielectric \\
 \end{longtable}
 
 \subsection{\label{section:stat2tension}stat2tension}
@@ -5502,12 +5469,10 @@ require two interfaces, so
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -s& {\tt -{}-stat-file}          & use specified OpenMD (.stat) file \\
-  -o& {\tt -{}-output-file}        & use specified output
-                                     (.tension) file\\
-  -z&{\tt -{}-box-length}  & dimension of the system box in the normal
-  (z) direction \\
+{\tt -h} & {\tt -{}-help}        & Print help and exit\\
+{\tt -s} & {\tt -{}-stat-file}   & use specified OpenMD (.stat) file \\
+{\tt -o} & {\tt -{}-output-file} & use specified output (.tension) file\\
+{\tt -z} & {\tt -{}-box-length}  & dimension of the system box in the normal (z) direction \\
 \end{longtable}
 
 %\subsection{\label{section:stat2thcond}stat2thcond}
@@ -5530,13 +5495,13 @@ below, and further information is available from the help prompt ({\tt
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -f& {\tt -{}-stat-file}          & use specified OpenMD (.stat) file \\
-  -o& {\tt -{}-output-file}        & use specified output
-                                     (.pcorr) file\\
-  -g&{\tt -{}-green-kubo}  & use Green-Kubo formulae (noisy!) \\
-  -e&{\tt -{}-Einstein}& use Einstein relation (best) \\
-  -s&{\tt -{}-shear}& compute the shear viscosity (the off-diagonal
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -f} & {\tt -{}-stat-file}          & use specified OpenMD (.stat) file \\
+{\tt -o} & {\tt -{}-output-file}        & use specified output
+                                         (.pcorr) file\\
+{\tt -g} & {\tt -{}-green-kubo}  & use Green-Kubo formulae (noisy!) \\
+{\tt -e} & {\tt -{}-Einstein} & use Einstein relation (best) \\
+{\tt -s} & {\tt -{}-shear} & compute the shear viscosity (the off-diagonal
                       pressure tensor values must be present in the
                       .stat file) \\
 \end{longtable}
@@ -5569,9 +5534,9 @@ origin.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -v& {\tt -{}-version}          & print version and exit \\
-  -o& {\tt -{}-output-file}        & use specified output file name
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -v} & {\tt -{}-version}          & print version and exit \\
+{\tt -o} & {\tt -{}-output-file}        & use specified output file name
                                      (mandatory) \\
 \end{longtable}
 
@@ -5643,16 +5608,16 @@ on the elastic constants for polycrystalline materials.   {\tt
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -v& {\tt -{}-version}          & print version and exit \\
-  -i& {\tt -{}-input}        & use specified input file name
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -v} & {\tt -{}-version}          & print version and exit \\
+{\tt -i} & {\tt -{}-input}        & use specified input file name
                                (mandatory) \\
-  -b& {\tt -{}-box}          &  Optimize box geometry before performing calculation
+{\tt -b} & {\tt -{}-box}          &  Optimize box geometry before performing calculation
                          (default=off) \\
-  -m& {\tt -{}-method=\{``energy'',``stress''\}} & Calculation Method \\
-  -n& {\tt -{}-npoints} &   number of points for fitting
+{\tt -m} & {\tt -{}-method=\{``energy'',``stress''\}} & Calculation Method \\
+{\tt -n} & {\tt -{}-npoints} &   number of points for fitting
                          stress-strain relationship  (default=25) \\
-  -d& {\tt -{}-delta}  & size of relative volume changes for strains
+{\tt -d} & {\tt -{}-delta}  & size of relative volume changes for strains
 \end{longtable}
 
 
@@ -5698,22 +5663,22 @@ The options available for atom2omd are as follows:
 \endhead
 \hline
 \endfoot
-  -f \# & Start import at molecule \# specified \\
-  -l \# & End import at molecule \# specified \\
-  -t  & All input files describe a single molecule \\
-  -e & Continue with next object after error, if possible \\
-  -z & Compress the output with gzip \\
-  -H & Outputs this help text \\
-  -Hxxx & (xxx is file format ID e.g. -Hpdb) gives format info \\
-  -Hall & Outputs details of all formats \\
-  -V & Outputs version number \\
+{\tt  -f \#} & Start import at molecule \# specified \\
+{\tt  -l \#} & End import at molecule \# specified \\
+{\tt  -t } & All input files describe a single molecule \\
+{\tt  -e} & Continue with next object after error, if possible \\
+{\tt  -z} & Compress the output with gzip \\
+{\tt  -H} & Outputs this help text \\
+{\tt  -Hxxx} & (xxx is file format ID e.g. -Hpdb) gives format info \\
+{\tt  -Hall} & Outputs details of all formats \\
+{\tt  -V} & Outputs version number \\
 \hline
 \multicolumn{2}{|l|}{The following file formats are recognized:}\\
 \hline
-  ent & Protein Data Bank format \\
-  pdb & Protein Data Bank format \\
-  prep & Amber Prep format  \\
-  xyz & XYZ cartesian coordinates format \\
+{\tt  ent} & Protein Data Bank format \\
+{\tt  pdb} & Protein Data Bank format \\
+{\tt  prep} & Amber Prep format  \\
+{\tt  xyz} & XYZ cartesian coordinates format \\
 \hline
 \multicolumn{2}{|l|}{More specific info and options are available
 using -H$<$format-type$>$, e.g. -Hpdb} 
@@ -5737,13 +5702,13 @@ The options available for simpleBuilder are as follows:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -V& {\tt -{}-version}            & Print version and exit\\
-  -o& {\tt -{}-output=STRING}      & Output file name\\
-   &  {\tt -{}-density=DOUBLE}     & density ($\mathrm{g~cm}^{-3}$)\\
-    &  {\tt -{}-nx=INT}            &  number of unit cells in x\\
-    &  {\tt -{}-ny=INT}           &  number of unit cells in y\\
-    &  {\tt -{}-nz=INT}            &  number of unit cells in z
+{\tt -h} & {\tt -{}-help}             & Print help and exit\\
+{\tt -V} & {\tt -{}-version}          & Print version and exit\\
+{\tt -o} & {\tt -{}-output=STRING}    & Output file name\\
+         &  {\tt -{}-density=DOUBLE}  & density ($\mathrm{g~cm}^{-3}$)\\
+         &  {\tt -{}-nx=INT}          &  number of unit cells in x\\
+         &  {\tt -{}-ny=INT}          &  number of unit cells in y\\
+         &  {\tt -{}-nz=INT}          &  number of unit cells in z
 \end{longtable}
 
 \section{\label{section:icosahedralBuilder}icosahedralBuilder}
@@ -5765,19 +5730,19 @@ The options available for icosahedralBuilder are as follows:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -V& {\tt -{}-version}            & Print version and exit\\
-  -o& {\tt -{}-output=STRING}      & Output file name\\
-  -n& {\tt -{}-shells=INT}         & Nanoparticle shells\\
-  -d& {\tt -{}-latticeConstant=DOUBLE} & Lattice spacing in Angstroms for cubic lattice.\\
-  -c& {\tt -{}-columnAtoms=INT}        & Number of atoms along central
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -V} & {\tt -{}-version}            & Print version and exit\\
+{\tt -o} & {\tt -{}-output=STRING}      & Output file name\\
+{\tt -n} & {\tt -{}-shells=INT}         & Nanoparticle shells\\
+{\tt -d} & {\tt -{}-latticeConstant=DOUBLE} & Lattice spacing in Angstroms for cubic lattice.\\
+{\tt -c} & {\tt -{}-columnAtoms=INT}        & Number of atoms along central
   column (Decahedron only)\\
-  -t& {\tt -{}-twinAtoms=INT}          & Number of atoms along twin
+{\tt -t} & {\tt -{}-twinAtoms=INT}          & Number of atoms along twin
   boundary (Decahedron only) \\
-  -p& {\tt -{}-truncatedPlanes=INT}   & Number of truncated planes
+{\tt -p} & {\tt -{}-truncatedPlanes=INT}   & Number of truncated planes
                                         (Curling-stone Decahedron
                                         only)\\
-  -u&{\tt -{}-unitCells=INT} & Number of unit cell (Cuboctrahedron and
+{\tt -u} & {\tt -{}-unitCells=INT} & Number of unit cell (Cuboctrahedron and
                                Truncated Cube only) \\
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
@@ -5819,26 +5784,26 @@ the xy-plane.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -l& {\tt -{}-lattice}            & one of sc, fcc, or bcc \\
-  -c& {\tt -{}-latticeConstant}    & lattice spacing in angstroms \\
-  -o& {\tt -{}-omd-file}           & (.omd) output file name \\
-  -x& {\tt -{}-xyz-file}           & (.xyz) output file name \\
-  -f& {\tt -{}-hkl}                & desired facet to be exposed to the z axis
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -l} & {\tt -{}-lattice}            & one of sc, fcc, or bcc \\
+{\tt -c} & {\tt -{}-latticeConstant}    & lattice spacing in angstroms \\
+{\tt -o} & {\tt -{}-omd-file}           & (.omd) output file name \\
+{\tt -x} & {\tt -{}-xyz-file}           & (.xyz) output file name \\
+{\tt -f} & {\tt -{}-hkl}                & desired facet to be exposed to the z axis
   (specify with three separate integers) \\
-  -r& {\tt -{}-repeats}            & how many lattice repeats in each of the 3 
+{\tt -r} & {\tt -{}-repeats}            & how many lattice repeats in each of the 3 
   perpindicular directions (specify with three separate integers) \\
-  -e& {\tt -{}-elementType}        & the element composing the lattice (only single
+{\tt -e} & {\tt -{}-elementType}        & the element composing the lattice (only single
   element lattices are supported) \\
-  -v& {\tt -{}-vacuum}             & should the output (.omd) file
+{\tt -v} & {\tt -{}-vacuum}             & should the output (.omd) file
                                      have vacuum in the z-dimension?
                                      (true / false) \\
-  -d& {\tt -{}-directional}        & Output atoms with orientational
+{\tt -d} & {\tt -{}-directional}        & Output atoms with orientational
                                      degrees of freedom (i.e. pvqj
                                      fields instead of pv fields) \\ 
-  -q& {\tt -{}-chargedPlates}      & should the output (.omd) file include metal plates in the vacuum space? (true / false) \\
-  -k& {\tt -{}-kPoints}            & number of points to be used in the charged plates (default=400) \\
-  -s& {\tt -{}-offSet}             & the distance the charges plates will be placed from the surface \\
+{\tt -q} & {\tt -{}-chargedPlates}      & should the output (.omd) file include metal plates in the vacuum space? (true / false) \\
+{\tt -k} & {\tt -{}-kPoints}            & number of points to be used in the charged plates (default=400) \\
+{\tt -s} & {\tt -{}-offSet}             & the distance the charges plates will be placed from the surface \\
 \end{longtable}
 
 \section{\label{section:thermalizer}thermalizer}
@@ -5863,17 +5828,17 @@ The options available for thermalizer are as follows:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -V& {\tt -{}-version}            & Print version and exit\\
-  -i& {\tt -{}-input=filename}     & Input (omd) file\\
-  -o& {\tt -{}-output=STRING}      & Output file prefix (mandatory)\\
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -V} & {\tt -{}-version}            & Print version and exit\\
+{\tt -i} & {\tt -{}-input=filename}     & Input (omd) file\\
+{\tt -o} & {\tt -{}-output=STRING}      & Output file prefix (mandatory)\\
 
 \hline
 \multicolumn{3}{|l|}{One option from the following group of options is required:} \\
 \hline
-  -t& {\tt -{}-temperature=DOUBLE}     & temperature (K) \\
-  -e& {\tt -{}-energy=DOUBLE}          & energy (kcal/mol) \\
-  -c& {\tt -{}-chargetemperature=DOUBLE}
+{\tt -t} & {\tt -{}-temperature=DOUBLE}     & temperature (K) \\
+{\tt -e} & {\tt -{}-energy=DOUBLE}          & energy (kcal/mol) \\
+{\tt -c} & {\tt -{}-chargetemperature=DOUBLE}
                                & charge temperature (K) 
 \end{longtable}
 
@@ -5907,22 +5872,18 @@ The options available for Hydro are as follows:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -V& {\tt -{}-version}            & Print version and exit\\
-  -i& {\tt -{}-input=filename}     & input MetaData (omd) file\\
-  -x& {\tt -{}-xyz=filename}       & xyz file for AtomicBead model\\
-    & {\tt -{}-stl=filename}       & stl file for BoundaryElement model\\
-    & {\tt -{}-msms=filename}      & filename root for MSMS .vert and .face files\\
-  -o& {\tt -{}-output=STRING}      & output file prefix (default = `hydro')\\
-    &  {\tt -{}-model=\{``AtomicBead'', ``RoughShell'', or ``BoundaryElement''\}}  & hydrodynamics
-                                                       model, mandatory \\
-  -s& {\tt -{}-beadSize=DOUBLE}    & bead size for RoughShell model in angstroms
-                           (default=0.2) \\
-  -b&  {\tt -{}-elements}          & output the hydrodynamic elements (beads or
-                              triangles) only, hydrodynamics calculation will
-                                       not be performed  (default=off)\\
-  -v& {\tt -{}-viscosity=DOUBLE}   & viscosity (in poise)  (default=`0.01')\\
-  -t& {\tt -{}-temperature=DOUBLE} & temperature (in Kelvin  (default=`300')
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -V} & {\tt -{}-version}            & Print version and exit\\
+{\tt -i} & {\tt -{}-input=filename}     & input MetaData (omd) file\\
+{\tt -x} & {\tt -{}-xyz=filename}       & xyz file for AtomicBead model\\
+         & {\tt -{}-stl=filename}       & stl file for BoundaryElement model\\
+         & {\tt -{}-msms=filename}      & filename root for MSMS .vert and .face files\\
+{\tt -o} & {\tt -{}-output=STRING}      & output file prefix (default = `hydro')\\
+         &  {\tt -{}-model=\{``AtomicBead'', ``RoughShell'', or ``BoundaryElement''\}}  & hydrodynamics model, mandatory \\
+{\tt -s} & {\tt -{}-beadSize=DOUBLE}    & bead size for RoughShell model in angstroms (default=0.2) \\
+{\tt -e} &  {\tt -{}-elements}          & output the hydrodynamic elements (beads or triangles) only, hydrodynamics calculation will not be performed  (default=off)\\
+{\tt -v} & {\tt -{}-viscosity=DOUBLE}   & viscosity (in poise)  (default=`0.01')\\
+{\tt -t} & {\tt -{}-temperature=DOUBLE} & temperature (in Kelvin  (default=`300')
 \end{longtable}
 
 
@@ -5940,16 +5901,15 @@ for waterBoxer follows:
 \endhead
 \hline
 \endfoot
-  -h               & Print help and exit\\
-  -m               & print out a water.inc file (file with all water models) \\
-  -r               & randomize the orientations of the water molecules \\
-  -v               & verbose output (water model defined in .omd file) \\
-  -d               & density in g/cm$^3$ (default 1) \\
-  -c               & default overlap cutoff for spacing water
-                     molecules (default 3.3) \\
-  -l               & 0 $-$ FCC lattice, 1 $-$ SC lattice  \\
-  -o               & output file name \\
-  -w               & name of the water stuntDouble (default: SPCE)\\
+{\tt -h}  & Print help and exit\\
+{\tt -m}  & print out a water.inc file (file with all water models) \\
+{\tt -r}  & randomize the orientations of the water molecules \\
+{\tt -v}  & verbose output (water model defined in .omd file) \\
+{\tt -d}  & density in g/cm$^3$ (default 1) \\
+{\tt -c}  & default overlap cutoff for spacing water molecules (default 3.3) \\
+{\tt -l}  & 0 $-$ FCC lattice, 1 $-$ SC lattice  \\
+{\tt -o}  & output file name \\
+{\tt -w}  & name of the water stuntDouble (default: SPCE)\\
 \end{longtable}
 
 
@@ -5984,13 +5944,13 @@ The options available for {\tt omd-solvator} are:
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -u& {\tt -{}-solute}             & use specified OpenMD (.omd) file as the solute \\
-  -v& {\tt -{}-solvent}            & use specified OpenMD (.omd) file as the solvent \\
-  -r& {\tt -{}-rcut}               & specify the cutoff radius for deleting solvent \\
-  -o& {\tt -{}-output-file}        & use specified output (.omd) file \\
-  -n& {\tt -{}-nSoluteAtoms}       & number of atoms in solute molecule, default is 1 atom \\
-  -p& {\tt -{}-nSolventAtoms}      & number of atoms in solvent molecule, default is 1 atom \\
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -u} & {\tt -{}-solute}             & use specified OpenMD (.omd) file as the solute \\
+{\tt -v} & {\tt -{}-solvent}            & use specified OpenMD (.omd) file as the solvent \\
+{\tt -r} & {\tt -{}-rcut}               & specify the cutoff radius for deleting solvent \\
+{\tt -o} & {\tt -{}-output-file}        & use specified output (.omd) file \\
+{\tt -n} & {\tt -{}-nSoluteAtoms}       & number of atoms in solute molecule, default is 1 atom \\
+{\tt -p} & {\tt -{}-nSolventAtoms}      & number of atoms in solvent molecule, default is 1 atom \\
 \end{longtable} 
 
 
@@ -6014,22 +5974,22 @@ back to the periodic box.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -i& {\tt -{}-input}              & use specified OpenMD (.omd, .dump, .eor) file \\
-  -o& {\tt -{}-output}             & specified output file name \\
-  -x& {\tt -{}-repeatX}            & make the system repeat in the x dimension \\
-  -y& {\tt -{}-repeatY}            & make the system repeat in the y dimension \\
-  -z& {\tt -{}-repeatZ}            & make the system repeat in the z
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -i} & {\tt -{}-input}              & use specified OpenMD (.omd, .dump, .eor) file \\
+{\tt -o} & {\tt -{}-output}             & specified output file name \\
+{\tt -x} & {\tt -{}-repeatX}            & make the system repeat in the x dimension \\
+{\tt -y} & {\tt -{}-repeatY}            & make the system repeat in the y dimension \\
+{\tt -z} & {\tt -{}-repeatZ}            & make the system repeat in the z
                                      dimension \\
-  -p&{\tt -{}-rotatePhi}          & rotate all coordinates Euler angle
+{\tt -p} & {\tt -{}-rotatePhi}          & rotate all coordinates Euler angle
                                     Phi \\
-  -q&{\tt -{}-rotateTheta}      & rotate all coordinates Euler angle
+{\tt -q} & {\tt -{}-rotateTheta}      & rotate all coordinates Euler angle
                                   Theta \\
-  -r&{\tt -{}-rotatePsi}           & rotate all coordinates Euler
+{\tt -r} & {\tt -{}-rotatePsi}           & rotate all coordinates Euler
                                      angle Psi \\
-  -t& {\tt -{}-translateX}         & translate all x coordinates by some amount \\
-  -u& {\tt -{}-translateY}         & translate all y coordinates by some amount \\
-  -v& {\tt -{}-translateZ}         & translate all z coordinates by some amount \\
+{\tt -t} & {\tt -{}-translateX}         & translate all x coordinates by some amount \\
+{\tt -u} & {\tt -{}-translateY}         & translate all y coordinates by some amount \\
+{\tt -v} & {\tt -{}-translateZ}         & translate all z coordinates by some amount \\
 \end{longtable}
 
 
@@ -6053,13 +6013,13 @@ component of the {\tt .stat} file.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -m& {\tt -{}-meta-data}          & use specified OpenMD (.omd, .eor) file \\
-  -o& {\tt -{}-output-file}        & specified output file name \\
-  -x& {\tt -{}-newX}               & scale the system to a new x dimension \\
-  -y& {\tt -{}-newY}               & scale the system to a new y dimension \\
-  -z& {\tt -{}-newZ}               & scale the system to a new z dimension \\
-  -v& {\tt -{}-newV}               & scale the system to a new volume \\
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -m} & {\tt -{}-meta-data}          & use specified OpenMD (.omd, .eor) file \\
+{\tt -o} & {\tt -{}-output-file}        & specified output file name \\
+{\tt -x} & {\tt -{}-newX}               & scale the system to a new x dimension \\
+{\tt -y} & {\tt -{}-newY}               & scale the system to a new y dimension \\
+{\tt -z} & {\tt -{}-newZ}               & scale the system to a new z dimension \\
+{\tt -v} & {\tt -{}-newV}               & scale the system to a new volume \\
 \end{longtable}
 
 \section{\label{section:omdLast}omdLast} 
@@ -6076,8 +6036,8 @@ particularly useful for starting a run from a crashed or terminated job.
 \endhead
 \hline
 \endfoot
-  -h& {\tt -{}-help}               & Print help and exit\\
-  -m& {\tt -{}-meta-data}          & use specified OpenMD (.dump) file \\
+{\tt -h} & {\tt -{}-help}               & Print help and exit\\
+{\tt -m} & {\tt -{}-meta-data}          & use specified OpenMD (.dump) file \\
 \end{longtable}
 
 
@@ -6089,23 +6049,23 @@ to help guide further system construction and aid in determining the
 correct syntax for analysis modules. The corresponding directories can
 be found in {\tt OpenMD/samples/}
 
-\subsection{Alkane}
+\section{Alkane}
 This directory contains a sample {\tt .omd} file of bulk butane. Also
 in this directory is the {\tt alkanes.inc} file with molecule stamps
 for a large number of alkane molecules.
 
-\subsection{Argon}
+\section{Argon}
 Several sample argon configurations are available within this
 directory.
 
-\subsection{Builders}
+\section{Builders}
 While this directory does not contain any sample {\tt .omd} files
 explicitly, it contains the precursors to generate one component,
 bimetallic, and three component samples. The {\tt runMe.in} file
 included in this directory contains 15 example scripts to generate
 corresponding metallic nanoparticles.
 
-\subsection{Graphene}
+\section{Graphene}
 Simulating graphene can be tricky, since the sheet often spans the
 boundaries of the simulation box, molecule definitions in the {\tt
   .inc} files must be carefully constructed. In this directory is a
@@ -6113,7 +6073,7 @@ sample graphene {\tt .omd} file, and corresponding {\tt .frc} and {\tt
   .inc} files. Also, a {\tt README.md} file contains explanations on
 how to construct smaller or larger sheets of graphene.
 
-\subsection{LangevinHull}
+\section{LangevinHull}
 The {\tt LangevinHull} is used for carrying out isobaric-isothermal
 (NPT) simulations in non-periodic environments. In this directory,
 sample {\tt .omd} files include SPC/E water clusters, gold
@@ -6121,20 +6081,20 @@ nanospheres, and a solvated gold nanosphere in liquid water. The {\tt
   ReadMe.txt} contains more information about the keywords to include
 in your {\tt .omd} files to set up a Langevin Hull simulation.
 
-\subsection{Lipid}
+\section{Lipid}
 This directory contains an example of a 5x5 array of long lipid
 molecules. The corresponding {\tt lipid.inc} file defining the lipids
 is also present, and smaller or larger lipids can easily be
 constructed following the presented formalism. 
 
-\subsection{Metals}
+\section{Metals}
 This directory contains an array of metal {\tt .omd} samples, gold,
 silver, copper, nickel, palladium, and platinum surfaces as well as
 gold and bimetallic nanospheres and nanorods. While many of these
 systems are easily constructed using other {\sc OpenMD} builder
 utility scripts, we have created several sample systems as examples.
 
-\subsection{RNEMD}
+\section{RNEMD}
 The sample files in this directory consist of a bulk Argon fluid under
 a momentum flux (producing a velocity gradient response), and a
 gold/water interface with a kinetic energy flux (producing a thermal
@@ -6142,7 +6102,7 @@ gradient response). There are also several files of a solvated gold
 surface with thiolate ligands decorating the surface, as well as a
 PackMol script required to generate the ligand packing.
 
-\subsection{Water}
+\section{Water}
 {\sc OpenMD} supports a large number of water models, all of which can
 be found in the {\tt Water.frc} file within the {\tt forceFields}
 directory. In the {\tt samples} directory, sample configurations of
@@ -6152,7 +6112,7 @@ directory are sample configurations of an exposed basal, prism,
 pyramidal, and secondary prism facets of a proton ordered
 ice-I$_\mathrm{h}$ crystal.
 
-\subsection{Zeolite}
+\section{Zeolite}
 A sample zeolite configuration is also given in the {\sc OpenMD}
 distribution. The CLAYFF force field is included with {\sc OpenMD}, so
 following a similar construction many permutations of zeolites may be
@@ -6162,13 +6122,14 @@ constructed.
 \chapter{\label{section:parallelization} Parallel Simulation Implementation}
 
 Although processor power is continually improving, it is still
-unreasonable to simulate systems of more than 10,000 atoms on a single
-processor. To facilitate study of larger system sizes or smaller
-systems for longer time scales, parallel methods were developed to
-allow multiple CPU's to share the simulation workload. Three general
-categories of parallel decomposition methods have been developed:
-these are the atomic,\cite{Fox88} spatial~\cite{plimpton95} and
-force~\cite{Paradyn} decomposition methods.
+unreasonable to simulate systems of more than 100,000 atoms on a
+single processor. To facilitate study of larger system sizes or
+smaller systems for longer time scales, parallel methods were
+developed to allow multiple CPU's to share the simulation
+workload. Three general categories of parallel decomposition methods
+have been developed: these are the atomic,\cite{Fox88}
+spatial~\cite{plimpton95} and force~\cite{Paradyn} decomposition
+methods.
 
 Algorithmically simplest of the three methods is atomic decomposition,
 where $N$ particles in a simulation are split among $P$ processors for
@@ -6292,9 +6253,9 @@ to use.  All source code for {\sc OpenMD} is available for download at
 
 Development of {\sc OpenMD} was funded by a New Faculty Award from the
 Camille and Henry Dreyfus Foundation and by the National Science
-Foundation under grants CHE-0134881, CHE-0848243, CHE-1362211, and
-CHE-1663773. Computation time was provided by the Notre Dame
-Bunch-of-Boxes (B.o.B) computer cluster under NSF grant DMR-0079647.
+Foundation under grants CHE-0134881, CHE-0848243, CHE-1362211,
+CHE-1663773, and CHE-191954648. Computation time was provided by the
+Notre Dame Center for Research Computing.
 
 \bibliographystyle{aip}
 \bibliography{openmdDoc}
