@@ -1,11 +1,11 @@
-\documentclass[]{book}
+\documentclass[letterpaper]{report}
 \usepackage[text={6.5in,9in},centering]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{amssymb}
 \usepackage{amsmath}
-%\usepackage{times}
-%\usepackage{mathptmx}
-\usepackage{newtxtext,newtxmath}
+%\usepackage[default,light,bold]{sourceserifpro}
+\usepackage{newpxtext,eulerpx}
+\usepackage{sourcecodepro}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{setspace}
@@ -15,6 +15,8 @@
 \pagenumbering{arabic}
 \usepackage{floatrow}
 \usepackage{url}
+\usepackage[table]{xcolor}
+\definecolor{lightgray}{gray}{0.9}
 \usepackage[margin=0.5cm,font=small,format=hang]{caption}
 
 \newcommand{\angstrom}{\mbox{\normalfont\AA}}
@@ -115,7 +117,7 @@ that is easy to learn.
 \listoffigures
 \listoftables
  
-\mainmatter
+%\mainmatter
 
 \chapter{\label{sec:intro}Introduction}
 
@@ -210,13 +212,13 @@ meta-data}, which describes the types of objects present in the
 simulation, and {\it configuration} information, which describes the
 initial state of these objects.  An {\sc OpenMD} file is a single
 combined file format that describes both of these kinds of data.  An
-{\sc OpenMD} file contains one {\tt $<$MetaData$>$} block and {\it at least
-one} {\tt $<$Snapshot$>$} block.
+{\sc OpenMD} file contains one {\tt <MetaData>} block and {\it at least
+one} {\tt <Snapshot>} block.
 
-The language for the {\tt $<$MetaData$>$} block is a C-based syntax that
+The language for the {\tt <MetaData>} block is a C-based syntax that
 is parsed at the beginning of the simulation.  Configuration
 information is specified for all {\tt integrableObjects} in a {\tt
-$<$Snapshot$>$} block.  Both the {\tt $<$MetaData$>$} and {\tt $<$Snapshot$>$}
+<Snapshot>} block.  Both the {\tt <MetaData>} and {\tt <Snapshot>}
 formats are described in the following sections.
 
 \begin{code}[caption={[The structure of an {\sc OpenMD} file]
@@ -254,11 +256,11 @@ block and {\it at least one} {\tt <Snapshot>} block.  Each
 \end{code}
 
 
-\section{OpenMD Files and $<$MetaData$>$ blocks}
+\section{OpenMD Files and <MetaData> blocks}
 
 {\sc OpenMD} uses HTML-like delimiters to separate {\tt
-  $<$MetaData$>$} and {\tt $<$Snapshot$>$} blocks.  A C-based syntax
-is used to parse the {\tt $<$MetaData$>$} blocks at run time.  These
+  <MetaData>} and {\tt <Snapshot>} blocks.  A C-based syntax
+is used to parse the {\tt <MetaData>} blocks at run time.  These
 blocks allow the user to completely describe the system they wish to
 simulate, as well as tailor {\sc OpenMD}'s behavior during the
 simulation.  {\sc OpenMD} files are typically denoted with the
@@ -307,7 +309,7 @@ statusTime = 50;  // statistics file frequency
 </OpenMD>
 \end{code}
 
-In the {\tt $<$MetaData$>$} block, it is necessary to provide a
+In the {\tt <MetaData>} block, it is necessary to provide a
 complete description of the molecule before it is actually placed in
 the simulation. {\sc OpenMD}'s meta-data syntax allows for the use of
 {\it include files} to specify all atoms in a molecular prototype, as
@@ -461,9 +463,9 @@ molecule{
 }
 \end{code}
 
-\section{\label{sec:miscConcepts}Creating a $<$MetaData$>$ block}
+\section{\label{sec:miscConcepts}Creating a <MetaData> block}
 
-The actual creation of a {\tt $<$MetaData$>$} block requires several key
+The actual creation of a {\tt <MetaData>} block requires several key
 components. The first part of the file needs to be the declaration of
 all of the molecule prototypes used in the simulation. This is
 typically done through included prototype files. Only the molecules
@@ -480,7 +482,7 @@ component (an example is shown in
 Sch.~\ref{sch:mdExPrime}).  The component blocks tell {\sc OpenMD} the
 number of molecules that will be in the simulation, and the order in
 which the components blocks are declared sets the ordering of the real
-atoms in the {\tt $<$Snapshot$>$} block as well as in the output files. The
+atoms in the {\tt <Snapshot>} block as well as in the output files. The
 remainder of the script then sets the various simulation parameters
 for the system of interest.
 
@@ -517,7 +519,7 @@ For energy minimizations, it is not necessary to specify {\tt dt} or
 
 To set the initial positions and velocities of all the integrable
 objects in the simulation, {\sc OpenMD} will use the last good {\tt
-$<$Snapshot$>$} block that was found in the startup file that it was
+<Snapshot>} block that was found in the startup file that it was
 called with.  If the {\tt useInitalTime} flag is set to {\tt true},
 the time stamp from this snapshot will also set the initial time stamp
 for the simulation.  Additional parameters are summarized in
@@ -543,10 +545,10 @@ fs}^{-1}$), and body-fixed moments of inertia ($\mbox{amu \AA}^{2}$).
 OpenMD appends a {\tt .frc} to the end of this to look for a force
 field file.\\
 {\tt component} & & Defines the molecular components of the system &
-Every {\tt $<$MetaData$>$} block must have a component statement. \\
+Every {\tt <MetaData>} block must have a component statement. \\
 {\tt minimizer} & block & Sets parameters for the minimizer & Either {\tt ensemble} or {\tt minimizer} must be specified. \\
-{\tt ensemble} & string & Sets the ensemble. & Possible ensembles are
-NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, LD and LangevinHull.  Either {\tt ensemble}
+{\tt ensemble} & string & Sets the ensemble. & Some possible ensembles are
+{\tt NVE, NVT, NPTi, NPAT, NPTf, NPTxyz, LD} and {\tt LangevinHull}.  Either {\tt ensemble}
 or {\tt minimizer} must be specified. \\
 {\tt dt} & fs & Sets the time step. & Selection of {\tt dt} should be
 small enough to sample the fastest motion of the simulation. ({\tt
@@ -577,59 +579,59 @@ field. \\
 {\tt orthoBoxTolerance} & double & & decides how orthogonal the periodic
 box must be before we can use cheaper box calculations \\
 {\tt cutoffRadius} & $\mbox{\AA}$ & Manually sets the cutoff radius &
-the default value is set by the {\tt cutoffPolicy} \\ 
+default is set from {\tt cutoffPolicy} \\ 
 {\tt skinThickness} & \AA & thickness of the skin for the Verlet
 neighbor lists & defaults to 1 \AA \\
 {\tt switchingRadius} & $\mbox{\AA}$  & Manually sets the inner radius
 for the switching function. & Defaults to 85~\% of the {\tt
 cutoffRadius}. \\
 {\tt switchingFunctionType} & & & \\
- & string & cubic or
-fifth\_order\_polynomial & Default is cubic. \\
+ & string & {\tt cubic} or
+{\tt fifth\_order\_polynomial} & Default is {\tt cubic} \\
 {\tt useInitialTime} & logical & Sets whether the initial time is
-taken from the last $<$Snapshot$>$ in the startup file. & Useful when recovering a simulation from a crashed processor. Default is false. \\
+taken from the last {\tt <Snapshot>} in the startup file. & Useful when recovering a simulation from a crashed processor. Default is {\tt false}. \\
 {\tt useInitialExtendedSystemState} & & & \\
   & logical & keep the extended
 system variables? & Should the extended
-variables (the thermostat and barostat) be kept from the {\tt $<$Snapshot$>$} block? \\
-{\tt sampleTime} & fs & Sets the frequency at which the {\tt .dump} file is written. & The default is equal to the {\tt runTime}. \\
+variables (the thermostat and barostat) be kept from the {\tt <Snapshot>} block? \\
+{\tt sampleTime} & fs & Sets the frequency at which the {\tt .dump} file is written. & Default is set to {\tt runTime}. \\
 {\tt resetTime} & fs & Sets the frequency at which the extended system
 variables are reset to zero & The default is to never reset these
 variables. \\
-{\tt statusTime} & fs & Sets the frequency at which the {\tt .stat} file is written. & The default is equal to the {\tt sampleTime}. \\
+{\tt statusTime} & fs & Sets the frequency at which the {\tt .stat} file is written. & Default is set to {\tt sampleTime}. \\
 {\tt finalConfig} & string & Sets the name of the final output file. & Useful when stringing simulations together. Defaults to the root name of the initial meta-data file but with an {\tt .eor} extension. \\ 
 {\tt compressDumpFile} & logical & & should the {\tt .dump} file be
 compressed on the fly? \\
 {\tt statFileFormat} & string & columns to print in the {\tt .stat}
 file where each column is separated by a pipe ($\mid$) symbol. & (The
 default is the first eight of these columns in order.)  \\
- & & \multicolumn{2}{p{3.5in}}{Allowed
-column names are: {\sc time, total\_energy, potential\_energy, kinetic\_energy,
-temperature, pressure, volume, conserved\_quantity, hullvolume, gyrvolume, 
-translational\_kinetic, rotational\_kinetic,  long\_range\_potential,
-short\_range\_potential, vanderwaals\_potential,
-electrostatic\_potential, metallic\_potential,
-hydrogen\_bonding\_potential, reciprocal\_potential,
-     surface\_potential, bond\_potential, bend\_potential,
-dihedral\_potential, inversion\_potential, raw\_potential, restraint\_potential,
-pressure\_tensor, system\_dipole, system\_quadrupole, heatflux,
-     electronic\_temperature, com, com\_velocity, angular\_momentum, potential\_selection }} \\
+& \multicolumn{3}{p{4.25in}}{Allowed
+column names are: {\tt TIME, TOTAL\_ENERGY, POTENTIAL\_ENERGY, KINETIC\_ENERGY,
+TEMPERATURE, PRESSURE, VOLUME, CONSERVED\_QUANTITY, HULLVOLUME, GYRVOLUME, 
+TRANSLATIONAL\_KINETIC, ROTATIONAL\_KINETIC,  LONG\_RANGE\_POTENTIAL,
+SHORT\_RANGE\_POTENTIAL, VANDERWAALS\_POTENTIAL,
+ELECTROSTATIC\_POTENTIAL, METALLIC\_POTENTIAL,
+HYDROGEN\_BONDING\_POTENTIAL, RECIPROCAL\_POTENTIAL,
+     SURFACE\_POTENTIAL, BOND\_POTENTIAL, BEND\_POTENTIAL,
+DIHEDRAL\_POTENTIAL, INVERSION\_POTENTIAL, RAW\_POTENTIAL, RESTRAINT\_POTENTIAL,
+PRESSURE\_TENSOR, SYSTEM\_DIPOLE, SYSTEM\_QUADRUPOLE, HEATFLUX,
+ELECTRONIC\_TEMPERATURE, COM, COM\_VELOCITY, ANGULAR\_MOMENTUM, POTENTIAL\_SELECTION }} \\
 {\tt printPressureTensor} & logical & sets whether {\sc OpenMD} will print
 out the pressure tensor & can be useful for calculations of the bulk
 modulus \\
 {\tt electrostaticSummationMethod} & & & \\
- & string & shifted\_force,
-shifted\_potential, hard, switched, taylor\_shifted, or reaction\_field &
-default is shifted\_force. \\
+ & string & {\tt shifted\_force,
+shifted\_potential, hard, switched, taylor\_shifted,} or {\tt reaction\_field} &
+default is {\tt shifted\_force} \\
 {\tt electrostaticScreeningMethod} & & & \\
- & string & undamped or damped & default is damped \\
+ & string & {\tt undamped} or {\tt damped} & default is {\tt damped} \\
 {\tt dielectric} & unitless & Sets the dielectric constant for
 reaction field. & If {\tt electrostaticSummationMethod} is set to {\tt
 reaction\_field}, then {\tt dielectric} must be set. \\
 {\tt dampingAlpha} & $\mbox{\AA}^{-1}$ & governs strength of
-electrostatic damping & defaults to 0.2 $\mbox{\AA}^{-1}$. \\
+electrostatic damping & default  = max(0, 0.425 - {\tt cutoffRadius} * 0.02) \\
 {\tt tempSet} & logical & resample velocities from a Maxwell-Boltzmann
-distribution set to {\tt targetTemp} & default is false. \\
+distribution set to {\tt targetTemp} & default is {\tt false} \\
 {\tt thermalTime} & fs & how often to perform a {\tt tempSet} &
 default is never \\
 {\tt targetTemp} & K & sets the target temperature & no default value \\
@@ -646,12 +648,12 @@ are reasonable \\
 \end{longtable}
 
 
-\section{\label{section:coordFiles}$<$Snapshot$>$ Blocks}
+\section{\label{section:coordFiles}<Snapshot> Blocks}
 
 The standard format for storage of a system's coordinates is the {\tt
-$<$Snapshot$>$} block , the exact details of which can be seen in
+<Snapshot>} block , the exact details of which can be seen in
 Scheme~\ref{sch:dumpFormat}. As all bonding and molecular information
-is stored in the {\tt $<$MetaData$>$} blocks, the {\tt $<$Snapshot$>$} blocks
+is stored in the {\tt <MetaData>} blocks, the {\tt <Snapshot>} blocks
 contain only the coordinates of the objects which move independently
 during the simulation.  It is important to note that {\it not all
 atoms} are capable of independent motion.  Atoms which are part of
@@ -665,12 +667,34 @@ It is important to note that although the simulation propagates the
 complete rotation matrix, directional entities are written out using
 quaternions to save space in the output files.
 
-\begin{code}[caption={[The format of the {\tt $<$Snapshot$>$} block]
-An example of the format of the {\tt $<$Snapshot$>$} block.  There is an
-initial sub-block called {\tt $<$FrameData$>$} which contains the time
+{\tt <Snapshot>} blocks contain an initial sub-block called {\tt
+  <FrameData>} which contains the time stamp, the three column vectors
+of $\mathsf{H}$, and optional extra information for the extended sytem
+ensembles.  Following this, the lines in the {\tt <StuntDoubles>} sub-block provide
+information about the instantaneous configuration of each integrable
+object.  For each integrable object, the global index is followed by a
+short string describing what additional information is present on the
+line.  Atoms with only position and velocity information use the {\tt
+  pv} string which must then be followed by the position and velocity
+vectors for that atom.  Directional atoms and Rigid Bodies typically
+use the {\tt pvqj} string which is followed by position, velocity,
+quaternions, and lastly, body fixed angular momentum for that
+integrable object.
+
+Some {\tt <Snapshot>} blocks may also contain a {\tt <SiteData>} block
+that can provide information about fluctuating charge ({\tt c}),
+charge velocity ({\tt w}), electric field ({\tt e}) or other data at
+atomic sites (with two indices) or at the centers of mass of rigid
+bodies (with one index). The {\tt <SiteData>} block is usually not
+needed to initiate a simulation, but are often necessary for obtaining
+detailed atomic-level information following a simulation.
+
+\begin{code}[caption={[The format of the {\tt <Snapshot>} block]
+An example of the format of the {\tt <Snapshot>} block.  There is an
+initial sub-block called {\tt <FrameData>} which contains the time
 stamp, the three column vectors of $\mathsf{H}$, and optional extra
 information for the extended sytem ensembles.  The lines in the {\tt
-$<$StuntDoubles$>$} sub-block provide information about the instantaneous
+<StuntDoubles>} sub-block provide information about the instantaneous
 configuration of each integrable object.  For each integrable object,
 the global index is followed by a short string describing what
 additional information is present on the line.  Atoms with only
@@ -678,7 +702,9 @@ position and velocity information use the {\tt pv} string which must
 then be followed by the position and velocity vectors for that atom.
 Directional atoms and Rigid Bodies typically use the {\tt pvqj} string
 which is followed by position, velocity, quaternions, and
-lastly, body fixed angular momentum for that integrable object.},label={sch:dumpFormat}]
+lastly, body fixed angular momentum for that integrable object.
+Some files will also contain a {\tt <SiteData>} block that can provide
+additional atomic-level information.},label={sch:dumpFormat}]
   <Snapshot>
     <FrameData>
         Time: 0
@@ -692,6 +718,18 @@ lastly, body fixed angular momentum for that integrable object.},label={sch:dump
          2      pvqj        x y z vx vy vz  qw qx qy qz jx jy jz
          3      pvqj        x y z vx vy vz  qw qx qy qz jx jy jz
     </StuntDoubles>
+    <SiteData>
+         0  0   cwe         c w ex ey ez
+         1  0   cwe         c w ex ey ez
+         2      cwe         c w ex ey ez
+         2  0   cwe         c w ex ey ez
+         2  1   cwe         c w ex ey ez
+         2  2   cwe         c w ex ey ez
+         3      cwe         c w ex ey ez
+         3  0   cwe         c w ex ey ez
+         3  1   cwe         c w ex ey ez
+         3  2   cwe         c w ex ey ez
+    </SiteData>         
   </Snapshot>
 \end{code}
 
@@ -704,7 +742,7 @@ the proper coordinates, and this file must be generated by the user
 before the simulation run. The trajectory (or ``dump'') file is
 updated during simulation and is used to store snapshots of the
 coordinates at regular intervals. The first frame is a duplication of
-the initial configuration (the last good {\tt $<$Snapshot$>$} in the
+the initial configuration (the last good {\tt <Snapshot>} in the
 startup file), and each subsequent frame is appended to the dump file
 at an interval specified in the meta-data file with the
 \texttt{sampleTime} flag. The final coordinate file is the
@@ -715,19 +753,19 @@ contains the most recent frame. In this way, an \texttt{.eor} file may
 be used to initialize a second simulation should it be necessary to
 recover from a crash or power outage. The coordinate files generated
 by {\sc OpenMD} (both \texttt{.dump} and \texttt{.eor}) all contain the
-same {\tt $<$MetaData$>$} block as the startup file, so they may be
+same {\tt <MetaData>} block as the startup file, so they may be
 used to start up a new simulation if desired.
 
 \section{\label{section:initCoords}Generation of Initial Coordinates}
 
 As was stated in Sec.~\ref{section:coordFiles}, a meaningful {\tt
-$<$Snapshot$>$} block is necessary for specifying for the starting
+<Snapshot>} block is necessary for specifying for the starting
 coordinates for a simulation.  Since each simulation is different,
 system creation is left to the end user; however, we have included a
 few sample programs which make some specialized structures.  The {\tt
-$<$Snapshot$>$} block must index the integrable objects in the correct
+<Snapshot>} block must index the integrable objects in the correct
 order.  The ordering of the integrable objects relies on the ordering
-of molecules within the {\tt $<$MetaData$>$} block. {\sc OpenMD}
+of molecules within the {\tt <MetaData>} block. {\sc OpenMD}
 expects the order to comply with the following guidelines:
 \begin{enumerate}
 \item All of the molecules of the first declared component are given
@@ -793,9 +831,9 @@ component{
 </OpenMD>
 \end{code}
 
-\section{The Statistics File}
+\section{The Statistics and Report Files}
 
-The last output file generated by {\sc OpenMD} is the statistics
+An important output file generated by {\sc OpenMD} is the statistics
 file. This file records such statistical quantities as the
 instantaneous temperature (in $K$), volume (in $\mbox{\AA}^{3}$),
 pressure (in $\mbox{atm}$), etc. It is written out with the frequency
@@ -806,6 +844,16 @@ is in progress. One useful function the statistics file serves is to
 monitor the conserved quantity of a given simulation ensemble,
 allowing the user to gauge the stability of the integrator. The
 statistics file is denoted with the \texttt{.stat} file extension.
+The fields printed in the {\tt .stat} file are determined by the {\tt
+  statFileFormat} keyword that the user sets in the {\tt <MetaData>} block.
+
+At the end of a simulation, {\sc OpenMD} will also produce a {\tt
+  .report} file. This file contain statistics (means and 95\%
+confidence intervals) for the fields printed in the {\tt .stat} file.
+Report files can be very useful in determining how to alter the
+simulation box to set an average volume after a constant pressure
+simulation, and for verifying that the energy or conserved quantity
+has been conserved reasonably well during a simulation.
 
 \chapter{\label{chapter:forceFields}Force Fields}
 
@@ -1927,35 +1975,35 @@ potential energy functions for torsions:
 \item {\tt Cubic}:
 \begin{equation*}
   V_{\text{torsion}}(\phi) =  
-  k_3 \cos^3 \phi + k_2 \cos^2 \phi + k_1 \cos \phi + k_0,
+  k_3 \cos^3 \phi + k_2 \cos^2 \phi + k_1 \cos \phi + k_0
 \end{equation*}
 \item {\tt Quartic}:
 \begin{equation*}
   V_{\text{torsion}}(\phi) =  k_4 \cos^4 \phi + 
-  k_3 \cos^3 \phi + k_2 \cos^2 \phi + k_1 \cos \phi + k_0,
+  k_3 \cos^3 \phi + k_2 \cos^2 \phi + k_1 \cos \phi + k_0
 \end{equation*}
 \item {\tt Polynomial}:
 \begin{equation*}
-V_{\text{torsion}}(\phi) =  \sum_n k_n \cos^n \phi , 
+V_{\text{torsion}}(\phi) =  \sum_n k_n \cos^n \phi 
 \end{equation*}
 \item {\tt Charmm}:
 \begin{equation*}
 V_{\text{torsion}}(\phi) = \sum_n K_n \left( 1 + cos(n
-  \phi - \delta_n) \right),
+  \phi - \delta_n) \right)
 \end{equation*}
 \item {\tt Opls}:
 \begin{equation*}
   V_{\text{torsion}}(\phi) =  \frac{1}{2} \left(v_1 (1 + \cos \phi)
-    + v_2 (1 - \cos 2 \phi) +  v_3 (1 + \cos 3 \phi)  \right),
+    + v_2 (1 - \cos 2 \phi) +  v_3 (1 + \cos 3 \phi)  \right)
 \end{equation*}
 \item {\tt Trappe}:\cite{Siepmann1998}
 \begin{equation*}
   V_{\text{torsion}}(\phi) =  c_0 + c_1 (1 + \cos \phi) + c_2 (1 - \cos 2 \phi)  +
-  c_3 (1 + \cos 3 \phi),
+  c_3 (1 + \cos 3 \phi)
 \end{equation*}
 \item {\tt Harmonic}:
 \begin{equation*}
-V_{\text{torsion}}(\phi) =  \frac{d_0}{2} \left(\phi - \phi^0\right).
+V_{\text{torsion}}(\phi) =  \frac{d_0}{2} \left(\phi - \phi^0\right)^2
 \end{equation*}
 \end{itemize}
 
@@ -1990,8 +2038,8 @@ HC      CT      CM      CM      Charmm  1.150    1    0.00    0.38  3 180
 //Quartic
 //Atom1 Atom2   Atom3   Atom4   Quartic          k4    k3    k2    k1    k0
 //Polynomial
-//Atom1 Atom2   Atom3   Atom4   Polynomial  n Kn     [m  Km] 
-S       CH2     CH2     C       Polynomial  0 2.218   1  2.905  2 -3.136  3 -0.7313  4 6.272  5 -7.528
+//Atom1 Atom2   Atom3   Atom4   Polynomial  n Kn [m  Km] 
+S       CH2     CH2     C   Polynomial 0 2.218 1 2.905 2 -3.136 3 -0.7313 4 6.272 5 -7.528
 end TorsionTypes
 \end{code}
 
@@ -2044,7 +2092,7 @@ V_{\text{torsion}}(\omega) = \sum_n \frac{K_n}{2} \left( 1 + cos(n
 \end{equation*}
 \item {\tt Harmonic}:
 \begin{equation*}
-V_{\text{torsion}}(\omega) =  \frac{d}{2} \left(\omega - \omega_0\right).
+V_{\text{torsion}}(\omega) =  \frac{d}{2} \left(\omega - \omega_0\right)^2.
 \end{equation*}
 \end{itemize}
 \begin{code}[caption={[An example of an InversionTypes block.] A
@@ -3555,9 +3603,6 @@ This parameter must be specified to use Langevin dynamics. \\
 tensor (usually a {\tt .hydro} file) which is precalculated by {\tt
 Hydro}. This keyword is not necessary if the simulation contains only
 simple bodies (spheres and ellipsoids). \\ 
-{\tt beadSize} & $\mbox{\AA}$ & Sets the diameter of the beads to use
-when the {\tt RoughShell} model is used to approximate the resistance
-tensor.
 \label{table:ldParameters}
 \end{longtable}
 
@@ -4027,20 +4072,21 @@ restrained in a different orientation from the reference geometry.
 \hline
 \endfoot
 {\tt restraintType} & string & What kind of restraint is this? &
-choose either ``Object'' or ``Molecular'' \\
+choose either {\tt Object} or {\tt Molecular} \\
 {\tt molIndex} & integer & Which molecule to restrain & \\
 {\tt objectSelection} & string & Selection script for Object
 restraints & \\
-{\tt displacementSpringConstant} & kcal/mol/\AA$^2$  & $k_\mathrm{trans}$ & \\
-{\tt twistSpringConstant} & kcal/mol/radian$^2$ & $k_\mathrm{twist}$ & \\
-{\tt swingXSpringConstant} & kcal/mol/radian$^2$ & $k_\mathrm{swingX}$ & \\
-{\tt swingYSpringConstant} & kcal/mol/radian$^2$ & $k_\mathrm{swingY}$ & \\
+{\tt displacementSpringConstant} &  & & \\
+ &  kcal/mol/\AA$^2$ & $k_\mathrm{trans}$ & \\
+{\tt twistSpringConstant} & kcal/mol/rad$^2$ & $k_\mathrm{twist}$ & \\
+{\tt swingXSpringConstant} & kcal/mol/rad$^2$ & $k_\mathrm{swingX}$ & \\
+{\tt swingYSpringConstant} & kcal/mol/rad$^2$ & $k_\mathrm{swingY}$ & \\
 {\tt restrainedTwistAngle} & degrees & $\omega_0$ (optional) &
 defaults to 0\\
 {\tt restrainedSwingXAngle} & degrees & $\theta_0^x$ (optional) & defaults to 0 \\
 {\tt restrainedSwingYAngle} & degrees & $\theta_0^y$ (optional) & defaults to 0\\
 {\tt print} & logical & whether or not to print restraint value and energy  &
-defaults to true
+defaults to {\tt true}
 \label{table:restraintParams}
 \end{longtable}
 
@@ -4288,7 +4334,8 @@ Table~\ref{table:thermIntParams}
 \endhead
 \hline
 \endfoot
-{\tt useThermodynamicIntegration} & logical & perform thermodynamic integration? & default is ``false'' \\
+{\tt useThermodynamicIntegration} & & &  \\
+ & logical & perform thermodynamic integration? & default is {\tt false} \\
 {\tt thermodynamicIntegrationLambda} & & & \\
  & double & transformation
 parameter & Sets how far along the thermodynamic integration path the
@@ -4494,7 +4541,7 @@ for selection syntax & default is ``select all'' \\
 of the following: {\tt KE, Px, Py, Pz, Pvector, Lx, Ly, Lz, Lvector, Particle, Particle+KE, KE+Px, KE+Py, KE+Pvector, KE+Lx, KE+Ly, KE+Lz, KE+Lvector} \\
 {\tt kineticFlux} & kcal mol$^{-1}$ \AA$^{-2}$ fs$^{-1}$ & specify the kinetic energy flux &  \\
 {\tt momentumFlux} & amu \AA$^{-1}$ fs$^{-2}$ & specify the momentum flux & \\
-{\tt particleFlux} & \AA$^{-2}$ fs$^{-1}$ & specify the particle flux & \\  
+{\tt particleFlux} & \AA$^{-2}$ fs$^{-1}$ & specify the particle flux & For SPF method only\\  
 {\tt momentumFluxVector} & amu \AA$^{-1}$ fs$^{-2}$ & specify the momentum flux when
 {\tt Pvector} is part of the exchange & Vector3d input\\
 {\tt angularMomentumFlux} & amu fs$^{-2}$ & specify the angular momentum flux  & for concentric exchange \\
@@ -4510,8 +4557,8 @@ of the following: {\tt KE, Px, Py, Pz, Pvector, Lx, Ly, Lz, Lvector, Particle, P
 {\tt selectionA} & string & region A defined with a selection & see section \ref{section:syntax} for selection syntax  \\
 {\tt selectionB} & string & region B region defined with a selection & see section \ref{section:syntax} for selection syntax  \\
 {\tt dividingArea} & $\mbox{\AA}^2$ & when regions are defined with selections, allows user to specify the dividing area for flux calculations &  \\
-{\tt privilegedAxis} & string & in periodic boundaries, perform exchanges along which axis? & one
-of the following: {\tt x, y, z} \\
+{\tt privilegedAxis} & string & in periodic boundaries, perform exchanges along this axis & one
+of the following: {\tt x, y, z}, default is {\tt z} \\
 {\tt outputFileName} & string & file name for output histograms & default is the same prefix as the
 {\tt .omd} file, but with the {\tt .rnemd} extension \\
 {\tt outputBins} & int & number of bins in the output histogram & default is 20 \\
@@ -4521,7 +4568,7 @@ file where each column is separated by a pipe ($\mid$) symbol. & Allowed column 
 {\tt spfScalingPower} & int & sets value of $k$ in $s(\lambda) = \lambda^k$
                               (see Eq. \eqref{eq:scalingF}) & default is 3 \\
 {\tt spfUniformKineticScaling} &  &  & \\
- & logical & For SPF only, scales velocities in regions A and B identically & default is ``false''\\  
+ & logical & For SPF only, scales velocities in regions A and B identically & default is ``false''
 \label{table:rnemd}
 \end{longtable}
 
@@ -4896,14 +4943,13 @@ name, followed by a comparision operator and then a number.
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline
-{\bf property} & {\tt mass, charge, x, y, z, r, wrappedx, wrappedy, wrappedz} \\
-{\bf comparison operator} & ``$>$'', ``$<$'', ``$=$'', ``$>=$'',
-``$<=$'', ``$!=$'' \\
+{\bf properties} & {\tt mass, charge, x, y, z, r, wrappedx, wrappedy, wrappedz} \\
+{\bf comparison operators} & {\tt <, >, =, >=, <=, !=} \\
 \hline
 \end{tabular}
 \end{center}
 
-For example, the phrase {\tt select mass > 16.0 and charge < -2}
+For example, the phrase {\tt select mass > 16.0 and charge < -2 }
 would select StuntDoubles which have mass greater than 16.0 and charges
 less than -2.
  
@@ -5331,16 +5377,16 @@ as:
 C_{AB}(t) = \langle \vec{u}_A(t) \cdot \vec{v}_B(0) \rangle
 \end{equation}
 where $\vec{u}_A(t)$ is a vector property associated with an atom of
-type $A$ at time $t$, and $\vec{v}_B(t^{\prime})$ is a different vector
-property associated with an atom of type $B$ at a different time
-$t^{\prime}$.  In most autocorrelation functions, the vector properties
-($\vec{v}$ and $\vec{u}$) and the types of atoms ($A$ and $B$) are
-identical, and the three calculations built in to {\tt DynamicProps}
-make these assumptions.  It is possible, however, to make simple
-modifications to the {\tt DynamicProps} code to allow the use of {\it
-cross} time correlation functions (i.e. with different vectors).  The
-ability to use two selection scripts to select different types of
-atoms is already present in the code.
+type $A$ at time $t$, and $\vec{v}_B(t^{\prime})$ is a different
+vector property associated with an atom of type $B$ at a different
+time $t^{\prime}$.  In most autocorrelation functions, the vector
+properties ($\vec{v}$ and $\vec{u}$) and the types of atoms ($A$ and
+$B$) are identical, and some of the calculations built in to {\tt
+  DynamicProps} make these assumptions. It is possible, however, to
+make simple modifications to the {\tt DynamicProps} code to allow the
+use of {\it cross} time correlation functions (i.e. with different
+vectors).  The ability to use two selection scripts to select
+different types of atoms is already present in the code.
 
 The options available for DynamicProps are as follows:
 \begin{longtable}[c]{|EFG|}
@@ -5783,14 +5829,14 @@ about bonding are made using the distance between atoms in the
 coordinate file.  Attempts are also made to identify other terms in
 the potential energy from the topology of the graph of discovered
 bonds.  This procedure is not perfect, and the user should check the
-discovered bonding topology in the {\tt $<$MetaData$>$} block in the
+discovered bonding topology in the {\tt <MetaData>} block in the
 file that is generated.
 
 Typically, the user will run:
 
-{\tt atom2omd $<$input spec$>$ [Options]}
+{\tt atom2omd <input spec> [Options]}
 
-Here {\tt $<$input spec$>$} can be used to specify the type of file being
+Here {\tt <input spec>} can be used to specify the type of file being
 used for configuration input. I.e. using {\tt -ipdb} specifies that the
 input file contains coordinate information in the PDB format.
 
@@ -5808,7 +5854,7 @@ The options available for atom2omd are as follows:
 {\tt  -e} & Continue with next object after error, if possible \\
 {\tt  -z} & Compress the output with gzip \\
 {\tt  -H} & Outputs this help text \\
-{\tt  -Hxxx} & (xxx is file format ID e.g. -Hpdb) gives format info \\
+{\tt  -Hxxx} & ({\tt xxx} is file format ID e.g. {\tt -Hpdb}) gives format info \\
 {\tt  -Hall} & Outputs details of all formats \\
 {\tt  -V} & Outputs version number \\
 \hline
@@ -5820,7 +5866,7 @@ The options available for atom2omd are as follows:
 {\tt  xyz} & XYZ cartesian coordinates format \\
 \hline
 \multicolumn{2}{|l|}{More specific info and options are available
-using -H$<$format-type$>$, e.g. -Hpdb} 
+using {\tt -H<format-type>}, e.g. {\tt -Hpdb}} 
 \end{longtable}
 
 \section{\label{section:SimpleBuilder}simpleBuilder}
@@ -6310,6 +6356,23 @@ $\mathcal{O}(N/\sqrt{P})$ in communication cost. Plimpton has also
 found that force decompositions scale more favorably than spatial
 decompositions for systems up to 10,000 atoms and favorably compete
 with spatial methods up to 100,000 atoms.\cite{plimpton95}
+
+A recent test of OpenMD's parallel implementation found nearly linear
+speedup up to approximately 50 cores.  Note that system size and
+composition as well as cluster architecture have a large impact on
+this behavior.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{parallelPerf.pdf}
+\caption[Performance of openmd\_MPI on parallel machinesl]{The
+  parallel implementation of OpenMD yields linear speedup up to
+  approximately 50 cores on relatively modern machines. Note that
+  system size and composition as well as cluster architecture have a
+  large impact on this behavior.}
+\label{fig:parallelPerf}
+\end{figure}
+
 
 There is one interesting issue with of how OpenMD distributes load on
 parallel (MPI) architectures.  At the very beginning of a parallel
