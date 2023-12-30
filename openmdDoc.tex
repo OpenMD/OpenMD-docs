@@ -79,13 +79,13 @@
 \newcolumntype{M}{p{2in}}
 
 
-\title{{\sc OpenMD-3.0: Molecular Dynamics in the Open}}
+\title{OpenMD-3.0: Molecular Dynamics in the Open}
 
-\author{Cody Drisko, Sydney Shavalier,  Benjamin Harless, Veronica Freund, \\
-  Teng Lin,  Charles F. Vardeman II, Christopher J. Fennell,  Matthew  A. Meineke, \\
-  Patrick Louden,   Hemanta Bhattarai,   Joseph Michalka,  Kelsey  Stocker, \\
-  James Marr,  Anderson D.S. Duraes,   Suzanne Neidhart,   Shenyu Kuang,  \\
-  Madan Lamichhane, Xiuquan Sun, Chunlei Li,   Kyle Daily, \\
+\author{C.R. Drisko, Sydney A. Shavalier,  Benjamin Harless, Veronica Freund, \\
+  Teng Lin,  Charles F. Vardeman II, Christopher J. Fennell, Matthew  A. Meineke, \\
+  Patrick B. Louden,   Hemanta Bhattarai, Joseph R. Michalka, Kelsey M. Stocker, \\
+  James M. Marr,  Anderson D.S. Duraes, Suzanne M. Neidhart, Shenyu Kuang,  \\
+  Madan Lamichhane, Xiuquan Sun, Chunlei Li, Kyle Daily, \\
   Alexander Mazanek,  Yang Zheng, \\ and \\
   J. Daniel Gezelter \\ \\
   Department of Chemistry and Biochemistry\\
@@ -96,7 +96,7 @@
 
 \section*{Preface} 
 
-{\sc OpenMD} is an open source molecular dynamics engine which is
+OpenMD is an open source molecular dynamics engine which is
 capable of efficiently simulating liquids, proteins, nanoparticles,
 interfaces, metals, and other complex systems using atom types with
 orientational degrees of freedom (e.g. ``sticky'' atoms, point
@@ -105,7 +105,7 @@ molecular simulation methodology, but is also efficient and easy to
 use.  Liquids, proteins, zeolites, lipids, inorganic nanomaterials,
 transition metals (bulk, flat interfaces, and nanoparticles) and a
 wide array of other systems have all been simulated using this
-code. {\sc OpenMD} works on parallel computers using the Message
+code. OpenMD works on parallel computers using the Message
 Passing Interface (MPI), and comes with a number of trajectory
 analysis and utility programs that are easy to use and modify. An
 OpenMD simulation is specified using a very simple meta-data language
@@ -130,7 +130,7 @@ however, are capable of efficiently integrating the equations of
 motion for atom types with orientational degrees of freedom
 (e.g. point multipoles, and ``sticky'' atoms).  And only one of the
 programs referenced can handle transition metal force fields like the
-Embedded Atom Method ({\sc eam}).  The direction our research program
+Embedded Atom Method (EAM).  The direction our research program
 has taken us now involves the use of atoms with orientational degrees
 of freedom as well as transition metals.  Since these simulation
 methods may be of some use to other researchers, we have decided to
@@ -138,19 +138,19 @@ release our program (and all related source code) to the scientific
 community.
 
 This document communicates the algorithmic details of our program,
-{\sc OpenMD}.  We have structured this document to first discuss the
+OpenMD.  We have structured this document to first discuss the
 underlying concepts in this simulation package (Chapter
 \ref{section:IOfiles}).  The empirical energy functions implemented
 are discussed in Chapter~\ref{chapter:forceFields}.
 Section~\ref{section:mechanics} describes the various Molecular Dynamics
-algorithms {\sc OpenMD} implements in the integration of Hamilton's
+algorithms OpenMD implements in the integration of Hamilton's
 equations of motion.  Program design considerations for parallel
 computing are presented in Sec.~\ref{section:parallelization}.
 Concluding remarks are presented in Sec.~\ref{section:conclusion}.
 
 \chapter{\label{section:IOfiles}Concepts \& Files}
 
-A simulation in {\sc OpenMD} is built using a few fundamental
+A simulation in OpenMD is built using a few fundamental
 conceptual building blocks, most of which are chemically intuitive.
 The basic unit of a simulation is an {\tt atom}.  The parameters
 describing an {\tt atom} have been generalized to make it as flexible
@@ -187,13 +187,13 @@ short-range interactions to be chosen from the definitions in the {\tt
   forceField}.
 
 All of these groups of {\tt atoms} are brought together in the {\tt
-molecule}, which is the fundamental structure for setting up and {\sc
-OpenMD} simulation.  {\tt Molecules} contain lists of {\tt atoms}
+molecule}, which is the fundamental structure for setting up an
+OpenMD simulation.  {\tt Molecules} contain lists of {\tt atoms}
 followed by listings of the other atomic groupings ({\tt bonds}, {\tt
 bends}, {\tt torsions}, {\tt rigidBodies}, and {\tt cutoffGroups})
 which relate the atoms to one another.  Since a {\tt rigidBody} is a
 collection of atoms that are propagated in fixed relationships to one
-another, {\sc OpenMD} uses an internal structure called a {\tt
+another, OpenMD uses an internal structure called a {\tt
 StuntDouble} to store information about those objects that can change
 position {\it independently} during a simulation.  That is, an atom
 that is part of a rigid body is not itself a StuntDouble.  In this
@@ -201,16 +201,16 @@ case, the rigid body is the StuntDouble.  However, an atom that is
 free to move independently {\it is} its own StuntDouble.
 
 Simulations often involve heterogeneous collections of molecules.  To
-specify a mixture of {\tt molecule} types, {\sc OpenMD} uses {\tt
+specify a mixture of {\tt molecule} types, OpenMD uses {\tt
 components}.  Even simulations containing only one type of molecule
 must specify a single {\tt component}.
 
 Starting a simulation requires two types of information: {\it
 meta-data}, which describes the types of objects present in the
 simulation, and {\it configuration} information, which describes the
-initial state of these objects.  An {\sc OpenMD} file is a single
+initial state of these objects.  An OpenMD file is a single
 combined file format that describes both of these kinds of data.  An
-{\sc OpenMD} file contains one {\tt <MetaData>} block and {\it at least
+OpenMD file contains one {\tt <MetaData>} block and {\it at least
 one} {\tt <Snapshot>} block.
 
 The language for the {\tt <MetaData>} block is a C-based syntax that
@@ -219,10 +219,10 @@ information is specified for all {\tt integrableObjects} in a {\tt
 <Snapshot>} block.  Both the {\tt <MetaData>} and {\tt <Snapshot>}
 formats are described in the following sections.
 
-\begin{code}[caption={[The structure of an {\sc OpenMD} file]
-The basic structure of an {\sc OpenMD} file contains HTML-like tags to
+\begin{code}[caption={[The structure of an OpenMD file]
+The basic structure of an OpenMD file contains HTML-like tags to
 define simulation meta-data and subsequent instantaneous configuration
-information. A well-formed {\sc OpenMD} file must contain one {\tt <MetaData>}
+information. A well-formed OpenMD file must contain one {\tt <MetaData>}
 block and {\it at least one} {\tt <Snapshot>} block.  Each
 {\tt <Snapshot>} is further divided into {\tt <FrameData>} and 
  {\tt <StuntDoubles>} sections.},label={sch:mdFormat}]
@@ -262,13 +262,13 @@ block and {\it at least one} {\tt <Snapshot>} block.  Each
 
 \section{OpenMD Files and <MetaData> blocks}
 
-{\sc OpenMD} uses HTML-like delimiters to separate {\tt
+OpenMD uses HTML-like delimiters to separate {\tt
   <MetaData>} and {\tt <Snapshot>} blocks.  A C-based syntax
 is used to parse the {\tt <MetaData>} blocks at run time.  These
 blocks allow the user to completely describe the system they wish to
-simulate, as well as tailor {\sc OpenMD}'s behavior during the
-simulation.  {\sc OpenMD} files are typically denoted with the
-extension {\tt .omd}. An overview of an {\sc OpenMD} file is shown in
+simulate, as well as tailor OpenMD's behavior during the
+simulation.  OpenMD files are typically denoted with the
+extension {\tt .omd}. An overview of an OpenMD file is shown in
 Example~\ref{sch:mdFormat} and example file is shown in
 Example~\ref{sch:mdExample}.
 
@@ -315,14 +315,14 @@ statusTime = 50;  // statistics file frequency
 
 In the {\tt <MetaData>} block, it is necessary to provide a
 complete description of the molecule before it is actually placed in
-the simulation. {\sc OpenMD}'s meta-data syntax allows for the use of
+the simulation. OpenMD's meta-data syntax allows for the use of
 {\it include files} to specify all atoms in a molecular prototype, as
 well as any bonds, bends, torsions, or other structural groupings of
 atoms.  Include files allow the user to describe a molecular prototype
 once, then simply include it into each simulation containing that
 molecule. Returning to the example in Scheme~\ref{sch:mdExample}, the
 include file's contents would be Scheme~\ref{sch:mdIncludeExample},
-and the new {\sc OpenMD} file would become Scheme~\ref{sch:mdExPrime}.
+and the new OpenMD file would become Scheme~\ref{sch:mdExPrime}.
 
 \begin{code}[caption={An example molecule definition in an
 include file.},label={sch:mdIncludeExample}]
@@ -373,10 +373,10 @@ statusTime = 50;
 \section{\label{section:atomsMolecules}Atoms, Molecules, and other
 ways of grouping atoms}
 
-As mentioned above, the fundamental unit for an {\sc OpenMD}
+As mentioned above, the fundamental unit for an OpenMD
 simulation is the {\tt atom}.  Atoms can be collected into secondary
 structures such as {\tt rigidBodies}, {\tt cutoffGroups}, or {\tt
-  molecules}. The {\tt molecule} is a way for {\sc OpenMD} to keep
+  molecules}. The {\tt molecule} is a way for OpenMD to keep
 track of the atoms in a simulation in logical manner. Molecular units
 store the identities of all the atoms and rigid bodies associated with
 themselves, and they are responsible for the evaluation of their own
@@ -386,7 +386,7 @@ molecule in an included meta-data file. The positions of the atoms
 given in the declaration are relative to the origin of the molecule,
 and the origin is used when creating a system containing the molecule.
 
-One of the features that sets {\sc OpenMD} apart from most of the
+One of the features that sets OpenMD apart from most of the
 current molecular simulation packages is the ability to handle rigid
 body dynamics. Rigid bodies are non-spherical particles or collections
 of particles (e.g. a phenyl ring) that have a constant internal
@@ -432,7 +432,7 @@ and $q_z$).\cite{Allen87} Use of quaternions also leads to
 performance enhancements, particularly for very small
 systems.\cite{Evans77}
 
-Rather than use one of the previously stated methods, {\sc OpenMD}
+Rather than use one of the previously stated methods, OpenMD
 utilizes a relatively new scheme that propagates the entire nine
 parameter rotation matrix. Further discussion on this choice can be
 found in Sec.~\ref{section:integrate}. An example definition of a
@@ -473,8 +473,8 @@ The actual creation of a {\tt <MetaData>} block requires several key
 components. The first part of the file needs to be the declaration of
 all of the molecule prototypes used in the simulation. This is
 typically done through included prototype files. Only the molecules
-actually present in the simulation need to be declared; however, {\sc
-OpenMD} allows for the declaration of more molecules than are
+actually present in the simulation need to be declared; however,
+OpenMD allows for the declaration of more molecules than are
 needed. This gives the user the ability to build up a library of
 commonly used molecules into a single include file.
 
@@ -483,7 +483,7 @@ block is less stringent.  The molecular composition of the simulation
 is specified with {\tt component} statements. Each different type of
 molecule present in the simulation is considered a separate
 component (an example is shown in
-Sch.~\ref{sch:mdExPrime}).  The component blocks tell {\sc OpenMD} the
+Sch.~\ref{sch:mdExPrime}).  The component blocks tell OpenMD the
 number of molecules that will be in the simulation, and the order in
 which the components blocks are declared sets the ordering of the real
 atoms in the {\tt <Snapshot>} block as well as in the output files. The
@@ -491,18 +491,18 @@ remainder of the script then sets the various simulation parameters
 for the system of interest.
 
 The required set of parameters that must be present in all simulations
-is given in Table~\ref{table:reqParams}.  Since the user can use {\sc
-  OpenMD} to perform energy minimizations as well as molecular
+is given in Table~\ref{table:reqParams}.  Since the user can use 
+OpenMD to perform energy minimizations as well as molecular
 dynamics simulations, either a {\tt minimizer} block or the {\tt
   ensemble} keyword must be present.  The {\tt ensemble} keyword is
 responsible for selecting the integration method used for the
 calculation of the equations of motion. An in depth discussion of the
-various methods available in {\sc OpenMD} can be found in
+various methods available in OpenMD can be found in
 Sec.~\ref{section:mechanics}.  The {\tt minimizer} block selects which
 minimization method to use, and more details on the choices of
 minimizer parameters can be found in Sec.~\ref{section:minimizer}. The
 {\tt forceField} statement is important for the selection of which
-forces will be used in the course of the simulation. {\sc OpenMD}
+forces will be used in the course of the simulation. OpenMD
 supports several force fields, and allows the user to create their own
 using a range of pre-defined empirical energy functions.  The format
 of force field files is outlined
@@ -522,7 +522,7 @@ For energy minimizations, it is not necessary to specify {\tt dt} or
 {\tt runTime}.
 
 To set the initial positions and velocities of all the integrable
-objects in the simulation, {\sc OpenMD} will use the last good {\tt
+objects in the simulation, OpenMD will use the last good {\tt
 <Snapshot>} block that was found in the startup file that it was
 called with.  If the {\tt useInitalTime} flag is set to {\tt true},
 the time stamp from this snapshot will also set the initial time stamp
@@ -530,7 +530,7 @@ for the simulation.  Additional parameters are summarized in
 Table~\ref{table:genParams}.
 
 It is important to note the fundamental units in all files which are
-read and written by {\sc OpenMD}.  Energies are in $\mbox{kcal
+read and written by OpenMD.  Energies are in $\mbox{kcal
 mol}^{-1}$, distances are in $\mbox{\AA}$, times are in $\mbox{fs}$,
 translational velocities are in $\mbox{\AA~fs}^{-1}$, and masses are
 in $\mbox{amu}$.  Orientational degrees of freedom are described using
@@ -572,7 +572,7 @@ required for molecular dynamics simulations)
 \hline
 \endfoot
 {\tt forceFieldVariant} & string & Sets the name of the variant of the
-force field.  & {\sc eam} has three variants: {\tt u3}, {\tt u6}, and
+force field.  & EAM has three variants: {\tt u3}, {\tt u6}, and
 {\tt VC}. \\
 {\tt forceFieldFileName} & string & Overrides the default force field
 file name & Each force field has a default file name, and this
@@ -620,7 +620,7 @@ HYDROGEN\_BONDING\_POTENTIAL, RECIPROCAL\_POTENTIAL,
 DIHEDRAL\_POTENTIAL, INVERSION\_POTENTIAL, RAW\_POTENTIAL, RESTRAINT\_POTENTIAL,
 PRESSURE\_TENSOR, SYSTEM\_DIPOLE, SYSTEM\_QUADRUPOLE, HEATFLUX,
 ELECTRONIC\_TEMPERATURE, COM, COM\_VELOCITY, ANGULAR\_MOMENTUM, POTENTIAL\_SELECTION }} \\
-{\tt printPressureTensor} & logical & sets whether {\sc OpenMD} will print
+{\tt printPressureTensor} & logical & sets whether OpenMD will print
 out the pressure tensor & can be useful for calculations of the bulk
 modulus \\
 {\tt electrostaticSummationMethod} & & & \\
@@ -737,11 +737,11 @@ additional atomic-level information.},label={sch:dumpFormat}]
   </Snapshot>
 \end{code}
 
-There are three {\sc OpenMD} files that are written using the combined
+There are three OpenMD files that are written using the combined
 format.  They are: the initial startup file (\texttt{.omd}), the
 simulation trajectory file (\texttt{.dump}), and the final coordinates
 or ``end-of-run'' for the simulation (\texttt{.eor}). The initial
-startup file is necessary for {\sc OpenMD} to start the simulation with
+startup file is necessary for OpenMD to start the simulation with
 the proper coordinates, and this file must be generated by the user
 before the simulation run. The trajectory (or ``dump'') file is
 updated during simulation and is used to store snapshots of the
@@ -756,7 +756,7 @@ updated at the same time as the \texttt{.dump} file, but it only
 contains the most recent frame. In this way, an \texttt{.eor} file may
 be used to initialize a second simulation should it be necessary to
 recover from a crash or power outage. The coordinate files generated
-by {\sc OpenMD} (both \texttt{.dump} and \texttt{.eor}) all contain the
+by OpenMD (both \texttt{.dump} and \texttt{.eor}) all contain the
 same {\tt <MetaData>} block as the startup file, so they may be
 used to start up a new simulation if desired.
 
@@ -769,7 +769,7 @@ system creation is left to the end user; however, we have included a
 few sample programs which make some specialized structures.  The {\tt
 <Snapshot>} block must index the integrable objects in the correct
 order.  The ordering of the integrable objects relies on the ordering
-of molecules within the {\tt <MetaData>} block. {\sc OpenMD}
+of molecules within the {\tt <MetaData>} block. OpenMD
 expects the order to comply with the following guidelines:
 \begin{enumerate}
 \item All of the molecules of the first declared component are given
@@ -784,7 +784,7 @@ after the the other atoms in a molecule.  Some molecules may be
 entirely rigid, in which case, only the rigid body coordinates are
 given.
 \end{enumerate}
-An example is given in the {\sc OpenMD} file in Scheme~\ref{sch:initEx1}.
+An example is given in the OpenMD file in Scheme~\ref{sch:initEx1}.
 
 \begin{code}[caption={Example declaration of the
 $\text{I}_2$ molecule and the HCl molecule in {\tt <MetaData>} and
@@ -835,9 +835,9 @@ component{
 </OpenMD>
 \end{code}
 
-\section{The Statistics and Report Files}
+\section{The Statistics ({\tt .stat}) and Report ({\tt .report}) Files}
 
-An important output file generated by {\sc OpenMD} is the statistics
+An important output file generated by OpenMD is the statistics
 file. This file records such statistical quantities as the
 instantaneous temperature (in $K$), volume (in $\mbox{\AA}^{3}$),
 pressure (in $\mbox{atm}$), etc. It is written out with the frequency
@@ -851,9 +851,9 @@ statistics file is denoted with the \texttt{.stat} file extension.
 The fields printed in the {\tt .stat} file are determined by the {\tt
   statFileFormat} keyword that the user sets in the {\tt <MetaData>} block.
 
-At the end of a simulation, {\sc OpenMD} will also produce a {\tt
-  .report} file. This file contain statistics (means and 95\%
-confidence intervals) for the fields printed in the {\tt .stat} file.
+At the end of a simulation, OpenMD will also produce a {\tt
+  .report} file. This file contain statistical means and 95\%
+confidence intervals for the fields printed in the {\tt .stat} file.
 Report files can be very useful in determining how to alter the
 simulation box to set an average volume after a constant pressure
 simulation, and for verifying that the energy or conserved quantity
@@ -861,7 +861,7 @@ has been conserved reasonably well during a simulation.
 
 \chapter{\label{chapter:forceFields}Force Fields}
 
-Like many molecular simulation packages, {\sc OpenMD} splits the
+Like many molecular simulation packages, OpenMD splits the
 potential energy into the short-ranged (bonded) portion and a
 long-range (non-bonded) potential,
 \begin{equation}
@@ -1116,8 +1116,8 @@ calculation of temperatures to reflect this.
 
 \section{\label{section::ffAtomProperties}AtomType properties}
 \subsection{\label{section:ffLJ}The LennardJonesAtomTypes block}
-One of the most basic interatomic interactions implemented in {\sc
-  OpenMD} is the Lennard-Jones potential, which mimics the van der
+One of the most basic interatomic interactions implemented in OpenMD
+is the Lennard-Jones potential, which mimics the van der
 Waals interaction at long distances and uses an empirical repulsion at
 short distances. The Lennard-Jones potential is given by:
 \begin{equation}
@@ -1365,7 +1365,7 @@ end GayBerneAtomTypes
 
 \subsection{\label{section:ffSticky}The StickyAtomTypes block}
 
-One of the solvents that can be simulated by {\sc OpenMD} is the
+One of the solvents that can be simulated by OpenMD is the
 extended Soft Sticky Dipole (SSD/E) water model.\cite{fennell04} The
 original SSD was developed by Ichiye \emph{et
   al.}\cite{liu96:new_model} as a modified form of the hard-sphere
@@ -1475,7 +1475,7 @@ end StickyAtomTypes
 
 \section{\label{section::ffMetals}Metallic Atom Types} 
 
-{\sc OpenMD} implements a number of related potentials that describe
+OpenMD implements a number of related potentials that describe
 bonding in transition metals. These potentials have an attractive
 interaction which models ``Embedding'' a positively charged
 pseudo-atom core in the electron density due to the free valance
@@ -1495,7 +1495,7 @@ by $\rho_{i}$,
 \rho_{i}   =  \sum_{j \neq i} f_{j}(\mathbf{r}_{ij}),
 \end{equation}
 Since the density at site $i$ ($\rho_i$) must be computed before the
-embedding functional can be evaluated, {\sc eam} and the related
+embedding functional can be evaluated, EAM and the related
 transition metal potentials require two loops through the atom pairs
 to compute the inter-atomic forces.
 
@@ -1503,20 +1503,20 @@ The pairwise portion of the potential, $\phi_{ij}$, is usually a
 repulsive interaction between atoms $i$ and $j$.
 
 \subsection{\label{section:ffEAM}The EAMAtomTypes block}
-The Embedded Atom Method ({\sc eam}) is one of the most widely-used
+The Embedded Atom Method (EAM) is one of the most widely-used
 potentials for transition
 metals.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02,Daw84,FBD86,johnson89,Lu97,Wadley:2001fk,Zhou:2001fj,Zhou:2004yq,Zhou:2005rt}
 It has been widely adopted in the materials science community and a
-good review of {\sc eam} and other formulations of metallic potentials
+good review of EAM and other formulations of metallic potentials
 was given by Voter.\cite{Voter:95}
 
-In the original formulation of {\sc eam}\cite{Daw84}, the pair
+In the original formulation of EAM\cite{Daw84}, the pair
 potential, $\phi_{ij}$ was an entirely repulsive term; however later
-refinements to {\sc eam} allowed for more general forms for
+refinements to EAM allowed for more general forms for
 $\phi$.\cite{Daw89} The effective cutoff distance, $r_{{\text cut}}$
 is the distance at which the values of $f(r)$ and $\phi(r)$ drop to
 zero for all atoms present in the simulation.  In practice, this
-distance is fairly small, limiting the summations in the {\sc eam}
+distance is fairly small, limiting the summations in the EAM
 equation to the few dozen atoms surrounding atom $i$ for both the
 density $\rho$ and pairwise $\phi$ interactions.
 
@@ -1532,24 +1532,24 @@ Johnson~\cite{johnson89} to compute the heterogenous pair potential,
 No mixing rule is needed for the densities, since the density at site
 $i$ is simply the linear sum of density contributions of all the other
 atoms.
-The {\sc eam} force field illustrates an additional feature of {\sc
-OpenMD}.  Foiles, Baskes and Daw fit {\sc eam} potentials for Cu, Ag,
+The EAM force field illustrates an additional feature of
+OpenMD.  Foiles, Baskes and Daw fit EAM potentials for Cu, Ag,
 Au, Ni, Pd, Pt and alloys of these metals.\cite{FBD86} These fits are
-included in {\sc OpenMD} as the {\tt u3} variant of the {\sc eam} force
-field.  Voter and Chen reparamaterized a set of {\sc eam} functions
+included in OpenMD as the {\tt u3} variant of the EAM force
+field.  Voter and Chen reparamaterized a set of EAM functions
 which do a better job of predicting melting points.\cite{Voter:87}
-These functions are included in {\sc OpenMD} as the {\tt VC} variant of
-the {\sc eam} force field.  An additional set of functions (the
-``Universal 6'' functions) are included in {\sc OpenMD} as the {\tt u6}
-variant of {\sc eam}.  For example, to specify the Voter-Chen variant
-of the {\sc eam} force field, the user would add the {\tt
+These functions are included in OpenMD as the {\tt VC} variant of
+the EAM force field.  An additional set of functions (the
+``Universal 6'' functions) are included in OpenMD as the {\tt u6}
+variant of EAM.  For example, to specify the Voter-Chen variant
+of the EAM force field, the user would add the {\tt
 forceFieldVariant = "VC";} line to the meta-data file.
 
-The potential files used by the {\sc eam} force field are in the
+The potential files used by the EAM force field are in the
 standard {\tt funcfl} format, which is the format utilized by
-a number of other codes (e.g. ParaDyn~\cite{Paradyn}, {\sc dynamo
-  86}).  It should be noted that the energy units in these files are
-in eV, not $\mbox{kcal mol}^{-1}$ as in the rest of the {\sc OpenMD}
+a number of other codes (e.g. ParaDyn~\cite{Paradyn}, DYNAMO 86
+  86).  It should be noted that the energy units in these files are
+in eV, not $\mbox{kcal mol}^{-1}$ as in the rest of the OpenMD
 force field files.
 
 \begin{code}[caption={[An example of a EAMAtomTypes block.] A
@@ -1567,7 +1567,7 @@ Pt      funcfl  Pt.u3.funcfl
 end EAMAtomTypes
 \end{code}
 
-{\sc OpenMD} also implements parameterized versions of the density,
+OpenMD also implements parameterized versions of the density,
 embedding functional, and pair potentials that were developed by Zhou
 \textit{et
   al.}\cite{Wadley:2001fk,Zhou:2001fj,Zhou:2004yq,Zhou:2005rt}
@@ -1580,9 +1580,9 @@ particular parameterization are \texttt{Zhou}
 \cite{Wadley:2001fk,Zhou:2001fj}, \texttt{Zhou2004}
 \cite{Zhou:2004yq}, \texttt{Zhou2005} and \texttt{Zhou2005Oxygen}
 \cite{Zhou:2005rt}. Databases of these parameterized functions are
-included in {\sc OpenMD} as the {\tt Zhou2001}, {\tt Zhou2004}, and
-{\tt Zhou2005} variants of the {\sc eam} force field.  To specify the
-Zhou2004 variant of the {\sc eam} force field, the user would add the
+included in OpenMD as the {\tt Zhou2001}, {\tt Zhou2004}, and
+{\tt Zhou2005} variants of the EAM force field.  To specify the
+Zhou2004 variant of the EAM force field, the user would add the
 {\tt forceFieldVariant = "Zhou2004";} line to the meta-data file.
 
 \begin{code}[caption={[An example of a EAMAtomTypes block using
@@ -1602,9 +1602,9 @@ Readers interested in modifying these parameters should consult the
 
 \subsection{\label{section:ffSC}The SuttonChenAtomTypes block}
 
-The Sutton-Chen ({\sc sc})~\cite{Chen90} potential has been used to
+The Sutton-Chen (SC)~\cite{Chen90} potential has been used to
 study a wide range of phenomena in metals.  Although it has the same
-basic form as the {\sc eam} potential, the Sutton-Chen model requires
+basic form as the EAM potential, the Sutton-Chen model requires
 a simpler set of parameters,
 \begin{equation}
 \label{eq:SCP1}
@@ -1627,7 +1627,7 @@ pseudo-atoms.  $\epsilon_{ij}$, $\epsilon_{ii}$, $c_i$ and
 $\alpha_{ij}$ are parameters used to tune the potential for different
 transition metals.
 
-The {\sc sc} potential form has also been parameterized by Qi {\it et
+The SC potential form has also been parameterized by Qi {\it et
 al.}\cite{Qi99} These parameters were obtained via empirical and {\it
 ab initio} calculations to match structural features of the FCC
 crystal.  Interested readers are encouraged to consult reference
@@ -1960,7 +1960,7 @@ invoked by setting this keyword to {\tt "0\_is\_trans"}.
 \end{figure}
 
 For computational efficiency, OpenMD recasts torsion potential in the
-method of {\sc charmm},\cite{Brooks83} in which the angle series is
+method of CHARMM,\cite{Brooks83} in which the angle series is
 converted to a power series of the form:
 \begin{equation}
   V_{\text{torsion}}(\phi_{ijkl}) =  
@@ -2277,9 +2277,9 @@ v(r)-v_\textrm{c}-\left(\frac{d v(r)}{d r}\right)_{r=R_\textrm{c}}(r-R_\textrm{c
 \label{eq:shiftingForm}
 \end{equation}
 functions where $v(r)$ is the unshifted form of the potential, and
-$v_c$ is $v(R_\textrm{c})$.  The Shifted Force ({\sc sf}) form ensures
+$v_c$ is $v(R_\textrm{c})$.  The Shifted Force (SF) form ensures
 that both the potential and the forces goes to zero at the cutoff
-radius, while the Shifted Potential ({\sc sp}) form only ensures the
+radius, while the Shifted Potential (SP) form only ensures the
 potential is smooth at the cutoff radius
 ($R_\textrm{c}$).\cite{Allen87}
 
@@ -2300,7 +2300,7 @@ If the potential, $v(r)$, is taken to be the normal Coulomb potential,
 v(r) = \frac{q_i q_j}{r},
 \label{eq:Coulomb}
 \end{equation}
-then the Shifted Potential ({\sc sp}) forms will give Wolf {\it et
+then the Shifted Potential (SP) forms will give Wolf {\it et
 al.}'s undamped prescription:
 \begin{equation}
 V_\textrm{SP}(r) =
@@ -2323,7 +2323,7 @@ molecular dynamics.  Additionally, there is a discontinuity in the
 forces at the cutoff radius which results in energy drift during MD
 simulations.
 
-The shifted force ({\sc sf}) form using the normal Coulomb potential
+The shifted force (SF) form using the normal Coulomb potential
 will give,
 \begin{equation}
 V_\textrm{SF}(r) = q_iq_j\left[\frac{1}{r}-\frac{1}{R_\textrm{c}}+\left(\frac{1}
@@ -2377,7 +2377,7 @@ F_{\textrm{DSP}}(r) = q_iq_j\left(\frac{\textrm{erfc}\left(\alpha r\right)}{r^2}
 Again, this damped shifted potential suffers from a
 force-discontinuity at the cutoff radius, and the image charges play
 no role in the forces.  To remedy these concerns, one may derive a
-{\sc sf} variant by including the derivative term in
+SF variant by including the derivative term in
 eq. (\ref{eq:shiftingForm}),
 \begin{equation}
 \begin{split}
@@ -2402,10 +2402,10 @@ eqs. (\ref{eq:SPPot} through \ref{eq:SFForces}) are correctly
 recovered from eqs. (\ref{eq:DSPPot} through \ref{eq:DSFForces}).
 
 It has been shown that the Damped Shifted Force method obtains nearly
-identical behavior to the smooth particle mesh Ewald ({\sc spme})
+identical behavior to the smooth particle mesh Ewald (SPME)
 method on a number of commonly simulated systems.\cite{Fennell06}  For
 this reason, the default electrostatic summation method utilized by
-{\sc OpenMD} is the DSF (Eq. \ref{eq:DSFPot}) with a damping parameter
+OpenMD is the DSF (Eq. \ref{eq:DSFPot}) with a damping parameter
 ($\alpha$) that is set algorithmically from the cutoff radius.
 
 
@@ -2414,11 +2414,11 @@ this reason, the default electrostatic summation method utilized by
 Calculating the the long-range interactions for $N$ atoms involves
 $N(N-1)/2$ evaluations of atomic distances if it is done in a brute
 force manner.  To reduce the number of distance evaluations between
-pairs of atoms, {\sc OpenMD} allows the use of hard or switched
+pairs of atoms, OpenMD allows the use of hard or switched
 cutoffs with Verlet neighbor lists.\cite{Allen87} Neutral groups which
 contain charges can exhibit pathological forces unless the cutoff is
 applied to the neutral groups evenly instead of to the individual
-atoms.\cite{leach01:mm} {\sc OpenMD} allows users to specify cutoff
+atoms.\cite{leach01:mm} OpenMD allows users to specify cutoff
 groups which may contain an arbitrary number of atoms in the molecule.
 Atoms in a cutoff group are treated as a single unit for the
 evaluation of the switching function:
@@ -2449,7 +2449,7 @@ beyond which interactions are reduced, and $r_{\text{cut}}$ is the
 {\tt cutoffRadius}, or the distance at which interactions are
 truncated.  
 
-Users of {\sc OpenMD} do not need to specify the {\tt cutoffRadius} or
+Users of OpenMD do not need to specify the {\tt cutoffRadius} or
 {\tt switchingRadius}.   
 If the {\tt cutoffRadius} was not explicitly set, OpenMD will attempt
 to guess an appropriate choice.  If the system contains electrostatic
@@ -2474,7 +2474,7 @@ they may do so by setting the {\tt cutoffMethod} parameter to:
 The {\tt switchingRadius} is set to a default value of 95\% of the
 {\tt cutoffRadius}.  In the special case of a simulation containing
 {\it only} Lennard-Jones atoms, the default switching radius takes the
-same value as the cutoff radius, and {\sc OpenMD} will use a shifted
+same value as the cutoff radius, and OpenMD will use a shifted
 potential to remove discontinuities in the potential at the cutoff.
 Both radii may be specified in the meta-data file.
 
@@ -2491,8 +2491,8 @@ exactly the same orientation. Thus, as a particle leaves the primary
 cell, one of its images will enter through the opposite face. If the
 simulation box is large enough to avoid ``feeling'' the symmetries of
 the periodic lattice, surface effects can be ignored. The available
-periodic cells in {\sc OpenMD} are cubic, orthorhombic and
-parallelepiped.  {\sc OpenMD} use a $3 \times 3$ matrix, $\mathsf{H}$,
+periodic cells in OpenMD are cubic, orthorhombic and
+parallelepiped.  OpenMD use a $3 \times 3$ matrix, $\mathsf{H}$,
 to describe the shape and size of the simulation box. $\mathsf{H}$ is
 defined:
 \begin{equation}
@@ -2511,8 +2511,8 @@ vector, $\mathbf{s}$, and back through the following transformations:
 \end{align}
 The vector $\mathbf{s}$ is now a vector expressed as the number of box
 lengths in the $\mathbf{h}_x$, $\mathbf{h}_y$, and $\mathbf{h}_z$
-directions. To find the minimum image of a vector $\mathbf{r}$, {\sc
-OpenMD} first converts it to its corresponding vector in box space, and
+directions. To find the minimum image of a vector $\mathbf{r}$,
+OpenMD first converts it to its corresponding vector in box space, and
 then casts each element to lie in the range $[-0.5,0.5]$:
 \begin{equation}
 s_{i}^{\prime}=s_{i}-\roundme(s_{i}),
@@ -2543,26 +2543,26 @@ the inter-atomic forces.
 \chapter{\label{section:mechanics}Mechanics}
 
 \section{\label{section:integrate}Integrating the Equations of Motion: the
-{\sc dlm} method}
+DLM method}
 
-The default method for integrating the equations of motion in {\sc
-OpenMD} is a velocity-Verlet version of the symplectic splitting method
+The default method for integrating the equations of motion in 
+OpenMD is a velocity-Verlet version of the symplectic splitting method
 proposed by Dullweber, Leimkuhler and McLachlan
-({\sc dlm}).\cite{Dullweber1997} When there are no directional atoms or
+(DLM).\cite{Dullweber1997} When there are no directional atoms or
 rigid bodies present in the simulation, this integrator becomes the
 standard velocity-Verlet integrator which is known to sample the
 microcanonical (NVE) ensemble.\cite{Frenkel1996}
 
 Previous integration methods for orientational motion have problems
-that are avoided in the {\sc dlm} method.  Direct propagation of the Euler
+that are avoided in the DLM method.  Direct propagation of the Euler
 angles has a known $1/\sin\theta$ divergence in the equations of
 motion for $\phi$ and $\psi$,\cite{Allen87} leading to numerical
 instabilities any time one of the directional atoms or rigid bodies
 has an orientation near $\theta=0$ or $\theta=\pi$.  Quaternion-based
 integration methods work well for propagating orientational motion;
 however, energy conservation concerns arise when using the
-microcanonical (NVE) ensemble.  An earlier implementation of {\sc
-OpenMD} utilized quaternions for propagation of rotational motion;
+microcanonical (NVE) ensemble.  An earlier implementation of
+OpenMD utilized quaternions for propagation of rotational motion;
 however, a detailed investigation showed that they resulted in a
 steady drift in the total energy, something that has been observed by
 Laird {\it et al.}\cite{Laird97}
@@ -2662,7 +2662,7 @@ directly from derivatives of the potential energy,
 Here $\hat{\mathbf{u}}$ is a unit vector pointing along the principal axis
 of the particle in the space-fixed frame.
 
-The {\sc dlm} method uses a Trotter factorization of the orientational
+The DLM method uses a Trotter factorization of the orientational
 propagator.  This has three effects:
 \begin{enumerate}
 \item the integrator is area-preserving in phase space (i.e. it is
@@ -2742,7 +2742,7 @@ torques are calculated at the new positions and orientations
 	\cdot \mathbf{\tau}^s(t + h).
 \end{align*}
 
-{\sc OpenMD} automatically updates $\mathbf{u}$ when the rotation matrix
+OpenMD automatically updates $\mathbf{u}$ when the rotation matrix
 $\mathsf{A}$ is calculated in {\tt moveA}.  Once the forces and
 torques have been obtained at the new time step, the velocities can be
 advanced to the same time value.
@@ -2756,31 +2756,30 @@ advanced to the same time value.
 	+ \frac{h}{2} \mathbf{\tau}^b(t + h) .
 \end{align*}
 
-The matrix rotations used in the {\sc dlm} method end up being more
+The matrix rotations used in the DLM method end up being more
 costly computationally than the simpler arithmetic quaternion
 propagation. With the same time step, a 1024-molecule water simulation
-incurs an average 12\% increase in computation time using the {\sc
-dlm} method in place of quaternions. This cost is more than justified
+incurs an average 12\% increase in computation time using the DLM method in place of quaternions. This cost is more than justified
 when comparing the energy conservation achieved by the two
 methods. Figure ~\ref{quatdlm} provides a comparative analysis of the
-{\sc dlm} method versus the traditional quaternion scheme.
+DLM method versus the traditional quaternion scheme.
 
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{quatvsdlm.pdf}
-\caption[Energy conservation analysis of the {\sc dlm} and quaternion 
-integration methods]{Analysis of the energy conservation of the {\sc
-dlm} and quaternion integration methods.  $\delta \mathrm{E}_1$ is the
+\caption[Energy conservation analysis of the DLM and quaternion 
+integration methods]{Analysis of the energy conservation of the DLM 
+and quaternion integration methods.  $\delta \mathrm{E}_1$ is the
 linear drift in energy over time and $\delta \mathrm{E}_0$ is the
 standard deviation of energy fluctuations around this drift.  All
 simulations were of a 1024-molecule simulation of SSD water at 298 K
-starting from the same initial configuration. Note that the {\sc dlm}
+starting from the same initial configuration. Note that the DLM
 method provides more than an order of magnitude improvement in both
 the energy drift and the size of the energy fluctuations when compared
 with the quaternion method at any given time step.  At time steps
 larger than 4 fs, the quaternion scheme resulted in rapidly rising
-energies which eventually lead to simulation failure.  Using the {\sc
-dlm} method, time steps up to 8 fs can be taken before this behavior
+energies which eventually lead to simulation failure.  Using the DLM
+method, time steps up to 8 fs can be taken before this behavior
 is evident.}
 \label{quatdlm}
 \end{figure}
@@ -2791,13 +2790,13 @@ nanosecond of simulation time, and $\delta \mbox{E}_0$ is the standard
 deviation of the energy fluctuations in units of $\mbox{kcal
 mol}^{-1}$ per particle. In the top plot, it is apparent that the
 energy drift is reduced by a significant amount (2 to 3 orders of
-magnitude improvement at all tested time steps) by chosing the {\sc
-dlm} method over the simple non-symplectic quaternion integration
+magnitude improvement at all tested time steps) by chosing the DLM
+method over the simple non-symplectic quaternion integration
 method.  In addition to this improvement in energy drift, the
 fluctuations in the total energy are also dampened by 1 to 2 orders of
-magnitude by utilizing the {\sc dlm} method.
+magnitude by utilizing the DLM method.
 
-Although the {\sc dlm} method is more computationally expensive than
+Although the DLM method is more computationally expensive than
 the traditional quaternion scheme for propagating a single time step,
 consideration of the computational cost for a long simulation with a
 particular level of energy conservation is in order.  A plot of energy
@@ -2808,10 +2807,10 @@ simulation time for the model 1024-molecule system.  By chosing a
 desired energy drift value it is possible to determine the CPU time
 required for both methods. If a $\delta \mbox{E}_1$ of $1 \times
 10^{-3} \mbox{kcal mol}^{-1}$ per particle is desired, a nanosecond of
-simulation time will require ~19 hours of CPU time with the {\sc dlm}
+simulation time will require ~19 hours of CPU time with the DLM
 integrator, while the quaternion scheme will require ~154 hours of CPU
 time. This demonstrates the computational advantage of the integration
-scheme utilized in {\sc OpenMD}.
+scheme utilized in OpenMD.
 
 \begin{figure}
 \centering
@@ -2822,7 +2821,7 @@ $\delta \mathrm{E}_1$ is the linear drift in energy over time.
 Simulations were performed on a single 2.5 GHz Pentium 4
 processor. Simulation time comparisons can be made by tracing
 horizontally from one curve to the other. For example, a simulation
-that takes ~24 hours using the {\sc dlm} method will take roughly 210
+that takes ~24 hours using the DLM method will take roughly 210
 hours using the simple quaternion method if the same degree of energy
 conservation is desired.}
 \label{cpuCost}
@@ -2841,7 +2840,7 @@ $h$ & {\tt dt = 2.0;} & fs & none
 
 \section{\label{sec:extended}Extended Systems for other Ensembles}
 
-{\sc OpenMD} implements a number of extended system integrators for
+OpenMD implements a number of extended system integrators for
 sampling from other ensembles relevant to chemical physics.  The
 integrator can be selected with the {\tt ensemble} keyword in the
 meta-data file:
@@ -2899,14 +2898,14 @@ other box dimensions ($H_{xx}$, $H_{yy}$) to change.
 \end{longtable}
 
 The relatively well-known Nos\'e-Hoover thermostat\cite{Hoover85} is
-implemented in {\sc OpenMD}'s NVT integrator.  This method couples an
+implemented in OpenMD's NVT integrator.  This method couples an
 extra degree of freedom (the thermostat) to the kinetic energy of the
 system and it has been shown to sample the canonical distribution in
 the system degrees of freedom while conserving a quantity that is, to
 within a constant, the Helmholtz free energy.\cite{melchionna93}
 
 NPT algorithms attempt to maintain constant pressure in the system by
-coupling the volume of the system to a barostat.  {\sc OpenMD} contains
+coupling the volume of the system to a barostat.  OpenMD contains
 three different constant pressure algorithms.  The first two, NPTi and
 NPTf have been shown to conserve a quantity that is, to within a
 constant, the Gibbs free energy.\cite{melchionna93} The Melchionna
@@ -3023,13 +3022,13 @@ T(t) &\leftarrow \left\{{\bf v}(t)\right\}, \left\{{\bf j}(t)\right\} ,\\
 Here $\mathrm{rotate}(h * {\bf j}
 \overleftrightarrow{\mathsf{I}}^{-1})$ is the same symplectic Trotter
 factorization of the three rotation operations that was discussed in
-the section on the {\sc dlm} integrator.  Note that this operation modifies
+the section on the DLM integrator.  Note that this operation modifies
 both the rotation matrix $\mathsf{A}$ and the angular momentum ${\bf
 j}$.  {\tt moveA} propagates velocities by a half time step, and
 positional degrees of freedom by a full time step.  The new positions
 (and orientations) are then used to calculate a new set of forces and
 torques in exactly the same way they are calculated in the {\tt
-doForces} portion of the {\sc dlm} integrator.
+doForces} portion of the DLM integrator.
 
 Once the forces and torques have been obtained at the new time step,
 the temperature, velocities, and the extended system variable can be
@@ -3060,7 +3059,7 @@ $T(t + h)$ as well as $\chi(t + h)$, they indirectly depend on their
 own values at time $t + h$.  {\tt moveB} is therefore done in an
 iterative fashion until $\chi(t + h)$ becomes self-consistent.  The
 relative tolerance for the self-consistency check defaults to a value
-of $\mbox{10}^{-6}$, but {\sc OpenMD} will terminate the iteration
+of $\mbox{10}^{-6}$, but OpenMD will terminate the iteration
 after 4 loops even if the consistency check has not been satisfied.
 
 The Nos\'e-Hoover algorithm is known to conserve a Hamiltonian for the
@@ -3083,7 +3082,7 @@ algorithms are given in section \ref{section:rattle}.
 \section{\label{sec:NPTi}Constant-pressure integration with 
 isotropic box deformations (NPTi)}
 
-To carry out isobaric-isothermal ensemble calculations, {\sc OpenMD}
+To carry out isobaric-isothermal ensemble calculations, OpenMD
 implements the Melchionna modifications to the Nos\'e-Hoover-Andersen
 equations of motion.\cite{melchionna93} The equations of motion are
 the same as NVT with the following exceptions:
@@ -3177,7 +3176,7 @@ P(t) &\leftarrow \left\{{\bf r}(t)\right\}, \left\{{\bf v}(t)\right\} ,\\
 \end{align*}
 
 The propagation of positions to time $t + h$
-depends on the positions at the same time.  {\sc OpenMD} carries out
+depends on the positions at the same time.  OpenMD carries out
 this step iteratively (with a limit of 5 passes through the iterative
 loop).  Also, the simulation box $\mathsf{H}$ is scaled uniformly for
 one full time step by an exponential factor that depends on the value
@@ -3190,7 +3189,7 @@ the box by
 \end{equation}
 
 The {\tt doForces} step for the NPTi integrator is exactly the same as
-in both the {\sc dlm} and NVT integrators.  Once the forces and torques have
+in both the DLM and NVT integrators.  Once the forces and torques have
 been obtained at the new time step, the velocities can be advanced to
 the same time value.
 
@@ -3220,7 +3219,7 @@ h)$, they indirectly depend on their own values at time $t + h$.  {\tt
 moveB} is therefore done in an iterative fashion until $\chi(t + h)$
 and $\eta(t + h)$ become self-consistent.  The relative tolerance for
 the self-consistency check defaults to a value of $\mbox{10}^{-6}$,
-but {\sc OpenMD} will terminate the iteration after 4 loops even if the
+but OpenMD will terminate the iteration after 4 loops even if the
 consistency check has not been satisfied.
 
 The Melchionna modification of the Nos\'e-Hoover-Andersen algorithm is
@@ -3297,7 +3296,7 @@ NPTi integration:
 \mathsf{H}(t + h) &\leftarrow \mathsf{H}(t) \cdot e^{-h
 	\overleftrightarrow{\eta}(t + h / 2)} .
 \end{align*}
-{\sc OpenMD} uses a power series expansion truncated at second order
+OpenMD uses a power series expansion truncated at second order
 for the exponential operation which scales the simulation box.
 
 The {\tt moveB} portion of the algorithm is largely unchanged from the
@@ -3364,10 +3363,10 @@ simulations).
 
 \section{Langevin Dynamics (LD)\label{LDRB}}
 
-{\sc OpenMD} implements a Langevin integrator in order to perform
+OpenMD implements a Langevin integrator in order to perform
 molecular dynamics simulations in implicit solvent environments.  This
 can result in substantial performance gains when the detailed dynamics
-of the solvent is not important. Since {\sc OpenMD} also handles rigid
+of the solvent is not important. Since OpenMD also handles rigid
 bodies of arbitrary composition and shape, the Langevin integrator is
 by necessity somewhat more complex than in other simulation packages.
 
@@ -3431,7 +3430,7 @@ resistance.
 For atoms and ellipsoids, there are good approximations for this
 tensor that are based on Stokes' law.  For arbitrary rigid bodies, the
 resistance tensor must be pre-computed before Langevin dynamics can be
-used.  The {\sc OpenMD} distribution contains a utitilty program called
+used.  The OpenMD distribution contains a utitilty program called
 Hydro that performs this computation.
 
 Once this tensor is known for a given {\tt integrableObject},
@@ -3477,7 +3476,7 @@ frame, we consider the equation of motion for the angular momentum
 \frac{\partial}{\partial t}{\bf j}(t) = \tau^{~b}(t)
 \end{equation}
 By embedding the friction and random forces into the the total force
-and torque, {\sc OpenMD} integrates the Langevin equations of motion
+and torque, OpenMD integrates the Langevin equations of motion
 for a rigid body of arbitrary shape in a velocity-Verlet style 2-part
 algorithm, where $h = \delta t$:
 
@@ -3595,7 +3594,7 @@ file which contains the information about the hydrodynamic properties
 of all complex rigid bodies being used during the simulation.  The
 {\tt HydroPropFile} keyword is used to specify the name of this
 file. A {\tt HydroPropFile} should be precalculated using the Hydro
-program that is included in the {\sc OpenMD} distribution.
+program that is included in the OpenMD distribution.
 
 \begin{longtable}[c]{ABG}
 \caption{Meta-data Keywords: Required parameters for the Langevin integrator}
@@ -3783,13 +3782,13 @@ This parameter must be set to \tt false \\
 
 \section{\label{sec:constraints}Constraint Methods}
 
-\subsection{\label{section:rattle}The {\sc rattle} Method for Bond 
+\subsection{\label{section:rattle}The RATTLE Method for Bond 
 	Constraints}
 
-In order to satisfy the constraints of fixed bond lengths within {\sc
-OpenMD}, we have implemented the {\sc rattle} algorithm of
-Andersen.\cite{andersen83} {\sc rattle} is a velocity-Verlet
-formulation of the {\sc shake} method\cite{ryckaert77} for iteratively
+In order to satisfy the constraints of fixed bond lengths within
+OpenMD, we have implemented the RATTLE algorithm of
+Andersen.\cite{andersen83} RATTLE is a velocity-Verlet
+formulation of the SHAKE method\cite{ryckaert77} for iteratively
 solving the Lagrange multipliers which maintain the holonomic
 constraints.  Both methods are covered in depth in the
 literature,\cite{leach01:mm,Allen87} and a detailed description of
@@ -3829,7 +3828,7 @@ system is a technique that was proposed to obtain the forces required
 for the force auto-correlation calculation.\cite{Marrink94} However,
 simply resetting the coordinate will move the center of the mass of
 the whole system. To avoid this problem, we have developed a new
-method that is utilized in {\sc OpenMD}. Instead of resetting the
+method that is utilized in OpenMD. Instead of resetting the
 coordinates, we reset the forces of $z$-constrained molecules and
 subtract the total constraint forces from the rest of the system after
 the force calculation at each time step.
@@ -3894,12 +3893,12 @@ F_{z_{\text{Harmonic}}}(t)=-\frac{\partial U(t)}{\partial z(t)}=
 The user may also specify the use of a constant velocity method
 (steered molecular dynamics) to move the molecules to their desired
 initial positions. Based on concepts from atomic force microscopy,
-{\sc smd} has been used to study many processes which occur via rare
+SMD has been used to study many processes which occur via rare
 events on the time scale of a few hundreds of picoseconds.  For
-example,{\sc smd} has been used to observe the dissociation of
+example,SMD has been used to observe the dissociation of
 Streptavidin-biotin Complex.\cite{smd}  
 
-To use of the $z$-constraint method in an {\sc OpenMD} simulation, the
+To use of the $z$-constraint method in an OpenMD simulation, the
 molecules must be specified using the {\tt nZconstraints} keyword in
 the meta-data file.  The other parameters for modifying the behavior
 of the $z$-constraint method are listed in table~\ref{table:zconParams}.
@@ -4263,11 +4262,11 @@ K_\omega K_\theta)^{\frac{1}{2}}}\exp\left
 where $2\pi\nu = (K_\mathrm{v}/m)^{1/2}$, and $E_m$ is the minimum
 potential energy of the ideal crystal.\cite{Baez95a} 
 
-{\sc OpenMD} can perform the simulations that aid the user in
+OpenMD can perform the simulations that aid the user in
 constructing the thermodynamic path from the molecular system to one
 of the reference systems.  To do this, the user sets the value of
 $\lambda$ (between 0 \& 1) in the meta-data file.  If the system of
-interest is crystalline, {\sc OpenMD} must be able to find the  {\it
+interest is crystalline, OpenMD must be able to find the  {\it
 reference} configuration of the system in a file called {\tt
 idealCrystal.in} in the directory from which the simulation was run.
 This file is a standard {\tt .dump} file, but all information about
@@ -4574,7 +4573,7 @@ of the following: {\tt x, y, z}, default is {\tt z} \\
 {\tt outputBins} & int & number of bins in the output histogram & default is 20 \\
 {\tt outputBinWidth} & $\mbox{\AA}$ & for concentric exchange, this defines the width of output shells & default is 2 \AA \\
 {\tt outputFields} & string & columns to print in the {\tt .rnemd}
-file where each column is separated by a pipe ($\mid$) symbol. & Allowed column names are: {\sc z, r, temperature, velocity, angularvelocity, density, activity, electricfield, electrostaticpotential} \\
+file where each column is separated by a pipe ($\mid$) symbol. & Allowed column names are: {\tt z, r, temperature, velocity, angularvelocity, density, activity, electricfield, electrostaticpotential} \\
 {\tt spfScalingPower} & int & sets value of $k$ in $s(\lambda) = \lambda^k$
                               (see Eq. \eqref{eq:scalingF}) & default is 3 \\
 {\tt spfUniformKineticScaling} &  &  & \\
@@ -4687,24 +4686,23 @@ points on the potential energy surface. There is a vast literature on
 energy minimization algorithms have been developed to search for the
 global energy minimum as well as to find local structures which are
 stable fixed points on the surface.  We have included two simple
-minimization algorithms: steepest descent, ({\sc sd}) and conjugate
-gradient ({\sc cg}) to help users find reasonable local minima from
-their initial configurations. Since {\sc OpenMD} handles atoms and
+minimization algorithms: steepest descent, (SD) and conjugate
+gradient (CG) to help users find reasonable local minima from
+their initial configurations. Since OpenMD handles atoms and
 rigid bodies which have orientational coordinates as well as
 translational coordinates, there is some subtlety to the choice of
 parameters for minimization algorithms.
 
 Given a coordinate set $x_{k}$ and a search direction $d_{k}$, a line
 search algorithm is performed along $d_{k}$ to produce
-$x_{k+1}=x_{k}+$ $\lambda _{k}d_{k}$. In the steepest descent ({\sc
-sd}) algorithm,%
+$x_{k+1}=x_{k}+$ $\lambda _{k}d_{k}$. In the steepest descent (SD) algorithm,
 \begin{equation}
 d_{k}=-\nabla V(x_{k}).
 \end{equation}
 The gradient and the direction of next step are always orthogonal.
 This may cause oscillatory behavior in narrow valleys.  To overcome
 this problem, the Fletcher-Reeves variant~\cite{FletcherReeves} of the
-conjugate gradient ({\sc cg}) algorithm is used to generate $d_{k+1}$
+conjugate gradient (CG) algorithm is used to generate $d_{k+1}$
 via simple recursion:
 \begin{equation}
 d_{k+1}  =-\nabla V(x_{k+1})+\gamma_{k}d_{k}
@@ -4723,7 +4721,7 @@ V(x_{k})^{T}\nabla V(x_{k})}%
 \end{equation}
 It is widely agreed that the Polak-Ribiere variant gives better
 convergence than the Fletcher-Reeves variant, so the conjugate
-gradient approach implemented in {\sc OpenMD} is the Polak-Ribiere
+gradient approach implemented in OpenMD is the Polak-Ribiere
 variant.
 
 The conjugate gradient method assumes that the conformation is close
@@ -4732,7 +4730,7 @@ nearly quadratic.  When the initial structure is far from the minimum,
 the steepest descent method can be superior to the conjugate gradient
 method. Hence, the steepest descent method is often used for the first
 10-100 steps of minimization. Another useful feature of minimization
-methods in {\sc OpenMD} is that a modified {\sc shake} algorithm can
+methods in OpenMD is that a modified SHAKE algorithm can
 be applied during the minimization to constraint the bond lengths if
 this is required by the force field. Meta-data parameters concerning
 the minimizer are given in Table~\ref{table:minimizeParams} Because
@@ -4769,12 +4767,12 @@ enclosed in a {\it separate} {\tt minimizer\{...\}} block.
 
 \chapter{\label{section:anal}Analysis of Physical Properties}
 
-{\sc OpenMD} includes a few utility programs which compute properties
+OpenMD includes a few utility programs which compute properties
 from the dump files that are generated during a molecular dynamics
 simulation.  These programs are:
 
 \begin{description}
-\item[{\bf Dump2XYZ}] Converts an {\sc OpenMD} dump file into a file
+\item[{\bf Dump2XYZ}] Converts an OpenMD dump file into a file
 suitable for viewing in a molecular dynamics viewer like Jmol or VMD
 \item[{\bf StaticProps}] Computes static properties like the pair
 distribution function, $g(r)$.
@@ -4790,7 +4788,7 @@ within a dump file.  For example, if you want only the {\it oxygen-oxygen}
 pair distribution from a water simulation, or if you want to make a
 movie including only the water molecules within a 6 angstrom radius of
 lipid head groups, you need a way to specify your selection to these
-utility programs.  {\sc OpenMD} has a selection syntax which allows you to
+utility programs.  OpenMD has a selection syntax which allows you to
 specify the selection in a compact form in order to generate only the
 data you want.  For example a common use of the StaticProps command
 would be:
@@ -4805,7 +4803,7 @@ few of the core concepts that are used to perform simulations.
 
 \section{\label{section:concepts}Concepts}
 
-{\sc OpenMD} manipulates both traditional atoms as well as some objects that
+OpenMD manipulates both traditional atoms as well as some objects that
 {\it behave like atoms}.  These objects can be rigid collections of
 atoms or atoms which have orientational degrees of freedom.  Here is a
 diagram of the class heirarchy:
@@ -4813,8 +4811,8 @@ diagram of the class heirarchy:
 \begin{figure}
 \centering
 \includegraphics[width=3in]{heirarchy.pdf}
-\caption[Class heirarchy for StuntDoubles in {\sc OpenMD}]{ \\ The
-class heirarchy of StuntDoubles in {\sc OpenMD}. The selection
+\caption[Class heirarchy for StuntDoubles in OpenMD]{ \\ The
+class heirarchy of StuntDoubles in OpenMD. The selection
 syntax allows the user to select any of the objects that are descended
 from a StuntDouble.}
 \label{fig:heirarchy}
@@ -4829,7 +4827,7 @@ integrators and minimizers.
 DirectionalAtom}s which behaves as a single unit.
 \end{itemize} 
 
-Every Molecule, Atom and DirectionalAtom in {\sc OpenMD} have their
+Every Molecule, Atom and DirectionalAtom in OpenMD have their
 own names which are specified in the {\tt .omd} file. In contrast,
 other groupings of atoms are denoted by their membership and index
 inside a particular molecule.  For example, RigidBodies are denoted
@@ -4849,7 +4847,7 @@ itself.
 The most general form of the select command is: {\tt select {\it expression}}
 
 This expression represents an arbitrary set of StuntDoubles (Atoms or
-RigidBodies) in {\sc OpenMD}. Expressions are composed of either name
+RigidBodies) in OpenMD. Expressions are composed of either name
 expressions, index expressions, predefined sets, user-defined
 expressions, comparison operators, within expressions, or logical
 combinations of the above expression types. Expressions can be
@@ -4978,7 +4976,7 @@ atoms.
 
 \subsection{\label{section:Dump2XYZ}Dump2XYZ}
 
-Dump2XYZ can transform an {\sc OpenMD} dump file into a xyz file which can
+Dump2XYZ can transform an OpenMD dump file into a xyz file which can
 be opened by other molecular dynamics viewers such as Jmol and
 VMD. The options available for Dump2XYZ are as follows:
 
@@ -5031,7 +5029,7 @@ frame {\it fixed to the body-fixed reference frame} of a selected atom
 or rigid body.
 
 There are five seperate radial distribution functions availiable in
-{\sc OpenMD}. Since every radial distrbution function invlove the calculation
+OpenMD. Since every radial distrbution function invlove the calculation
 between pairs of bodies, {\tt -{}-sele1} and {\tt -{}-sele2} must be specified to tell
 StaticProps which bodies to include in the calculation.
 
@@ -5818,12 +5816,12 @@ and the energy vs. scaling data is put into a specified output file.
 
 \chapter{\label{section:PreparingInput} Preparing Input Configurations}
 
-{\sc OpenMD} comes with a few utility programs to aid in setting up
+OpenMD comes with a few utility programs to aid in setting up
 initial configuration and meta-data files.  Usually, a user is
 interested in either importing a structure from some other format
 (usually XYZ or PDB), or in building an initial configuration in some
 perfect crystalline lattice or nanoparticle geometry. The program
-bundled with {\sc OpenMD} that imports coordinate files is {\tt
+bundled with OpenMD that imports coordinate files is {\tt
   atom2omd}, which is built if the initial CMake configuration can find
 the openbabel libraries. The programs which generate perfect crystals
 are called {\tt SimpleBuilder} and {\tt RandomBuilder}.  There are
@@ -5882,7 +5880,7 @@ using {\tt -H<format-type>}, e.g. {\tt -Hpdb}}
 \section{\label{section:SimpleBuilder}simpleBuilder}
 
 {\tt simpleBuilder} creates simple lattice structures.  It requires an
-initial, but skeletal {\sc OpenMD} file to specify the components that
+initial, but skeletal OpenMD file to specify the components that
 are to be placed on the lattice. The total
 number of placed molecules will be shown at the top of the
 configuration file that is generated.  That number may not match the
@@ -5910,7 +5908,7 @@ The options available for simpleBuilder are as follows:
 
 {\tt icosahedralBuilder} creates single-component geometric solids
 that can be useful in simulating nanostructures.  Like the other
-builders, it requires an initial, but skeletal {\sc OpenMD} file to
+builders, it requires an initial, but skeletal OpenMD file to
 specify the component that is to be placed on the lattice.  The total
 number of placed molecules will be shown at the top of the
 configuration file that is generated.  That number may not match the
@@ -6123,7 +6121,7 @@ For example, {\tt rigidBodies} such as SPC/E water molecules are treated
 to have 1 atom, and united-atom hexane would be specified to have 6 atoms. 
 
 The script requires an {\tt output-file} to be specified, which will
-require editing before it can be used with {\sc OpenMD}. Usually this
+require editing before it can be used with OpenMD. Usually this
 consists of adding back information about the molecule definitions
 (usually contained in ({\tt .inc}) files, as well as the declaration
 of a {\tt forceField}. Be careful that only one {\tt forceField} file
@@ -6151,7 +6149,7 @@ The options available for {\tt omd-solvator} are:
 
 \section{\label{section:omd2omd}omd2omd} 
 {\tt omd2omd} is a utility script which helps in replicating,
-rotating, and translating already built {\sc OpenMD} {\tt .omd}, {\tt
+rotating, and translating already built OpenMD {\tt .omd}, {\tt
   .dump}, and {\tt .eor} files. Using the {\tt -x}, {\tt -y}, and {\tt
   -z} options, the user is able to indicate an integer number of
 replicas they would like the system to be repeated. Likewise, using
@@ -6190,7 +6188,7 @@ back to the periodic box.
 
 \section{\label{section:affineScale}affineScale} 
 
-{\tt affineScale} is a utility script which takes an {\sc OpenMD}
+{\tt affineScale} is a utility script which takes an OpenMD
 {\tt .omd} or {\tt .eor} file and scales both the periodic box and the
 coordinates of all {\tt stuntDoubles} in the system by the same
 amount. You can either specify a new volume scaling for isotropic
@@ -6220,7 +6218,7 @@ component of the {\tt .stat} file.
 \section{\label{section:omdLast}omdLast} 
 
 {\tt omdLast} is a utility script which extracts the last good frame
-from an {\sc OpenMD}
+from an OpenMD
 {\tt .dump} file and places it in a new {\tt .omd} file.  This is
 particularly useful for starting a run from a crashed or terminated job.
 
@@ -6238,7 +6236,7 @@ particularly useful for starting a run from a crashed or terminated job.
 
 \chapter{\label{section:SampleConfigurations} Sample
   Configurations}
-Included with {\sc OpenMD} is a directory of sample {\tt .omd}
+Included with OpenMD is a directory of sample {\tt .omd}
 files. We provide here brief descriptions of the sample configurations
 to help guide further system construction and aid in determining the
 correct syntax for analysis modules. The corresponding directories can
@@ -6286,7 +6284,7 @@ constructed following the presented formalism.
 This directory contains an array of metal {\tt .omd} samples, gold,
 silver, copper, nickel, palladium, and platinum surfaces as well as
 gold and bimetallic nanospheres and nanorods. While many of these
-systems are easily constructed using other {\sc OpenMD} builder
+systems are easily constructed using other OpenMD builder
 utility scripts, we have created several sample systems as examples.
 
 \section{RNEMD}
@@ -6298,7 +6296,7 @@ surface with thiolate ligands decorating the surface, as well as a
 PackMol script required to generate the ligand packing.
 
 \section{Water}
-{\sc OpenMD} supports a large number of water models, all of which can
+OpenMD supports a large number of water models, all of which can
 be found in the {\tt Water.frc} file within the {\tt forceFields}
 directory. In the {\tt samples} directory, sample configurations of
 various water models are present. These include the SPC, SPC/E, TIP3P,
@@ -6308,8 +6306,8 @@ pyramidal, and secondary prism facets of a proton ordered
 ice-I$_\mathrm{h}$ crystal.
 
 \section{Zeolite}
-A sample zeolite configuration is also given in the {\sc OpenMD}
-distribution. The CLAYFF force field is included with {\sc OpenMD}, so
+A sample zeolite configuration is also given in the OpenMD
+distribution. The CLAYFF force field is included with OpenMD, so
 following a similar construction many permutations of zeolites may be
 constructed.
 
@@ -6350,7 +6348,7 @@ is not very efficient for small $N$, since the overall communication
 scales as the surface to volume ratio $\mathcal{O}(N/P)^{2/3}$ in
 three dimensions.
 
-The parallelization method used in {\sc OpenMD} is the force
+The parallelization method used in OpenMD is the force
 decomposition method.\cite{hendrickson:95} Force decomposition assigns
 particles to processors based on a block decomposition of the force
 matrix. Processors are split into an optimally square grid forming row
@@ -6441,29 +6439,29 @@ processors, then the roundoff issue will reappear.
  
 \chapter{\label{section:conclusion}Conclusion}
 
-We have presented a new parallel simulation program called {\sc
-OpenMD}. This program offers some novel capabilities, but mostly makes
+We have presented a new parallel simulation program called 
+OpenMD. This program offers some novel capabilities, but mostly makes
 available a library of modern object-oriented code for the scientific
-community to use freely.  Notably, {\sc OpenMD} can handle symplectic
+community to use freely.  Notably, OpenMD can handle symplectic
 integration of objects (atoms and rigid bodies) which have
 orientational degrees of freedom.  It can also work with transition
 metal force fields and point-dipoles. It is capable of scaling across
 multiple processors through the use of force based decomposition. It
 also implements several advanced integrators allowing the end user
 control over temperature and pressure. In addition, it is capable of
-integrating constrained dynamics through both the {\sc rattle}
+integrating constrained dynamics through both the RATTLE
 algorithm and the $z$-constraint method.
 
 We encourage other researchers to download and apply this program to
 their own research problems.  By making the code available, we hope to
 encourage other researchers to contribute their own code and make it a
 more powerful package for everyone in the molecular dynamics community
-to use.  All source code for {\sc OpenMD} is available for download at
+to use.  All source code for OpenMD is available for download at
 {\tt http://openmd.org}.
 
 \chapter{Acknowledgments}
 
-Development of {\sc OpenMD} was funded by a New Faculty Award from the
+Development of OpenMD was funded by a New Faculty Award from the
 Camille and Henry Dreyfus Foundation and by the National Science
 Foundation under grants CHE-0134881, CHE-0848243, CHE-1362211,
 CHE-1663773, and CHE-191954648. Computation time was provided by the
