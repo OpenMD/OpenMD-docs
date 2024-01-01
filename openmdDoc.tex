@@ -3,7 +3,6 @@
 \usepackage[T1]{fontenc}
 \usepackage{amssymb}
 \usepackage{amsmath}
-%\usepackage[default,light,bold]{sourceserifpro}
 \usepackage{newpxtext,eulerpx}
 \usepackage{sourcecodepro}
 \usepackage{listings}
@@ -16,6 +15,8 @@
 \usepackage{floatrow}
 \usepackage{url}
 \usepackage[margin=0.5cm,font=small,format=hang]{caption}
+\usepackage[version=4]{mhchem}
+\usepackage{color}
 
 \newcommand{\angstrom}{\mbox{\normalfont\AA}}
 \let\textDJ\DJ
@@ -36,26 +37,52 @@
 \makeatother
 
 \renewcommand{\baselinestretch}{1.2}
-\usepackage[square, comma, sort&compress]{natbib}
-\bibpunct{[}{]}{,}{n}{}{;}
+\usepackage[super,comma,sort&compress]{natbib}
+\bibpunct{}{}{,}{s}{}{;}
+%\bibpunct{[}{]}{,}{n}{}{;}
 
 \DeclareFloatFont{tiny}{\scriptsize}% "scriptsize" is defined by floatrow, "tiny" not
 \floatsetup[table]{font=small}
 
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
 
 %\renewcommand\citemid{\ } % no comma in optional reference note
-\lstset{language=C,frame=TB,basicstyle=\footnotesize\ttfamily, %
-	xleftmargin=0.25in, xrightmargin=0.25in,captionpos=b, %
-	abovecaptionskip=0.5cm, belowcaptionskip=0.5cm, escapeinside={~}{~}}
+\lstset{
+    language=C,
+    frame=TB,
+    basicstyle=\footnotesize\ttfamily, %
+	xleftmargin=0.25in,
+    xrightmargin=0.25in,
+    captionpos=b, %
+	abovecaptionskip=0.5cm, 
+    belowcaptionskip=0.5cm, 
+    escapeinside={~}{~},
+    identifierstyle=\color{black},
+    commentstyle=\color{mygreen}\textit,    % comment style
+    keywordstyle=\color{blue},       % keyword style
+    stringstyle=\color{mymauve}    % string literal style
+}
 \renewcommand{\lstlistingname}{Example}
 
 \lstnewenvironment{code}[1][]%
   {\noindent\minipage{\linewidth}\vspace{0.5\baselineskip} 
-   \lstset{language=C,basicstyle=\footnotesize\ttfamily,%
-     captionpos=b,aboveskip=0.5cm,belowskip=0.5cm,abovecaptionskip=0.5cm,%
-     belowcaptionskip=0.5cm,%
-     escapeinside={~}{~},frame=single,#1}}
-  {\endminipage}
+   \lstset{
+    language=C,
+    basicstyle=\footnotesize\ttfamily,%
+    captionpos=b,
+    aboveskip=0.5cm,
+    belowskip=0.5cm,
+    abovecaptionskip=0.5cm,
+    belowcaptionskip=0.5cm,
+    escapeinside={~}{~},
+    identifierstyle=\color{black},
+    commentstyle=\color{mygreen}\textit,    % comment style
+    keywordstyle=\color{blue},       % keyword style
+    stringstyle=\color{mymauve},     % string literal style
+    frame=single,#1}}
+{\endminipage}
 
 
 
@@ -81,7 +108,7 @@
 
 \title{OpenMD-3.0: Molecular Dynamics in the Open}
 
-\author{C.R. Drisko, Sydney A. Shavalier,  Benjamin Harless, Veronica Freund, \\
+\author{C.R. Drisko, Sydney A. Shavalier,  Benjamin M. Harless, Veronica Freund, \\
   Teng Lin,  Charles F. Vardeman II, Christopher J. Fennell, Matthew  A. Meineke, \\
   Patrick B. Louden,   Hemanta Bhattarai, Joseph R. Michalka, Kelsey M. Stocker, \\
   James M. Marr,  Anderson D.S. Duraes, Suzanne M. Neidhart, Shenyu Kuang,  \\
@@ -112,9 +139,9 @@ OpenMD simulation is specified using a very simple meta-data language
 that is easy to learn.
 
 \tableofcontents
-\listoffigures
-\listoftables
- 
+
+%\listoffigures
+%\listoftables
 %\mainmatter
 
 \chapter{\label{sec:intro}Introduction}
@@ -260,7 +287,7 @@ block and {\it at least one} {\tt <Snapshot>} block.  Each
 \end{code}
 
 
-\section{OpenMD Files and <MetaData> blocks}
+\section{OpenMD Files and {\tt <MetaData>} blocks}
 
 OpenMD uses HTML-like delimiters to separate {\tt
   <MetaData>} and {\tt <Snapshot>} blocks.  A C-based syntax
@@ -467,7 +494,7 @@ molecule{
 }
 \end{code}
 
-\section{\label{sec:miscConcepts}Creating a <MetaData> block}
+\section{\label{sec:miscConcepts}Creating a {\tt <MetaData>} block}
 
 The actual creation of a {\tt <MetaData>} block requires several key
 components. The first part of the file needs to be the declaration of
@@ -652,7 +679,7 @@ are reasonable \\
 \end{longtable}
 
 
-\section{\label{section:coordFiles}<Snapshot> Blocks}
+\section{\label{section:coordFiles}{\tt <Snapshot>} Blocks}
 
 The standard format for storage of a system's coordinates is the {\tt
 <Snapshot>} block , the exact details of which can be seen in
@@ -955,7 +982,7 @@ CH2   CH2  CH2  CH2  Trappe  0.0  0.70544  -0.13549  1.5723
 end TorsionTypes
 \end{code}
 
-\section{\label{section:ffOptions}The Options block}
+\section{\label{section:ffOptions}The {\tt Options} block}
 
 The Options block defines properties governing how the force field
 interactions are carried out.  This block is delineated with the text
@@ -997,7 +1024,7 @@ begin Options
 end Options
 \end{code}
 
-\section{\label{section:ffBase}The BaseAtomTypes block}
+\section{\label{section:ffBase}The {\tt BaseAtomTypes} block}
 
 An {\tt AtomType} is the primary data structure that OpenMD uses to store
 static data about an atom.  Things that belong to AtomType are
@@ -1045,7 +1072,7 @@ Cl      35.453
 end BaseAtomTypes
 \end{code}
 
-\section{\label{section:ffAtom}The AtomTypes block}
+\section{\label{section:ffAtom}The {\tt AtomTypes} block}
 
 AtomTypes inherit most properties from BaseAtomTypes, but can override
 their lower-level properties as well.  Scheme \ref{sch:atomTypesBlock}
@@ -1079,7 +1106,7 @@ lio     Li
 end AtomTypes
 \end{code}
 
-\section{\label{section:ffDirectionalAtom}The DirectionalAtomTypes
+\section{\label{section:ffDirectionalAtom}The {\tt DirectionalAtomTypes}
   block}
 DirectionalAtoms have orientational degrees of freedom as well as
 translation, so moving these atoms requires information about the
@@ -1115,7 +1142,7 @@ of freedom (three translations and two rotations), and will alter
 calculation of temperatures to reflect this.
 
 \section{\label{section::ffAtomProperties}AtomType properties}
-\subsection{\label{section:ffLJ}The LennardJonesAtomTypes block}
+\subsection{\label{section:ffLJ}The {\tt LennardJonesAtomTypes} block}
 One of the most basic interatomic interactions implemented in OpenMD
 is the Lennard-Jones potential, which mimics the van der
 Waals interaction at long distances and uses an empirical repulsion at
@@ -1173,7 +1200,7 @@ CH              0.0189          4.68
 end LennardJonesAtomTypes
 \end{code}
 
-\subsection{\label{section:ffCharge}The ChargeAtomTypes block}
+\subsection{\label{section:ffCharge}The {\tt ChargeAtomTypes} block}
 
 In molecular simulations, proper accumulation of the electrostatic
 interactions is essential and is one of the most
@@ -1213,7 +1240,7 @@ Cl-            -1.0
 end ChargeAtomTypes
 \end{code}
 
-\subsection{\label{section:ffMultipole}The MultipoleAtomTypes
+\subsection{\label{section:ffMultipole}The {\tt MultipoleAtomTypes}
   block}
 For complex charge distributions that are centered on single sites, it
 is convenient to write the total electrostatic potential in terms of
@@ -1297,7 +1324,7 @@ and Quadrupole moments in units of Debye \AA.
 %\subsection{\label{section:ffGB}The FluctuatingChargeAtomTypes  block}
 %\subsubsection{\label{section:ffPol}The PolarizableAtomTypes block}
 
-\subsection{\label{section:ffGB}The GayBerneAtomTypes block}
+\subsection{\label{section:ffGB}The {\tt GayBerneAtomTypes} block}
 
 The Gay-Berne potential has been widely used in the liquid crystal
 community to describe anisotropic phase
@@ -1348,7 +1375,7 @@ Further details of the potential are given
 elsewhere,\cite{Luckhurst:1990fy,Golubkov06,SunX._jp0762020} and an
 excellent overview of the computational methods that can be used to
 efficiently compute forces and torques for this potential can be found
-in Ref. \citealp{Golubkov06}
+in Ref. \citenum{Golubkov06}
 
 \begin{code}[caption={[An example of a GayBerneAtomTypes block.] A
 simple example of a GayBerneAtomTypes block.  Distances ($d$ and $l$)
@@ -1363,7 +1390,7 @@ GBCH3OH         2.55    3.18    0.542           0.542           0.55826   1.0
 end GayBerneAtomTypes                   
 \end{code}
 
-\subsection{\label{section:ffSticky}The StickyAtomTypes block}
+\subsection{\label{section:ffSticky}The {\tt StickyAtomTypes} block}
 
 One of the solvents that can be simulated by OpenMD is the
 extended Soft Sticky Dipole (SSD/E) water model.\cite{fennell04} The
@@ -1457,7 +1484,7 @@ potential can be specified by using one of a number of substitute atom
 types (see listing \ref{sch:StickyAtomTypes}).  A table of the
 parameter values and the drawbacks and benefits of the different
 density corrected SSD models can be found in
-reference~\citealp{fennell04}.
+reference~\citenum{fennell04}.
 
 \begin{code}[caption={[An example of a StickyAtomTypes block.] A
 simple example of a StickyAtomTypes block.  Distances ($r_l$, $r_u$,
@@ -1502,7 +1529,7 @@ to compute the inter-atomic forces.
 The pairwise portion of the potential, $\phi_{ij}$, is usually a
 repulsive interaction between atoms $i$ and $j$.
 
-\subsection{\label{section:ffEAM}The EAMAtomTypes block}
+\subsection{\label{section:ffEAM}The {\tt EAMAtomTypes} block}
 The Embedded Atom Method (EAM) is one of the most widely-used
 potentials for transition
 metals.~\cite{Finnis84,Ercolessi88,Chen90,Qi99,Ercolessi02,Daw84,FBD86,johnson89,Lu97,Wadley:2001fk,Zhou:2001fj,Zhou:2004yq,Zhou:2005rt}
@@ -1600,7 +1627,7 @@ end EAMAtomTypes
 Readers interested in modifying these parameters should consult the
 \texttt{EAM.Zhou*.frc} files in the OpenMD forceFields directory.
 
-\subsection{\label{section:ffSC}The SuttonChenAtomTypes block}
+\subsection{\label{section:ffSC}The {\tt SuttonChenAtomTypes} block}
 
 The Sutton-Chen (SC)~\cite{Chen90} potential has been used to
 study a wide range of phenomena in metals.  Although it has the same
@@ -1631,7 +1658,7 @@ The SC potential form has also been parameterized by Qi {\it et
 al.}\cite{Qi99} These parameters were obtained via empirical and {\it
 ab initio} calculations to match structural features of the FCC
 crystal.  Interested readers are encouraged to consult reference
-\citealp{Qi99} for further details.
+\citenum{Qi99} for further details.
 
 \begin{code}[caption={[An example of a SCAtomTypes block.] A
 simple example of a SCAtomTypes block.  Distances ($\alpha$)
@@ -1697,7 +1724,7 @@ significant energetic penalty.  On the other hand, dihedral angles or
 torsions are ``soft'' and typically undergo significant deformation
 under normal conditions.
 
-\subsection{\label{section:ffBond}The BondTypes block}
+\subsection{\label{section:ffBond}The {\tt BondTypes} block}
 
 Bonds are the primary way to specify how the atoms are connected
 together to form the molecule.  In general, bonds exert strong
@@ -1791,7 +1818,7 @@ There are advantages and disadvantages of all of the different types
 of bonds, but specific simulation tasks may call for specific
 behaviors.
 
-\subsection{\label{section:ffBend}The BendTypes block}
+\subsection{\label{section:ffBend}The {\tt BendTypes} block}
 The equilibrium geometries and energy functions for bending motions in
 a molecule are strongly dependent on the bonding environment of the
 central atomic site.  For example, different types of hybridized
@@ -1908,7 +1935,7 @@ any bending triplet of the same atomic types (in the same or reversed
 order).  Changing the AtomType in the Atom2 position will change the
 matched bend types in the force field.
 
-\subsection{\label{section:ffTorsion}The TorsionTypes block}
+\subsection{\label{section:ffTorsion}The {\tt TorsionTypes} block}
 The torsion potential for rotation of groups around a central bond can
 often be represented with various cosine functions.  For two
 tetrahedral ($sp^3$) carbons connected by a single bond, the torsion
@@ -2056,7 +2083,7 @@ Note that the parameters for a particular torsion type are the same
 for any torsional quartet of the same atomic types (in the same or
 reversed order).
 
-\subsection{\label{section:ffInversion}The InversionTypes block}
+\subsection{\label{section:ffInversion}The {\tt InversionTypes} block}
 
 Inversion potentials are often added to force fields to enforce
 planarity around $sp^2$-hybridized carbons or to correct vibrational
@@ -2130,7 +2157,7 @@ all pairs of atoms (except for those atoms which are involved in a
 bond, bend, or torsion with each other).  Many of these interactions
 can be inferred from the AtomTypes,
 
-\subsection{\label{section:ffNBinteraction}The NonBondedInteractions
+\subsection{\label{section:ffNBinteraction}The {\tt NonBondedInteractions}
   block}
 
 The user might want like to specify explicit or special interactions
@@ -2408,6 +2435,8 @@ this reason, the default electrostatic summation method utilized by
 OpenMD is the DSF (Eq. \ref{eq:DSFPot}) with a damping parameter
 ($\alpha$) that is set algorithmically from the cutoff radius.
 
+For interactions involving point dipoles and quadrupoles, the shifted potential and shifted force methods have been generalized for multipolar interactions.\cite{Lamichhane:2014yg,Lamichhane:2014eu,Lamichhane:2016uq} 
+Setting  {\tt cutoffMethod = TAYLOR\_SHIFTED;} provides an additional option, but the default, {\tt cutoffMethod = SHIFTED\_FORCE;} also known as the \textbf{Gradient Shifted} approximation, should provide good behavior for most multipoles in common molecular dynamics simulations.  Readers interested in the differences between these two shifted methods should consult Refs. \citenum{Lamichhane:2014eu} and \citenum{Lamichhane:2016uq}.
 
 \section{\label{section:cutoffGroups}Switching Functions}
 
@@ -4415,7 +4444,7 @@ in each slab, the NIVS algorithm applies velocity scaling to all of
 the selected particles in both slabs.\cite{kuang:164101} A combination of linear
 momentum, kinetic energy, and flux constraint equations governs the
 amount of velocity scaling performed at each step. Interested readers
-should consult ref. \citealp{kuang:164101} for further details on the
+should consult ref. \citenum{kuang:164101} for further details on the
 methodology.
 
 NIVS has been shown to be very effective at producing thermal
@@ -4633,17 +4662,17 @@ finite-width interfacial region,
 \end{equation}
 Users interested in interfacial conductance are encouraged to consult
 references
-\citealp{kuang:AuThl,Stocker:2016kx,Bhattarai:2020lp,Shavalier:2022kn},
-and \citealp{Shavalier:2023rm} for other approaches to computing
+\citenum{kuang:AuThl,Stocker:2016kx,Bhattarai:2020lp,Shavalier:2022kn},
+and \citenum{Shavalier:2023rm} for other approaches to computing
 $G$. Users interested in {\it friction coefficients} at heterogeneous
 interfaces may also find references
-\citealp{2012MolPh.110..691K,Louden:2017tc}, and
-\citealp{Louden:2018le} useful.
+\citenum{2012MolPh.110..691K,Louden:2017tc}, and
+\citenum{Louden:2018le} useful.
 
 \newpage
 
 
-\subsubsection{\label{section:slipLength}slipLegth}
+\subsubsection{\label{section:slipLength}slipLength}
 {\tt slipLength} is a built in analysis script which can compute
 the slip-length of a solid-liquid interface under shear. The script assumes
 the solid is placed in the middle of the box, with equal amounts of
@@ -6467,7 +6496,7 @@ Foundation under grants CHE-0134881, CHE-0848243, CHE-1362211,
 CHE-1663773, and CHE-191954648. Computation time was provided by the
 Notre Dame Center for Research Computing.
 
-\bibliographystyle{aip}
+\bibliographystyle{unsrt}
 \bibliography{openmdDoc}
 
 \end{document}
