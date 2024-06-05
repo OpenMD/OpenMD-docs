@@ -4236,6 +4236,78 @@ two matrices, and the $\times$ for the quadrupole indicates a vector
 where $\alpha+1$ and $\alpha+2$ are regarded as cyclic
 permuations of the matrix indices.
 
+\section{\label{sec:Light}Light} 
+To add a time-dependent oscillating electromagnetic field representing
+light, the user may specify a \texttt{light} block in the MetaData
+section,
+
+\begin{code}[caption={Specifying a light field using intensity,
+wavelength, and propagation direction.},label={sch:light1}]
+    light{
+      useLight = true;
+      intensity = c;
+      wavelength = l;
+      propagationDirection = (0, 0, 1);
+      polarization = "+";
+    }
+\end{code}
+
+\noindent where the \texttt{propagationDirection} vector is a unit
+vector, the \texttt{intensity} is in units of $\mathrm{W~cm^{-2}}$,
+and \texttt{wavelength} is in nm. Alternatively, the user
+can specify
+
+\begin{code}[caption={Specifying a light field using intensity,
+frequency, and propagation direction.},label={sch:light2}]
+    light{
+      useLight = true;
+      intensity = c;
+      frequency = w;
+      propagationDirection = (0, 0, 1);
+      polarization = "+";
+    }
+\end{code}
+
+\noindent with \texttt{frequency} measured in Hz, or alternatively:
+
+\begin{code}[caption={Specifying a light field using intensity
+and wave vector.},label={sch:light3}]
+    light{
+      useLight = true;
+      intensity = c;
+      waveVector = (kx, ky, kz);
+      polarization = "+";
+    }
+\end{code}
+
+\noindent with the components of the \texttt{waveVector} specified in $\angstrom^{-1}$.
+In all cases, options for \texttt{polarization} include \texttt{"x"},
+\texttt{"y"}, \texttt{"+"}, or \texttt{"-"}.  
+
+The field produced by the light block is computed in the reference
+frame of the light's direction of propagation,
+\begin{equation}
+\mathbf{E}_k = \operatorname{Re} \left[ \mathbf{J} \cdot  e^{i \mathbf{k}\cdot \mathbf{r}^\prime -
+      \omega t} \right]
+  \end{equation}
+  where $\mathbf{J}$ is the Jones vector corresponding to the
+  polarization of the light, and
+  $\mathbf{r}^\prime = \mathsf{A}\cdot \mathbf{r}$ is the position of
+  each site in the reference frame of the wave vector, and
+  $\mathsf{A}$ is the rotation matrix for the coordinate
+  transformation between the lab frame and the propagation
+  direction. The electric field is then rotated back into the lab frame,
+  \begin{equation}
+    \mathbf{E} = \mathsf{A}^{-1} \cdot \mathbf{E}_k,\end{equation}
+  and a magnetic
+  field is also computed,
+  \begin{equation}
+    \mathbf{B} = \frac{\mathbf{E} \times
+      \hat{\mathbf{k}}}{c}.\end{equation}
+  Individual atomic sites with charges and/or dipoles
+  interact with both the electric and magnetic fields, although the
+  electric field component is typically much larger.
+
 \chapter{\label{section:thermInt}Thermodynamic Integration}
 
 Thermodynamic integration is an established technique that has been
