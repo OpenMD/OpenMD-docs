@@ -2894,8 +2894,6 @@ LD & Langevin Dynamics & {\tt ensemble = LD;} \\
  LangevinHull & Non-periodic Langevin Dynamics  & {\tt ensemble = LangevinHull;} \\
  & (Langevin Dynamics for molecules on convex hull;\\
  & Newtonian for interior molecules) & \\
- SPF & Scaled Particle Flux RNEMD & {\tt ensemble = SPF;} \\
-     & (derived from NVE, see Chapter \ref{section:rnemd}) & \\
 \end{tabular}
 \end{center}
 
@@ -4650,10 +4648,11 @@ for selection syntax & default is ``select all'' \\
 {\tt method} & string & exchange method & one of the following:
 {\tt Swap, NIVS, VSS} or {\tt SPF}  (default is {\tt VSS}) \\
 {\tt fluxType} & string & defines what is being exchanged between regions & one
-of the following: {\tt KE, Px, Py, Pz, Pvector, Lx, Ly, Lz, Lvector, Particle, Particle+KE, KE+Px, KE+Py, KE+Pvector, KE+Lx, KE+Ly, KE+Lz, KE+Lvector} \\
+of the following: {\tt KE, Px, Py, Pz, Pvector, Lx, Ly, Lz, Lvector, CurrentDensity, Particle, Particle+KE, KE+Px, KE+Py, KE+Pvector, KE+Lx, KE+Ly, KE+Lz, KE+Lvector} \\
 {\tt kineticFlux} & kcal mol$^{-1}$ \AA$^{-2}$ fs$^{-1}$ & specify the kinetic energy flux &  \\
 {\tt momentumFlux} & amu \AA$^{-1}$ fs$^{-2}$ & specify the momentum flux & \\
-{\tt particleFlux} & \AA$^{-2}$ fs$^{-1}$ & specify the particle flux & For SPF method only\\  
+{\tt particleFlux} & \AA$^{-2}$ fs$^{-1}$ & specify the particle flux & for SPF method only \\  
+{\tt currentDensity} & e \AA$^{-2}$ fs$^{-1}$ & specify the current density & for Charged-SPF method only \\  
 {\tt momentumFluxVector} & amu \AA$^{-1}$ fs$^{-2}$ & specify the momentum flux when
 {\tt Pvector} is part of the exchange & Vector3d input\\
 {\tt angularMomentumFlux} & amu fs$^{-2}$ & specify the angular momentum flux  & for concentric exchange \\
